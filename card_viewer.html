@@ -120,12 +120,9 @@
             height: var(--card-h);
             background: #111317;
             cursor: pointer;
-            transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+            perspective: 1000px; /* 3D Camera Perspective */
+            transform-style: preserve-3d;
             will-change: transform;
-        }
-        .card-wrapper:active {
-            transform: scale(0.985);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.9);
         }
         .card-tap-pulse {
             animation: cardPulse 0.4s ease-out;
@@ -136,13 +133,15 @@
             100% { transform: scale(1.0); }
         }
         
-        /* The Card Image Background */
+        /* The Card Image Background (Rotated in 3D Space) */
         .card {
             position: relative;
             width: 100%;
             height: 100%;
             user-select: none;
             overflow: hidden;
+            transform-style: preserve-3d;
+            will-change: transform;
         }
         .card-layer-bg {
             position: absolute;
@@ -154,8 +153,8 @@
             background-position: center;
             background-repeat: no-repeat;
             z-index: 1;
-            /* Ambient background slow zoom loop */
-            animation: idleZoomBg 16s ease-in-out infinite alternate;
+            /* Ambient background slow zoom loop (Cubic Bezier breathing curve) */
+            animation: idleZoomBg 16s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
             will-change: transform;
         }
         .card-layer-char {
@@ -168,8 +167,8 @@
             background-position: center;
             background-repeat: no-repeat;
             z-index: 2;
-            /* Ambient character slow floating loop */
-            animation: idleFloatChar 6s ease-in-out infinite alternate;
+            /* Ambient character slow floating loop (Cubic Bezier floating curve) */
+            animation: idleFloatChar 6s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
             will-change: transform, filter, opacity;
             transform-origin: center bottom;
         }
@@ -194,7 +193,8 @@
 
         /* --- Tap Action Single Shots --- */
         .card-layer-char.action-werewolf {
-            animation: actWerewolf 0.45s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            /* Anticipation (Tension pull-back) curves */
+            animation: actWerewolf 0.55s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
         }
         .card-layer-char.action-magician {
             animation: actMagician 0.6s ease-in-out forwards;
@@ -211,7 +211,8 @@
 
         @keyframes actWerewolf {
             0% { transform: translateY(-4px) scale(1.01); }
-            30% { transform: translateY(24px) scale(1.18) rotate(-1.5deg); }
+            22% { transform: translateY(-14px) scale(0.97) rotate(0.8deg); } /* Anticipation: pull back/shrink before strike */
+            50% { transform: translateY(28px) scale(1.18) rotate(-1.5deg); } /* Strike: leap forward */
             100% { transform: translateY(0) scale(1.0); }
         }
         @keyframes actMagician {
@@ -826,8 +827,78 @@
             });
         }
 
+        function init3DParallax() {
+            const cardWrapper = document.getElementById("card-wrapper");
+            const cardBg = document.getElementById("card-bg");
+            const layerBg = document.getElementById("layer-bg");
+            const layerChar = document.getElementById("layer-char");
+            
+            if (!cardWrapper || !cardBg) return;
+            
+            const handleMove = (e) => {
+                if (isAnimating) return; // Disable parallax during tap attack to prevent jumps
+                
+                // Pause ambient animations during active 3D hover
+                layerBg.style.animationPlayState = "paused";
+                layerChar.style.animationPlayState = "paused";
+                
+                const rect = cardWrapper.getBoundingClientRect();
+                
+                let clientX = e.clientX;
+                let clientY = e.clientY;
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                }
+                
+                // Relative coordinates from center (-0.5 to +0.5)
+                const x = (clientX - rect.left) / rect.width - 0.5;
+                const y = (clientY - rect.top) / rect.height - 0.5;
+                
+                // Tilt card wrapper (max 8 degrees)
+                const tiltX = -y * 16;
+                const tiltY = x * 16;
+                
+                cardBg.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+                
+                // Background shifts slightly opposite to mouse, Character shifts with mouse
+                layerBg.style.transform = `scale(1.04) translate(${x * -16}px, ${y * -16}px)`;
+                layerChar.style.transform = `translate(${x * 20}px, ${y * 12}px)`;
+            };
+            
+            const handleLeave = () => {
+                // Smooth transition reset
+                cardBg.style.transition = "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)";
+                cardBg.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg)";
+                
+                layerBg.style.transition = "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)";
+                layerBg.style.transform = "scale(1.04) translate(0px, 0px)";
+                
+                layerChar.style.transition = "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)";
+                layerChar.style.transform = "translate(0px, 0px)";
+                
+                // Resume ambient loops
+                layerBg.style.animationPlayState = "running";
+                layerChar.style.animationPlayState = "running";
+            };
+            
+            const handleEnter = () => {
+                cardBg.style.transition = "none";
+                layerBg.style.transition = "none";
+                layerChar.style.transition = "none";
+            };
+            
+            cardWrapper.addEventListener("mousemove", handleMove);
+            cardWrapper.addEventListener("mouseleave", handleLeave);
+            cardWrapper.addEventListener("mouseenter", handleEnter);
+            
+            cardWrapper.addEventListener("touchmove", handleMove, { passive: true });
+            cardWrapper.addEventListener("touchend", handleLeave);
+        }
+
         window.onload = () => {
             updateCard();
+            init3DParallax();
         };
     </script>
 </body>
