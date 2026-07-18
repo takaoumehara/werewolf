@@ -374,6 +374,7 @@
             <select id="version-select" onchange="updateCard()">
                 <option value="raw-illustrations-72-a">Ver.A (フラット背景)</option>
                 <option value="raw-illustrations-72-a2">Ver.A2 (背景描き込み)</option>
+                <option value="videos-72">Ver.A2 (動画ループ背景)</option>
             </select>
         </div>
         <div class="control-group">
@@ -381,6 +382,13 @@
             <div class="lang-switch">
                 <div class="lang-btn active" id="btn-ja" onclick="setLanguage('ja')">日本語 (JA)</div>
                 <div class="lang-btn" id="btn-en" onclick="setLanguage('en')">English (EN)</div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label>アニメーション:</label>
+            <div class="lang-switch">
+                <div class="lang-btn active" id="btn-anim-on" onclick="setAnimation(true)">ON</div>
+                <div class="lang-btn" id="btn-anim-off" onclick="setAnimation(false)">OFF</div>
             </div>
         </div>
         <div class="control-group" id="gyro-control-group" style="display: none;">
@@ -398,6 +406,8 @@
             <div class="card-layer-bg" id="layer-bg"></div>
             <!-- Dynamic Layer 2: Character (Transparent PNG) -->
             <div class="card-layer-char" id="layer-char"></div>
+            <!-- Dynamic Layer 1.5: Video Loop (For MP4 animated cards) -->
+            <video class="card-layer-video" id="layer-video" autoplay loop muted playsinline style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1.8; pointer-events: none;"></video>
             
             <!-- Left-Top Vertical Japanese (Visible in JA mode) -->
             <div class="role-name-japanese" id="role-jp"></div>
@@ -677,11 +687,37 @@
                 bgId = "knights";
             }
             
+            const layerVideo = document.getElementById("layer-video");
+            
+            // Reset video by default
+            layerVideo.style.display = "none";
+            try {
+                layerVideo.pause();
+            } catch(e) {}
+            
             if (versionSelect === "raw-illustrations-72-a") {
                 // Ver.A: フラット背景（元のイラストをそのまま1枚絵として layer-bg に設定）
                 let imgId = currentRole.id === "knights_b" ? "knights" : currentRole.id;
                 layerBg.style.backgroundImage = `url('raw-illustrations-72-a/${imgId}_ver_a.png')`;
                 layerChar.style.display = "none";
+            } else if (versionSelect === "videos-72") {
+                // Ver.A2 Video edition (Only Werewolf, Magician, Bodyguard have compiled loop videos for now)
+                const videoRoles = ["werewolf", "magician", "bodyguard"];
+                if (videoRoles.includes(currentRole.id)) {
+                    // Play native loop MP4 video
+                    layerVideo.src = `videos-72/${currentRole.id}.mp4`;
+                    layerVideo.style.display = "block";
+                    layerVideo.play().catch(err => console.log("Autoplay prevented:", err));
+                    
+                    // Hide static elements
+                    layerChar.style.display = "none";
+                    layerBg.style.backgroundImage = "none";
+                } else {
+                    // Fallback to static A2 layered view for unsupported video roles
+                    layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
+                    layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charId}_ver_a.png')`;
+                    layerChar.style.display = "block";
+                }
             } else {
                 // Ver.A2: レイヤード合成エディション（背景のみ画像 + 透過キャラクター画像）
                 layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
@@ -793,9 +829,46 @@
         }
 
         let isAnimating = false;
+        let isAnimationEnabled = true;
+        
+        function setAnimation(enabled) {
+            isAnimationEnabled = enabled;
+            document.getElementById("btn-anim-on").className = `lang-btn ${enabled ? 'active' : ''}`;
+            document.getElementById("btn-anim-off").className = `lang-btn ${!enabled ? 'active' : ''}`;
+            
+            const layerBg = document.getElementById("layer-bg");
+            const layerChar = document.getElementById("layer-char");
+            
+            if (!enabled) {
+                // Disable all CSS animations and reset parallax transforms
+                layerBg.style.animation = "none";
+                layerChar.style.animation = "none";
+                resetParallax();
+                
+                // Hide gyro controls if disabled
+                document.getElementById("gyro-control-group").style.display = "none";
+                if (isGyroActive) {
+                    isGyroActive = false;
+                    window.removeEventListener("deviceorientation", handleGyroMove);
+                    const btn = document.getElementById("btn-gyro");
+                    btn.classList.remove("active");
+                    btn.textContent = "有効化 (OFF)";
+                }
+            } else {
+                // Restore animations
+                layerBg.style.animation = "";
+                layerChar.style.animation = "";
+                
+                // Restore gyro group if mobile
+                const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+                if (isMobile) {
+                    document.getElementById("gyro-control-group").style.display = "block";
+                }
+            }
+        }
         
         function triggerTapAction() {
-            if (isAnimating) return;
+            if (!isAnimationEnabled || isAnimating) return;
             
             const selectVal = document.getElementById("role-select").value;
             const versionSelect = document.getElementById("version-select").value;
@@ -966,7 +1039,7 @@
             
             // Detect Mobile to show gyro controls
             const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
-            if (isMobile) {
+            if (isMobile && isAnimationEnabled) {
                 document.getElementById("gyro-control-group").style.display = "block";
             }
             
@@ -975,7 +1048,7 @@
             let isDragging = false;
             
             const handleTouchStart = (e) => {
-                if (isAnimating || isGyroActive) return;
+                if (!isAnimationEnabled || isAnimating || isGyroActive) return;
                 isDragging = true;
                 
                 const touch = e.touches[0];
@@ -992,7 +1065,7 @@
             };
             
             const handleTouchMove = (e) => {
-                if (!isDragging || isAnimating || isGyroActive) return;
+                if (!isAnimationEnabled || !isDragging || isAnimating || isGyroActive) return;
                 
                 const touch = e.touches[0];
                 const rect = cardWrapper.getBoundingClientRect();
@@ -1018,13 +1091,13 @@
             
             const handleTouchEnd = () => {
                 isDragging = false;
-                if (isGyroActive) return;
+                if (!isAnimationEnabled || isGyroActive) return;
                 resetParallax();
             };
             
             // PC Mouse Drag/Hover logic
             const handleMouseMove = (e) => {
-                if (isAnimating || isGyroActive) return;
+                if (!isAnimationEnabled || isAnimating || isGyroActive) return;
                 
                 layerBg.style.animationPlayState = "paused";
                 layerChar.style.animationPlayState = "paused";
