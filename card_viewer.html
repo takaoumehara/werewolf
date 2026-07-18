@@ -119,6 +119,21 @@
             width: var(--card-w);
             height: var(--card-h);
             background: #111317;
+            cursor: pointer;
+            transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+            will-change: transform;
+        }
+        .card-wrapper:active {
+            transform: scale(0.985);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.9);
+        }
+        .card-tap-pulse {
+            animation: cardPulse 0.4s ease-out;
+        }
+        @keyframes cardPulse {
+            0% { transform: scale(1.0); }
+            30% { transform: scale(0.97); }
+            100% { transform: scale(1.0); }
         }
         
         /* The Card Image Background */
@@ -139,6 +154,9 @@
             background-position: center;
             background-repeat: no-repeat;
             z-index: 1;
+            /* Ambient background slow zoom loop */
+            animation: idleZoomBg 16s ease-in-out infinite alternate;
+            will-change: transform;
         }
         .card-layer-char {
             position: absolute;
@@ -150,6 +168,72 @@
             background-position: center;
             background-repeat: no-repeat;
             z-index: 2;
+            /* Ambient character slow floating loop */
+            animation: idleFloatChar 6s ease-in-out infinite alternate;
+            will-change: transform, filter, opacity;
+            transform-origin: center bottom;
+        }
+
+        /* --- Ambient Idle Loops --- */
+        @keyframes idleFloatChar {
+            0% {
+                transform: translateY(0) scale(1.0);
+            }
+            100% {
+                transform: translateY(-8px) scale(1.025);
+            }
+        }
+        @keyframes idleZoomBg {
+            0% {
+                transform: scale(1.0);
+            }
+            100% {
+                transform: scale(1.04);
+            }
+        }
+
+        /* --- Tap Action Single Shots --- */
+        .card-layer-char.action-werewolf {
+            animation: actWerewolf 0.45s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        .card-layer-char.action-magician {
+            animation: actMagician 0.6s ease-in-out forwards;
+        }
+        .card-layer-char.action-mysterious_fox {
+            animation: actFox 0.5s ease-in-out forwards;
+        }
+        .card-layer-char.action-bodyguard {
+            animation: actBodyguard 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .card-layer-char.action-generic {
+            animation: actGeneric 0.4s ease-out forwards;
+        }
+
+        @keyframes actWerewolf {
+            0% { transform: translateY(-4px) scale(1.01); }
+            30% { transform: translateY(24px) scale(1.18) rotate(-1.5deg); }
+            100% { transform: translateY(0) scale(1.0); }
+        }
+        @keyframes actMagician {
+            0% { transform: translateY(-4px) scale(1.01) rotateY(0deg); }
+            50% { transform: translateY(-16px) scale(1.08) rotateY(15deg); }
+            100% { transform: translateY(0) scale(1.0) rotateY(0deg); }
+        }
+        @keyframes actFox {
+            0% { transform: translateY(-4px) scale(1.01); opacity: 1; filter: blur(0px); }
+            25% { transform: translateY(-4px) scale(1.01) translateX(-18px); opacity: 0.3; filter: blur(1.5px); }
+            60% { transform: translateY(-4px) scale(1.01) translateX(18px); opacity: 0.3; filter: blur(1.5px); }
+            100% { transform: translateY(0) scale(1.0); opacity: 1; filter: blur(0px); }
+        }
+        @keyframes actBodyguard {
+            0% { transform: translateY(-4px) scale(1.01); }
+            30% { transform: translate(-20px, 12px) scale(1.08); }
+            100% { transform: translateY(0) scale(1.0); }
+        }
+        @keyframes actGeneric {
+            0% { transform: translateY(-4px) scale(1.01); }
+            40% { transform: translateY(-4px) scale(1.06); }
+            100% { transform: translateY(0) scale(1.0); }
         }
         
         /* --- Japanese Mode: Left-Top Vertical Japanese Text (No Outline, Flat White, LINE Seed JP Bold) --- */
@@ -298,7 +382,7 @@
     </div>
 
     <!-- The 9:16 Smartphone Card -->
-    <div class="card-wrapper" id="card-wrapper">
+    <div class="card-wrapper" id="card-wrapper" onclick="triggerTapAction()">
         <div class="card" id="card-bg">
             <!-- Dynamic Layer 1: Background -->
             <div class="card-layer-bg" id="layer-bg"></div>
@@ -696,6 +780,50 @@
             }
             select.selectedIndex = newIndex;
             updateCard();
+        }
+
+        let isAnimating = false;
+        
+        function triggerTapAction() {
+            if (isAnimating) return;
+            
+            const selectVal = document.getElementById("role-select").value;
+            const versionSelect = document.getElementById("version-select").value;
+            
+            // Only trigger character action in layered A2 mode
+            if (versionSelect !== "raw-illustrations-72-a2") return;
+            
+            isAnimating = true;
+            const layerChar = document.getElementById("layer-char");
+            const cardWrapper = document.getElementById("card-wrapper");
+            
+            // Determine action CSS class based on role ID
+            let actionClass = "action-generic";
+            if (selectVal === "werewolf" || selectVal === "lone_wolf" || selectVal === "werewolf_child") {
+                actionClass = "action-werewolf";
+            } else if (selectVal === "magician") {
+                actionClass = "action-magician";
+            } else if (selectVal === "mysterious_fox") {
+                actionClass = "action-mysterious_fox";
+            } else if (selectVal === "bodyguard" || selectVal === "knights" || selectVal === "knights_b") {
+                actionClass = "action-bodyguard";
+            }
+            
+            // Pause ambient loop, force browser layout reflow, then apply action
+            layerChar.style.animation = "none";
+            void layerChar.offsetWidth; // Reflow trigger
+            
+            layerChar.classList.add(actionClass);
+            cardWrapper.classList.add("card-tap-pulse");
+            
+            // Listen for single shot animation completion to clean up
+            layerChar.addEventListener("animationend", function handler() {
+                layerChar.classList.remove(actionClass);
+                cardWrapper.classList.remove("card-tap-pulse");
+                layerChar.style.animation = ""; // Restore ambient loop float
+                isAnimating = false;
+                layerChar.removeEventListener("animationend", handler);
+            });
         }
 
         window.onload = () => {
