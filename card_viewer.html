@@ -173,21 +173,24 @@
             transform-origin: center bottom;
         }
 
-        /* --- Ambient Idle Loops --- */
+        /* --- Ambient Idle Loops (Super Natural Floating, No Mechanical Zoom) --- */
         @keyframes idleFloatChar {
             0% {
-                transform: translateY(0) scale(1.0);
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-4px) rotate(0.15deg) translateX(0.5px);
             }
             100% {
-                transform: translateY(-8px) scale(1.025);
+                transform: translateY(-7px) rotate(-0.15deg) translateX(-0.5px);
             }
         }
         @keyframes idleZoomBg {
             0% {
-                transform: scale(1.0);
+                transform: scale(1.0) translate(0, 0);
             }
             100% {
-                transform: scale(1.04);
+                transform: scale(1.012) translate(-1px, 0.8px);
             }
         }
 
@@ -378,6 +381,12 @@
             <div class="lang-switch">
                 <div class="lang-btn active" id="btn-ja" onclick="setLanguage('ja')">日本語 (JA)</div>
                 <div class="lang-btn" id="btn-en" onclick="setLanguage('en')">English (EN)</div>
+            </div>
+        </div>
+        <div class="control-group" id="gyro-control-group" style="display: none;">
+            <label>3D傾きセンサー:</label>
+            <div class="lang-switch">
+                <div class="lang-btn" id="btn-gyro" onclick="toggleGyro()">有効化 (OFF)</div>
             </div>
         </div>
     </div>
@@ -827,6 +836,126 @@
             });
         }
 
+        let isGyroActive = false;
+        let baseBeta = null;
+        let baseGamma = null;
+
+        function toggleGyro() {
+            const btn = document.getElementById("btn-gyro");
+            if (isGyroActive) {
+                // Disable
+                window.removeEventListener("deviceorientation", handleGyroMove);
+                isGyroActive = false;
+                btn.classList.remove("active");
+                btn.textContent = "有効化 (OFF)";
+                resetParallax();
+            } else {
+                // Request Permission (Required for iOS 13+)
+                if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(response => {
+                            if (response === "granted") {
+                                enableGyro();
+                            } else {
+                                alert("ジャイロセンサーの使用許可が拒否されました。");
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert("センサーの初期化に失敗しました。");
+                        });
+                } else {
+                    // Standard Android/PC
+                    enableGyro();
+                }
+            }
+        }
+
+        function enableGyro() {
+            const btn = document.getElementById("btn-gyro");
+            isGyroActive = true;
+            baseBeta = null;
+            baseGamma = null;
+            btn.classList.add("active");
+            btn.textContent = "有効化 (ON)";
+            window.addEventListener("deviceorientation", handleGyroMove);
+        }
+
+        function handleGyroMove(e) {
+            if (isAnimating) return;
+            
+            const cardBg = document.getElementById("card-bg");
+            const layerBg = document.getElementById("layer-bg");
+            const layerChar = document.getElementById("layer-char");
+            
+            if (!cardBg || !layerBg || !layerChar) return;
+            
+            // Set base orientation calibration on first read
+            if (baseBeta === null) {
+                baseBeta = e.beta;
+                baseGamma = e.gamma;
+                return;
+            }
+            
+            // Calculate delta relative to starting position, clamp within safe limits
+            let deltaBeta = e.beta - baseBeta;
+            let deltaGamma = e.gamma - baseGamma;
+            
+            // Clamping to a max of 20 degrees
+            deltaBeta = Math.max(-20, Math.min(20, deltaBeta));
+            deltaGamma = Math.max(-20, Math.min(20, deltaGamma));
+            
+            // Map rotation directly (Beta controls rotateX, Gamma controls rotateY)
+            const tiltX = deltaBeta * 0.7; // Sensitivity modifier
+            const tiltY = -deltaGamma * 0.7;
+            
+            // Convert to relative ratio (-0.5 to 0.5) for translation parallax
+            const ratioX = deltaGamma / 40;
+            const ratioY = deltaBeta / 40;
+            
+            // Pause ambient loop
+            layerBg.style.animationPlayState = "paused";
+            layerChar.style.animationPlayState = "paused";
+            
+            // Smooth tilt
+            cardBg.style.transition = "transform 0.15s ease-out";
+            cardBg.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+            
+            layerBg.style.transition = "transform 0.15s ease-out";
+            layerBg.style.transform = `scale(1.012) translate(${ratioX * -18}px, ${ratioY * -18}px)`;
+            
+            layerChar.style.transition = "transform 0.15s ease-out";
+            layerChar.style.transform = `translate(${ratioX * 22}px, ${ratioY * 14}px)`;
+        }
+
+        function resetParallax() {
+            const cardBg = document.getElementById("card-bg");
+            const layerBg = document.getElementById("layer-bg");
+            const layerChar = document.getElementById("layer-char");
+            
+            if (!cardBg || !layerBg || !layerChar) return;
+            
+            // Springy bounce-back physics easing on release
+            const springEasing = "transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+            
+            cardBg.style.transition = springEasing;
+            cardBg.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg)";
+            
+            layerBg.style.transition = springEasing;
+            layerBg.style.transform = "scale(1.012) translate(0px, 0px)";
+            
+            layerChar.style.transition = springEasing;
+            layerChar.style.transform = "translate(0px, 0px)";
+            
+            // Safely resume loops after bounce completes
+            setTimeout(() => {
+                if (!isGyroActive) {
+                    layerBg.style.animationPlayState = "running";
+                    layerChar.style.animationPlayState = "running";
+                }
+            }, 600);
+        }
+
         function init3DParallax() {
             const cardWrapper = document.getElementById("card-wrapper");
             const cardBg = document.getElementById("card-bg");
@@ -835,65 +964,104 @@
             
             if (!cardWrapper || !cardBg) return;
             
-            const handleMove = (e) => {
-                if (isAnimating) return; // Disable parallax during tap attack to prevent jumps
+            // Detect Mobile to show gyro controls
+            const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+            if (isMobile) {
+                document.getElementById("gyro-control-group").style.display = "block";
+            }
+            
+            let startX = 0;
+            let startY = 0;
+            let isDragging = false;
+            
+            const handleTouchStart = (e) => {
+                if (isAnimating || isGyroActive) return;
+                isDragging = true;
                 
-                // Pause ambient animations during active 3D hover
+                const touch = e.touches[0];
+                const rect = cardWrapper.getBoundingClientRect();
+                startX = touch.clientX - rect.left - rect.width / 2;
+                startY = touch.clientY - rect.top - rect.height / 2;
+                
+                cardBg.style.transition = "none";
+                layerBg.style.transition = "none";
+                layerChar.style.transition = "none";
+                
+                layerBg.style.animationPlayState = "paused";
+                layerChar.style.animationPlayState = "paused";
+            };
+            
+            const handleTouchMove = (e) => {
+                if (!isDragging || isAnimating || isGyroActive) return;
+                
+                const touch = e.touches[0];
+                const rect = cardWrapper.getBoundingClientRect();
+                
+                // Get offset from center (-0.5 to +0.5)
+                const offsetX = (touch.clientX - rect.left) / rect.width - 0.5;
+                const offsetY = (touch.clientY - rect.top) / rect.height - 0.5;
+                
+                // Clamp coordinates to keep rotation safe
+                const x = Math.max(-0.5, Math.min(0.5, offsetX));
+                const y = Math.max(-0.5, Math.min(0.5, offsetY));
+                
+                // Rotation angle (up to 12 degrees for dynamic mobile touch feedback)
+                const tiltX = -y * 22;
+                const tiltY = x * 22;
+                
+                cardBg.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(0.975)`; // Shrink slightly to feel pressed
+                
+                // Parallel layered shift
+                layerBg.style.transform = `scale(1.012) translate(${x * -20}px, ${y * -20}px)`;
+                layerChar.style.transform = `translate(${x * 24}px, ${y * 14}px)`;
+            };
+            
+            const handleTouchEnd = () => {
+                isDragging = false;
+                if (isGyroActive) return;
+                resetParallax();
+            };
+            
+            // PC Mouse Drag/Hover logic
+            const handleMouseMove = (e) => {
+                if (isAnimating || isGyroActive) return;
+                
                 layerBg.style.animationPlayState = "paused";
                 layerChar.style.animationPlayState = "paused";
                 
                 const rect = cardWrapper.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
                 
-                let clientX = e.clientX;
-                let clientY = e.clientY;
-                if (e.touches && e.touches.length > 0) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                }
-                
-                // Relative coordinates from center (-0.5 to +0.5)
-                const x = (clientX - rect.left) / rect.width - 0.5;
-                const y = (clientY - rect.top) / rect.height - 0.5;
-                
-                // Tilt card wrapper (max 8 degrees)
                 const tiltX = -y * 16;
                 const tiltY = x * 16;
                 
                 cardBg.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-                
-                // Background shifts slightly opposite to mouse, Character shifts with mouse
-                layerBg.style.transform = `scale(1.04) translate(${x * -16}px, ${y * -16}px)`;
+                layerBg.style.transform = `scale(1.012) translate(${x * -16}px, ${y * -16}px)`;
                 layerChar.style.transform = `translate(${x * 20}px, ${y * 12}px)`;
             };
             
-            const handleLeave = () => {
-                // Smooth transition reset
-                cardBg.style.transition = "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)";
-                cardBg.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg)";
-                
-                layerBg.style.transition = "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)";
-                layerBg.style.transform = "scale(1.04) translate(0px, 0px)";
-                
-                layerChar.style.transition = "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)";
-                layerChar.style.transform = "translate(0px, 0px)";
-                
-                // Resume ambient loops
-                layerBg.style.animationPlayState = "running";
-                layerChar.style.animationPlayState = "running";
-            };
-            
-            const handleEnter = () => {
+            const handleMouseEnter = () => {
+                if (isGyroActive) return;
                 cardBg.style.transition = "none";
                 layerBg.style.transition = "none";
                 layerChar.style.transition = "none";
             };
             
-            cardWrapper.addEventListener("mousemove", handleMove);
-            cardWrapper.addEventListener("mouseleave", handleLeave);
-            cardWrapper.addEventListener("mouseenter", handleEnter);
+            const handleMouseLeave = () => {
+                if (isGyroActive) return;
+                resetParallax();
+            };
             
-            cardWrapper.addEventListener("touchmove", handleMove, { passive: true });
-            cardWrapper.addEventListener("touchend", handleLeave);
+            // Touch Bindings (Direct Drag-to-Tilt吸い付き)
+            cardWrapper.addEventListener("touchstart", handleTouchStart, { passive: true });
+            cardWrapper.addEventListener("touchmove", handleTouchMove, { passive: true });
+            cardWrapper.addEventListener("touchend", handleTouchEnd);
+            
+            // Mouse Bindings
+            cardWrapper.addEventListener("mousemove", handleMouseMove);
+            cardWrapper.addEventListener("mouseenter", handleMouseEnter);
+            cardWrapper.addEventListener("mouseleave", handleMouseLeave);
         }
 
         window.onload = () => {
