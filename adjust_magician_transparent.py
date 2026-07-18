@@ -2,12 +2,12 @@ import os
 import math
 from PIL import Image, ImageFilter
 
-src_path = "/Users/takao/Documents/00_Product_Develpment/Game/人狼ゲーム/raw-illustrations-72-a/bodyguard_ver_a.png"
-dst_path = "/Users/takao/Documents/00_Product_Develpment/Game/人狼ゲーム/raw-illustrations-transparent-72/bodyguard_ver_a.png"
+src_path = "/Users/takao/Documents/00_Product_Develpment/Game/人狼ゲーム/raw-illustrations-72-a/magician_ver_a.png"
+dst_path = "/Users/takao/Documents/00_Product_Develpment/Game/人狼ゲーム/raw-illustrations-transparent-72/magician_ver_a.png"
 
-def adjust_bodyguard():
+def adjust_magician():
     if not os.path.exists(src_path):
-        print(f"Error: Original bodyguard image not found: {src_path}")
+        print(f"Error: Original magician image not found: {src_path}")
         return
         
     img = Image.open(src_path)
@@ -19,7 +19,7 @@ def adjust_bodyguard():
     bg_color = img.getpixel((15, 15))
     bg_r, bg_g, bg_b = bg_color
     
-    # 2. Extract original character to a temporary RGBA image
+    # 2. Extract character to RGBA
     rgba_img = Image.new('RGBA', (width, height), (0, 0, 0, 0))
     rgba_data = rgba_img.load()
     img_data = img.load()
@@ -43,23 +43,18 @@ def adjust_bodyguard():
     a_ch = a_ch.filter(ImageFilter.GaussianBlur(0.8))
     char_extracted = Image.merge('RGBA', (r_ch, g_ch, b_ch, a_ch))
     
-    # 3. Zoom character slightly (e.g. 8% upscale) as requested by user ("少し画像を拡大してもいいです その分だけ")
-    zoom_factor = 1.08
-    new_w = int(width * zoom_factor)
-    new_h = int(height * zoom_factor)
-    char_zoomed = char_extracted.resize((new_w, new_h), Image.Resampling.LANCZOS)
-    
-    # 4. Paste the zoomed character shifted down by 15% onto a clean transparent canvas
+    # 3. Paste the character onto a clean canvas shifted RIGHT by 8%
+    # This moves the purple glowing orb away from the left vertical Japanese title
     final_canvas = Image.new('RGBA', (width, height), (0, 0, 0, 0))
     
-    # Center horizontally, shift down by 15% vertically
-    paste_x = (width - new_w) // 2
-    shift_y = int(height * 0.05) # Reduced from 15% to 5% (raising it up by 10% as requested)
-    paste_y = paste_x + shift_y # Adjust vertical offset taking zoom scale into account
+    # Center horizontally + shift right by 8%
+    shift_x = int(width * 0.08)
+    paste_x = (width - width) // 2 + shift_x
+    paste_y = 0
     
-    final_canvas.paste(char_zoomed, (paste_x, paste_y), char_zoomed)
+    final_canvas.paste(char_extracted, (paste_x, paste_y), char_extracted)
     final_canvas.save(dst_path, "PNG")
-    print(f"Successfully zoomed and shifted Bodyguard by 5% to raise it higher: {dst_path}")
+    print(f"Successfully shifted Magician RIGHT by 8% to clear text overlap: {dst_path}")
 
 if __name__ == "__main__":
-    adjust_bodyguard()
+    adjust_magician()
