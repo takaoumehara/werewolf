@@ -173,14 +173,6 @@
             transform-origin: center bottom;
         }
 
-        .card-layer-face-video {
-            position: absolute;
-            z-index: 2.5;
-            display: none;
-            pointer-events: none;
-            object-fit: cover;
-        }
-
         /* --- Ambient Idle Loops (Super Natural Floating, No Mechanical Zoom) --- */
         @keyframes idleFloatChar {
             0% {
@@ -382,7 +374,6 @@
             <select id="version-select" onchange="updateCard()">
                 <option value="raw-illustrations-72-a">Ver.A (フラット背景)</option>
                 <option value="raw-illustrations-72-a2">Ver.A2 (背景描き込み)</option>
-                <option value="videos-72">Ver.A2 (動画ループ背景)</option>
             </select>
         </div>
         <div class="control-group">
@@ -413,12 +404,7 @@
             <!-- Dynamic Layer 1: Background -->
             <div class="card-layer-bg" id="layer-bg"></div>
             <!-- Dynamic Layer 2: Character (Transparent PNG) -->
-            <div class="card-layer-char" id="layer-char">
-                <!-- Dynamic Layer 2.2: Face Video Loop (For hybrid high-fidelity animation) -->
-                <video class="card-layer-face-video" id="layer-face-video" autoplay loop muted playsinline style="display: none; position: absolute; pointer-events: none;"></video>
-            </div>
-            <!-- Dynamic Layer 1.5: Video Loop (For MP4 animated cards) -->
-            <video class="card-layer-video" id="layer-video" autoplay loop muted playsinline style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1.8; pointer-events: none;"></video>
+            <div class="card-layer-char" id="layer-char"></div>
             
             <!-- Left-Top Vertical Japanese (Visible in JA mode) -->
             <div class="role-name-japanese" id="role-jp"></div>
@@ -698,58 +684,19 @@
                 bgId = "knights";
             }
             
-            const layerVideo = document.getElementById("layer-video");
-            const layerFaceVideo = document.getElementById("layer-face-video");
-            
-            // Reset videos by default
-            layerVideo.style.display = "none";
-            layerFaceVideo.style.display = "none";
-            try {
-                layerVideo.pause();
-                layerFaceVideo.pause();
-            } catch(e) {}
-            
             if (versionSelect === "raw-illustrations-72-a") {
                 // Ver.A: フラット背景（元のイラストをそのまま1枚絵として layer-bg に設定）
                 let imgId = currentRole.id === "knights_b" ? "knights" : currentRole.id;
                 layerBg.style.backgroundImage = `url('raw-illustrations-72-a/${imgId}_ver_a.png')`;
                 layerChar.style.display = "none";
-            } else if (versionSelect === "videos-72") {
-                // Ver.A2 Video edition
-                if (currentRole.id === "werewolf") {
-                    // Load Hybrid High-Fidelity Loop (Static Body + Moving Face Video)
-                    layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
-                    layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charId}_ver_a.png')`;
-                    layerChar.style.display = "block";
-                    
-                    // Absolute positioning for werewolf face loop
-                    layerFaceVideo.src = "videos-72/werewolf_face_loop.mp4";
-                    layerFaceVideo.style.left = "23.4375%";
-                    layerFaceVideo.style.top = "3.7202%";
-                    layerFaceVideo.style.width = "52.0833%";
-                    layerFaceVideo.style.height = "38.6904%";
-                    layerFaceVideo.style.display = "block";
-                    layerFaceVideo.play().catch(err => console.log("Autoplay prevented:", err));
-                } else if (currentRole.id === "magician" || currentRole.id === "bodyguard") {
-                    // Fallback to full screen loops for magician / bodyguard for now
-                    layerVideo.src = `videos-72/${currentRole.id}.mp4`;
-                    layerVideo.style.display = "block";
-                    layerVideo.play().catch(err => console.log("Autoplay prevented:", err));
-                    
-                    layerChar.style.display = "none";
-                    layerBg.style.backgroundImage = "none";
-                } else {
-                    // Fallback to static A2 layered view for unsupported video roles
-                    layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
-                    layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charId}_ver_a.png')`;
-                    layerChar.style.display = "block";
-                }
             } else {
                 // Ver.A2: レイヤード合成エディション（背景のみ画像 + 透過キャラクター画像）
                 layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
                 layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charId}_ver_a.png')`;
                 layerChar.style.display = "block";
             }
+            
+
             
             // Icon Mapping from gz/ folder (png format)
             let iconName = currentRole.camp;
