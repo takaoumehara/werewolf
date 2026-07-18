@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Wolf Ears (Left & Right) -->
+  <path d="M 16 35 L 35 15 L 48 32 M 84 35 L 65 15 L 52 32" fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" />
+  <!-- Wolf Face Outline with Fluffy Cheeks -->
+  <path d="M 16 35 L 21 58 L 33 53 L 50 82 L 67 53 L 79 58 L 84 35" fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" />
+  <!-- Sharp Angled Werewolf Eyes -->
+  <polygon points="30,45 42,41 38,49" fill="#ffffff" />
+  <polygon points="70,45 58,41 62,49" fill="#ffffff" />
+  <!-- Wolf Nose -->
+  <circle cx="50" cy="63" r="4.5" fill="#ffffff" />
+</svg>

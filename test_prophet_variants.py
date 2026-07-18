@@ -1,0 +1,178 @@
+import os
+import sys
+import time
+import requests
+import json
+from generate_cards import overlay_card_labels
+
+API_KEY = "f42bc196113ea943377f64713e5aebf2"
+API_URL = "https://api.kie.ai/api/v1"
+
+HEADERS = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
+}
+
+RAW_DIR = "/Users/takao/Documents/00_Product_Develpment/Game/人狼ゲーム/test-prophet-raw"
+OUT_DIR = "/Users/takao/Documents/00_Product_Develpment/Game/人狼ゲーム/test-prophet-variants"
+
+os.makedirs(RAW_DIR, exist_ok=True)
+os.makedirs(OUT_DIR, exist_ok=True)
+
+# 3 Different artistic variants of the Prophet inspired by Araki-style fashion posing and ink hatching, with no woodcut/risograph textures.
+prophet_variants = [
+    {
+        "id": "prophet_ver_a", 
+        "jp": "予言者 A", 
+        "en": "Prophet Ver.A", 
+        "prompt": "A stylized hand-drawn high-fashion graphic art of a wise old prophet with a long white beard, posing dramatically in a signature twisted stand stance, hands near his face in an artistic gesture, holding a glowing green crystal sphere. Heavy pen-ink hatching, dark dramatic comic shadows on facial structure and clothes. Bold black ink outlines with G-pen pressure variation. Fashionable geometric patterns on his robe. Solid flat colors, limited color palette of emerald green, dark gray, and white. Absolutely no digital vector gradients, no 3D render, not anime, not realistic, full bleed. Aspect ratio 9:16."
+    },
+    {
+        "id": "prophet_ver_b", 
+        "jp": "予言者 B", 
+        "en": "Prophet Ver.B", 
+        "prompt": "A stylized hand-drawn high-fashion graphic art of an enigmatic old prophet with long white hair, standing in a dynamic fashion pose with one hand pointing dramatically forward and the other holding a small glowing book of secrets close to his chest. Intense sharp eyes with deep graphic eye-shadows and heavy pen hatching on his face. Bold hand-drawn ink contours. Vibrant flat colors with no gradients. Creative patterned modern robe design. Full bleed, no framing. Absolutely no digital vectors, not anime, not realistic. Aspect ratio 9:16."
+    },
+    {
+        "id": "prophet_ver_c", 
+        "jp": "予言者 C", 
+        "en": "Prophet Ver.C", 
+        "prompt": "A stylized hand-drawn high-fashion graphic art of a stylish old prophet with a long white beard, standing tall with a bold theatrical posture, one eye glowing green through a heavy diagonal ink-hatching shadow split across his face. Dynamic hand gesturing. Sleek dark cloak with decorative gold zipper details and patterns. High-contrast flat coloring. Bold, expressive ink pen strokes with raw hand-inked quality. No framing, full screen bleed. Absolutely not anime, not realistic, no digital smooth gradients. Aspect ratio 9:16."
+    }
+]
+
+def find_image_url(data):
+    if isinstance(data, str):
+        if data.startswith("http://") or data.startswith("https://"):
+            if any(ext in data.lower() for ext in [".png", ".jpg", ".jpeg", ".webp"]):
+                return data
+    elif isinstance(data, dict):
+        for val in data.values():
+            res = find_image_url(val)
+            if res:
+                return res
+    elif isinstance(data, list):
+        for val in data:
+            res = find_image_url(val)
+            if res:
+                return res
+    return None
+
+def submit_task(role):
+    print(f"Submitting Prophet variant task for {role['en']}...")
+    payload = {
+        "model": "flux-2/pro-text-to-image",
+        "input": {
+            "prompt": role["prompt"],
+            "aspect_ratio": "9:16",
+            "resolution": "1K"
+        }
+    }
+    try:
+        response = requests.post(f"{API_URL}/jobs/createTask", json=payload, headers=HEADERS, timeout=30)
+        res_json = response.json()
+        if response.status_code == 200 and res_json.get("code") == 200:
+            task_id = res_json.get("data", {}).get("taskId")
+            print(f"Submitted {role['en']}: Task ID = {task_id}")
+            return role["id"], task_id
+        else:
+            print(f"Error submitting {role['en']}: {res_json}")
+            return role["id"], None
+    except Exception as e:
+        print(f"HTTP Exception submitting {role['en']}: {e}")
+        return role["id"], None
+
+def check_task_status(task_id):
+    try:
+        response = requests.get(f"{API_URL}/jobs/recordInfo?taskId={task_id}", headers=HEADERS, timeout=15)
+        res_json = response.json()
+        if response.status_code == 200 and res_json.get("code") == 200:
+            data = res_json.get("data", {})
+            status = data.get("state")
+            result_json_str = data.get("resultJson")
+            url = None
+            if result_json_str:
+                try:
+                    result_data = json.loads(result_json_str)
+                    urls = result_data.get("resultUrls", [])
+                    if urls:
+                        url = urls[0]
+                except Exception:
+                    pass
+            if not url:
+                url = find_image_url(res_json)
+            return status, url
+        return "error", None
+    except Exception as e:
+        return "error_exception", None
+
+def download_image(url, save_path):
+    try:
+        r = requests.get(url, timeout=30)
+        if r.status_code == 200:
+            with open(save_path, 'wb') as f:
+                f.write(r.content)
+            return True
+    except Exception as e:
+        print(f"Download error: {e}")
+    return False
+
+def main():
+    task_map = {}
+    for role in prophet_variants:
+        role_id, task_id = submit_task(role)
+        if task_id:
+            task_map[role_id] = task_id
+        time.sleep(2.0)
+        
+    print("\nAll tasks submitted. Starting polling loop...")
+    
+    completed = {}
+    failed = []
+    start_time = time.time()
+    timeout = 300
+    
+    while len(completed) + len(failed) < len(task_map):
+        if time.time() - start_time > timeout:
+            print("Timeout!")
+            break
+            
+        time.sleep(10)
+        
+        for role_id, task_id in task_map.items():
+            if role_id in completed or role_id in failed:
+                continue
+                
+            status, url = check_task_status(task_id)
+            print(f"Variant {role_id} status: {status}")
+            
+            if status == "success":
+                if url:
+                    role_info = next(r for r in prophet_variants if r["id"] == role_id)
+                    save_path = os.path.join(RAW_DIR, f"{role_id}.png")
+                    print(f"Task {role_id} succeeded. Downloading...")
+                    if download_image(url, save_path):
+                        completed[role_id] = save_path
+                        print(f"Saved raw image to {save_path}")
+                        
+                        # Generate labeled card
+                        out_path = os.path.join(OUT_DIR, f"{role_id}.png")
+                        overlay_card_labels(save_path, out_path, role_info["jp"], role_info["en"])
+                    else:
+                        print(f"Download failed for {role_id}")
+                        failed.append(role_id)
+                else:
+                    print(f"No URL found for {role_id}")
+                    failed.append(role_id)
+            elif status in ["fail", "error"]:
+                print(f"Task {role_id} failed on KIE.AI side.")
+                failed.append(role_id)
+                
+        print(f"Progress: {len(completed)} completed, {len(failed)} failed out of {len(task_map)}")
+
+    print("\n--- Test Session Finished ---")
+    print(f"Succeeded: {len(completed)}")
+    print(f"Failed: {len(failed)}")
+
+if __name__ == "__main__":
+    main()

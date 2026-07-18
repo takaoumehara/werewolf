@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人狼ゲーム カードデッキ ビューア (HTML Overlay Edition)</title>
+    <!-- Google Fonts Load: LINE Seed JP (Bold 700) & Cinzel Decorative (Black 900) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=LINE+Seed+JP:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d0f12;
+            --card-w: 360px;
+            --card-h: 640px;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: #f1f5f9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 20px;
+            margin: 0 0 15px 0;
+            text-align: center;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Layout controls */
+        .controls {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            max-width: 380px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .control-group {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+        .nav-btn {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .nav-btn:hover {
+            background: #1d4ed8;
+        }
+        label {
+            font-weight: bold;
+            font-size: 13px;
+            min-width: 90px;
+        }
+        select {
+            background: #1e293b;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            flex-grow: 1;
+            outline: none;
+        }
+        
+        /* Language Toggle Switch Style */
+        .lang-switch {
+            display: flex;
+            background: #1e293b;
+            border-radius: 6px;
+            padding: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-grow: 1;
+        }
+        .lang-btn {
+            flex: 1;
+            text-align: center;
+            padding: 6px 0;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s, color 0.2s;
+            color: #94a3b8;
+        }
+        .lang-btn.active {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        /* Card Container (Smartphone 9:16 Aspect Ratio) */
+        .card-wrapper {
+            position: relative;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
+            border-radius: 16px;
+            overflow: hidden;
+            width: var(--card-w);
+            height: var(--card-h);
+            background: #111317;
+        }
+        
+        /* The Card Image Background */
+        .card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            user-select: none;
+            overflow: hidden;
+        }
+        .card-layer-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 1;
+        }
+        .card-layer-char {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 2;
+        }
+        
+        /* --- Japanese Mode: Left-Top Vertical Japanese Text (No Outline, Flat White, LINE Seed JP Bold) --- */
+        .role-name-japanese {
+            writing-mode: vertical-rl;
+            font-family: 'LINE Seed JP', sans-serif;
+            font-weight: 700;
+            font-size: 38px;
+            color: #ffffff;
+            letter-spacing: 6px;
+            position: absolute;
+            left: 24px;
+            top: 30px;
+            display: block;
+            z-index: 3;
+        }
+        .role-name-japanese ruby {
+            ruby-position: over;
+        }
+        .role-name-japanese rt {
+            font-family: 'LINE Seed JP', sans-serif;
+            font-weight: 700;
+            font-size: 10px;
+            color: #ffffff;
+            ruby-align: center;
+            padding-left: 5px;
+        }
+        
+        /* --- Japanese Mode: Right-Top English Text (80% White, Cinzel Decorative Black) --- */
+        .role-name-english-rt {
+            font-family: 'Cinzel Decorative', serif;
+            font-weight: 900;
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+            position: absolute;
+            right: 24px;
+            top: 32px;
+            letter-spacing: 0.5px;
+            display: block;
+            text-transform: capitalize;
+            z-index: 3;
+        }
+        
+        /* --- English Mode: Left-Top Horizontal English Text (100% White, Cinzel Decorative, Big & Wrapped, Title Case) --- */
+        .role-name-english-vertical {
+            writing-mode: horizontal-tb; /* Horizontal writing */
+            font-family: 'Cinzel Decorative', serif;
+            font-weight: 900;
+            font-size: 32px; /* Large volume size */
+            color: #ffffff; /* 100% White */
+            position: absolute;
+            left: 24px;
+            top: 30px;
+            width: 320px; /* Expanded width to prevent wraps of long words like 'Necromancer' */
+            line-height: 1.15;
+            letter-spacing: -2px; /* Tight tracking/letter-spacing as requested */
+            display: none;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            text-transform: capitalize; /* Force Title Case: First letter capitalized, rest lowercase */
+            z-index: 3;
+        }
+        
+        /* --- Bottom STICKY Description Band --- */
+        .card-description-band {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            box-sizing: border-box;
+            gap: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            z-index: 3;
+        }
+        
+        /* Camp Icon & Label container (Vertical stack) */
+        .camp-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 70px;
+            flex-shrink: 0;
+        }
+        .camp-icon {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+        }
+        .camp-label {
+            font-family: 'LINE Seed JP', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            color: #ffffff; /* Small white text */
+            text-align: center;
+            white-space: nowrap;
+            letter-spacing: 0.2px;
+        }
+        
+        .description-text {
+            font-family: 'LINE Seed JP', sans-serif;
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>人狼ゲーム カード UI ビューア</h1>
+
+    <div class="controls">
+        <div class="control-group">
+            <label for="role-select">役職の選択:</label>
+            <button class="nav-btn" onclick="navigateRole(-1)">◀ 前へ</button>
+            <select id="role-select" onchange="updateCard()"></select>
+            <button class="nav-btn" onclick="navigateRole(1)">次へ ▶</button>
+        </div>
+        <div class="control-group">
+            <label for="version-select">背景デザイン:</label>
+            <select id="version-select" onchange="updateCard()">
+                <option value="raw-illustrations-72-a">Ver.A (フラット背景)</option>
+                <option value="raw-illustrations-72-a2">Ver.A2 (背景描き込み)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>表示言語:</label>
+            <div class="lang-switch">
+                <div class="lang-btn active" id="btn-ja" onclick="setLanguage('ja')">日本語 (JA)</div>
+                <div class="lang-btn" id="btn-en" onclick="setLanguage('en')">English (EN)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The 9:16 Smartphone Card -->
+    <div class="card-wrapper" id="card-wrapper">
+        <div class="card" id="card-bg">
+            <!-- Dynamic Layer 1: Background -->
+            <div class="card-layer-bg" id="layer-bg"></div>
+            <!-- Dynamic Layer 2: Character (Transparent PNG) -->
+            <div class="card-layer-char" id="layer-char"></div>
+            
+            <!-- Left-Top Vertical Japanese (Visible in JA mode) -->
+            <div class="role-name-japanese" id="role-jp"></div>
+            
+            <!-- Right-Top Horizontal English (Visible in JA mode) -->
+            <div class="role-name-english-rt" id="role-en-rt"></div>
+            
+            <!-- Left-Top Horizontal English (Visible in EN mode instead of Japanese, Title Case) -->
+            <div class="role-name-english-vertical" id="role-en-vertical"></div>
+            
+            <!-- Bottom STICKY Description Band (Non-scrollable, large font) -->
+            <div class="card-description-band">
+                <div class="camp-container">
+                    <img class="camp-icon" id="camp-icon" src="" alt="Camp Icon">
+                    <div class="camp-label" id="camp-label"></div>
+                </div>
+                <div class="description-text" id="role-desc"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 24 Roles database with Japanese and English information (Capitalized to help Title Case)
+        const rolesData = [
+            {
+                id: "dictator",
+                jp: "独裁者",
+                en: "Dictator",
+                rubies: ["どく", "さい", "しゃ"],
+                camp: "citizen",
+                desc_ja: "投票時に自分の正体を明かすことで、その日の投票を自分一人で決定できる。",
+                desc_en: "By revealing your true identity during the vote, you can decide the vote of the day all by yourself."
+            },
+            {
+                id: "knights",
+                jp: "騎士団",
+                en: "Knights",
+                rubies: ["き", "し", "だん"],
+                camp: "citizen",
+                desc_ja: "毎日一人を指定して、人狼の襲撃から守ることができる。ただし自分自身は守れない。",
+                desc_en: "Can protect one player from the werewolf attack every night. Cannot protect themselves."
+            },
+            {
+                id: "knights_b",
+                jp: "騎士団 B",
+                en: "Knights B",
+                rubies: ["き", "し", "だん", ""],
+                camp: "citizen",
+                desc_ja: "毎日一人を指定して、人狼の襲撃から守ることができる。ただし自分自身は守れない。(装備バリエーション版)",
+                desc_en: "Can protect one player from the werewolf attack every night. Cannot protect themselves. (Alternative equipment version)"
+            },
+            {
+                id: "double",
+                jp: "影武者",
+                en: "Double",
+                rubies: ["かげ", "む", "しゃ"],
+                camp: "citizen",
+                desc_ja: "最初に指定した市民と同じ役職になり、その身代わりとして人狼の前に立ち塞がる。",
+                desc_en: "Becomes the same role as a designated citizen at the start, sacrificing themselves in their place."
+            },
+            {
+                id: "counselor",
+                jp: "カウンセラー",
+                en: "Counselor",
+                rubies: ["", "", "", "", "", ""],
+                camp: "citizen",
+                desc_ja: "他のプレイヤーの精神を分析し、人狼の恐怖に呑まれかけている者を正常に導く。",
+                desc_en: "Analyzes the mental state of another player, leading those slipping into werewolf fear back to sanity."
+            },
+            {
+                id: "necromancer",
+                jp: "霊媒師",
+                en: "Necromancer",
+                rubies: ["れい", "ばい", "し"],
+                camp: "citizen",
+                desc_ja: "毎夜、前日に処刑されたプレイヤーが「人狼」であったか「人間」であったかを知ることができる。",
+                desc_en: "Can know every night whether the player executed on the previous day was a 'Werewolf' or a 'Human'."
+            },
+            {
+                id: "trapper",
+                jp: "罠師",
+                en: "Trapper",
+                rubies: ["わな", "し"],
+                camp: "citizen",
+                desc_ja: "指定した場所に罠を仕掛け、人狼が襲撃に来た際に罠にハメて相打ちに持ち込む。",
+                desc_en: "Sets a trap in a designated place, taking down the werewolf with them if they attack there."
+            },
+            {
+                id: "citizen",
+                jp: "市民",
+                en: "Citizen",
+                rubies: ["し", "みん"],
+                camp: "citizen",
+                desc_ja: "特別な能力は持たないが、お互いの信頼と鋭い議論によって人狼の正体を見破る主役。",
+                desc_en: "Has no special abilities, but is the main protagonist who exposes the werewolves through trust and sharp discussions."
+            },
+            {
+                id: "prophet",
+                jp: "予言者",
+                en: "Prophet",
+                rubies: ["よ", "げん", "しゃ"],
+                camp: "citizen",
+                desc_ja: "毎夜、生存しているプレイヤーの中から一人を指定し、「人狼」か「人間」かを知ることができる。",
+                desc_en: "Can designate one player every night to learn whether they are a 'Werewolf' or a 'Human'."
+            },
+            {
+                id: "bodyguard",
+                jp: "ボディガード",
+                en: "Bodyguard",
+                rubies: ["", "", "", "", "", ""],
+                camp: "citizen",
+                desc_ja: "強靭な肉体で市民を守る。夜の襲撃から指定したプレイヤーを一人だけ守護する。",
+                desc_en: "Protects citizens with a strong body. Protects one designated player from night attacks."
+            },
+            {
+                id: "twins",
+                jp: "共有者",
+                en: "Twins",
+                rubies: ["きょう", "ゆう", "しゃ"],
+                camp: "citizen",
+                desc_ja: "もう一人の共有者とお互いが人間であることを最初から知っている、お互いの絆で繋がった二人。",
+                desc_en: "Two players connected by bond who know from the beginning that they are both human."
+            },
+            {
+                id: "magician",
+                jp: "奇術師",
+                en: "Magician",
+                rubies: ["き", "じゅつ", "し"],
+                camp: "citizen",
+                desc_ja: "手品のように他のプレイヤーの役職を一時的に入れ替え、議論の方向性を攪乱する。",
+                desc_en: "Temporarily swaps roles of other players like a magic trick to confuse the direction of the discussion."
+            },
+            {
+                id: "hunter",
+                jp: "ハンター",
+                en: "Hunter",
+                rubies: ["", "", "", "", ""],
+                camp: "citizen",
+                desc_ja: "自分が処刑または人狼に殺された際、最後の一撃で他のプレイヤー一人を道連れにして死亡する。",
+                desc_en: "When executed or killed by werewolves, takes one other player down with them as a parting shot."
+            },
+            {
+                id: "tough_guy",
+                jp: "タフガイ",
+                en: "Tough Guy",
+                rubies: ["", "", "", "", ""],
+                camp: "citizen",
+                desc_ja: "人狼に襲撃されてもその夜は死なず、次の日の夜に怪我の悪化によって死亡するタフな人間。",
+                desc_en: "Does not die the night they are attacked by werewolves, but dies the following night due to worsening wounds."
+            },
+            {
+                id: "spy",
+                jp: "スパイ",
+                en: "Spy",
+                rubies: ["", "", "", ""],
+                camp: "werewolf",
+                desc_ja: "市民陣営の中に紛れ込み、夜の会話をこっそり人狼チームへ送信する情報工作員。",
+                desc_en: "Blends in with the citizens and secretly relays the night discussions to the werewolf team."
+            },
+            {
+                id: "betrayal_twin",
+                jp: "裏切りの共有者",
+                en: "Betrayal Twin",
+                rubies: ["うら", "ぎ", "", "", "きょう", "ゆう", "しゃ"],
+                camp: "werewolf",
+                desc_ja: "共有者のふりをしているが、実は心は人狼陣営。お互いの正体を知る裏切り者の双子。",
+                desc_en: "Pretends to be a twin but is actually on the werewolf side, knowing each other's identity."
+            },
+            {
+                id: "werewolf",
+                jp: "人狼",
+                en: "Werewolf",
+                rubies: ["じん", "ろう"],
+                camp: "werewolf",
+                desc_ja: "人間に化けた狼。毎夜、市民陣営のプレイヤーを一人選び、襲撃して捕食する人狼ゲームの闇。",
+                desc_en: "A wolf disguised as a human. Attacks and eats one citizen player chosen every night."
+            },
+            {
+                id: "traitor",
+                jp: "内通者",
+                en: "Traitor",
+                rubies: ["ない", "つう", "しゃ"],
+                camp: "werewolf",
+                desc_ja: "人間でありながら人狼に内通し、人狼チームの勝利のために議論を嘘で誘導する裏切り者。",
+                desc_en: "A human siding with werewolves, leading the discussions with lies to help the werewolf team win."
+            },
+            {
+                id: "betrayer",
+                jp: "裏切り者",
+                en: "Betrayer",
+                rubies: ["うら", "ぎ", "", "もの"],
+                camp: "werewolf",
+                desc_ja: "人狼陣営の勝利を望む人間。誰が人狼かは知らないが、市民陣営を攪乱して処刑へ追い込む。",
+                desc_en: "A human who wants the werewolf team to win. Does not know who the werewolves are but leads citizens to execution."
+            },
+            {
+                id: "werewolf_child",
+                jp: "人狼の子ども",
+                en: "Werewolf's Child",
+                rubies: ["じん", "ろう", "", "こ", "", ""],
+                camp: "werewolf",
+                desc_ja: "自分が死亡した際、残された人狼たちに強い怒りと力を给え、次の夜の襲撃数を一時的に増やす。",
+                desc_en: "When dead, grants strong rage and power to the remaining werewolves, increasing night attacks."
+            },
+            {
+                id: "android",
+                jp: "アンドロイド",
+                en: "Android",
+                rubies: ["", "", "", "", "", ""],
+                camp: "fox",
+                desc_ja: "人間でも狼でもない存在。全てのプレイヤーが死亡し、自分だけが生き残ることで単独勝利する。",
+                desc_en: "Neither human nor wolf. Wins alone if they survive until all other players are dead."
+            },
+            {
+                id: "lone_wolf",
+                jp: "一匹狼",
+                en: "Lone Wolf",
+                rubies: ["いっ", "ぴき", "おおかみ"],
+                camp: "werewolf",
+                desc_ja: "他の人狼と会話することはできないが、自分の意志で独立した単独襲撃を行うことができる人狼。",
+                desc_en: "Cannot talk to other werewolves, but can conduct independent single attacks of their own."
+            },
+            {
+                id: "god",
+                jp: "神様",
+                en: "God",
+                rubies: ["かみ", "さま", ""],
+                camp: "citizen",
+                desc_ja: "天界から全てを見通す。毎夜、誰が襲撃されたかを神の神託として受け取る高貴な存在。",
+                desc_en: "Sees all from the heavens. Receives the name of the attacked player every night as a divine revelation."
+            },
+            {
+                id: "lovers",
+                jp: "恋人",
+                en: "Lovers",
+                rubies: ["こい", "びと", ""],
+                camp: "citizen",
+                desc_ja: "恋に落ちた二人。どちらか一方が死亡した場合、もう片方も悲しみのあまり即座に死亡する。",
+                desc_en: "Two in love. If one dies, the other immediately dies of grief."
+            },
+            {
+                id: "mysterious_fox",
+                jp: "妖狐",
+                en: "Mysterious Fox",
+                rubies: ["よう", "こ", ""],
+                camp: "fox",
+                desc_ja: "人狼の襲撃では死なないが、予言者に占われると呪殺され死亡する。最後まで生き残れば単独勝利。",
+                desc_en: "Does not die from werewolf attacks, but dies if divined by the prophet. Wins alone if surviving to the end."
+            }
+        ];
+
+        // Populate Role Selector Dropdown
+        const select = document.getElementById("role-select");
+        rolesData.forEach(r => {
+            const opt = document.createElement("option");
+            opt.value = r.id;
+            opt.textContent = `${r.jp} (${r.en})`;
+            select.appendChild(opt);
+        });
+
+        // App state
+        let currentRole = rolesData[0];
+        let currentLang = 'ja'; // 'ja' or 'en'
+        
+        function updateCard() {
+            const roleId = document.getElementById("role-select").value;
+            currentRole = rolesData.find(r => r.id === roleId);
+            
+            // Background & Character Layer Mapping
+            const versionSelect = document.getElementById("version-select").value;
+            const layerBg = document.getElementById("layer-bg");
+            const layerChar = document.getElementById("layer-char");
+            
+            let bgId = currentRole.id;
+            let charId = currentRole.id;
+            if (currentRole.id === "knights_b") {
+                bgId = "knights";
+            }
+            
+            if (versionSelect === "raw-illustrations-72-a") {
+                // Ver.A: フラット背景（元のイラストをそのまま1枚絵として layer-bg に設定）
+                let imgId = currentRole.id === "knights_b" ? "knights" : currentRole.id;
+                layerBg.style.backgroundImage = `url('raw-illustrations-72-a/${imgId}_ver_a.png')`;
+                layerChar.style.display = "none";
+            } else {
+                // Ver.A2: レイヤード合成エディション（背景のみ画像 + 透過キャラクター画像）
+                layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
+                layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charId}_ver_a.png')`;
+                layerChar.style.display = "block";
+            }
+            
+            // Icon Mapping from gz/ folder (png format)
+            let iconName = currentRole.camp;
+            if (currentRole.camp === "fox") {
+                iconName = "neutral";
+            }
+            document.getElementById("camp-icon").src = `gz/${iconName}.png`;
+            
+            // Render Text elements based on Language Mode
+            const jpLabel = document.getElementById("role-jp");
+            const enRtLabel = document.getElementById("role-en-rt");
+            const enVerticalLabel = document.getElementById("role-en-vertical");
+            const descLabel = document.getElementById("role-desc");
+            const campLabel = document.getElementById("camp-label");
+            
+            if (currentLang === 'ja') {
+                // Japanese Mode
+                jpLabel.style.display = "block";
+                enRtLabel.style.display = "block";
+                enVerticalLabel.style.display = "none";
+                
+                // Render Japanese main text + rubies
+                jpLabel.innerHTML = "";
+                const chars = currentRole.jp.split("");
+                chars.forEach((char, idx) => {
+                    const ruby = document.createElement("ruby");
+                    ruby.textContent = char;
+                    if (currentRole.rubies[idx]) {
+                        const rt = document.createElement("rt");
+                        rt.textContent = currentRole.rubies[idx];
+                        ruby.appendChild(rt);
+                    }
+                    jpLabel.appendChild(ruby);
+                });
+                
+                // Render Horizontal English (Right-Top)
+                enRtLabel.textContent = currentRole.en;
+                
+                // Render Japanese Camp label
+                if (currentRole.camp === 'citizen') {
+                    campLabel.textContent = "市民チーム";
+                } else if (currentRole.camp === 'werewolf') {
+                    campLabel.textContent = "人狼チーム";
+                } else {
+                    campLabel.textContent = "第三陣営";
+                }
+                
+                // Render Japanese description
+                descLabel.textContent = currentRole.desc_ja;
+            } else {
+                // English Mode
+                jpLabel.style.display = "none";
+                enRtLabel.style.display = "none";
+                enVerticalLabel.style.display = "block";
+                
+                // Render Horizontal English in place of Japanese (Left-Top)
+                enVerticalLabel.textContent = currentRole.en;
+                
+                // Dynamically adjust font-size based on character length for Cinzel Decorative
+                const textLength = currentRole.en.length;
+                if (textLength > 16) {
+                    enVerticalLabel.style.fontSize = "22px";
+                    enVerticalLabel.style.letterSpacing = "-1.5px";
+                } else if (textLength > 12) {
+                    enVerticalLabel.style.fontSize = "26px";
+                    enVerticalLabel.style.letterSpacing = "-2px";
+                } else {
+                    enVerticalLabel.style.fontSize = "32px";
+                    enVerticalLabel.style.letterSpacing = "-2px";
+                }
+                
+                // Render English Camp label
+                if (currentRole.camp === 'citizen') {
+                    campLabel.textContent = "Town";
+                } else if (currentRole.camp === 'werewolf') {
+                    campLabel.textContent = "Werewolves";
+                } else {
+                    campLabel.textContent = "Neutral";
+                }
+                
+                // Render English description
+                descLabel.textContent = currentRole.desc_en;
+            }
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.getElementById("btn-ja").className = `lang-btn ${lang === 'ja' ? 'active' : ''}`;
+            document.getElementById("btn-en").className = `lang-btn ${lang === 'en' ? 'active' : ''}`;
+            updateCard();
+        }
+
+        function navigateRole(direction) {
+            const select = document.getElementById("role-select");
+            let newIndex = select.selectedIndex + direction;
+            if (newIndex < 0) {
+                newIndex = select.options.length - 1;
+            } else if (newIndex >= select.options.length) {
+                newIndex = 0;
+            }
+            select.selectedIndex = newIndex;
+            updateCard();
+        }
+
+        window.onload = () => {
+            updateCard();
+        };
+    </script>
+</body>
+</html>
