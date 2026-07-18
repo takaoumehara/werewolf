@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Werewolf Art & Design Showcase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #07080a;
+            --text-color: #e2e8f0;
+            --accent-gold: #cfa83c;
+            --card-bg: #0f1115;
+            --border-color: #1e222b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at center, #131722 0%, #07080a 100%);
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Gothic Emblem and Title */
+        header {
+            margin-bottom: 60px;
+        }
+
+        .emblem {
+            font-size: 32px;
+            color: var(--accent-gold);
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+            font-family: 'Cinzel', serif;
+        }
+
+        h1 {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 44px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 2px;
+            line-height: 1.2;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .tagline {
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            letter-spacing: 6px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        /* 3-Column Navigation Cards */
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .portal-grid {
+                grid-template-columns: 1fr;
+                max-width: 500px;
+                margin: 40px auto 0;
+            }
+        }
+
+        .portal-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 45px 30px;
+            text-decoration: none;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 380px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .portal-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(207, 168, 60, 0.08) 0%, rgba(0, 0, 0, 0) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .portal-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-gold);
+            box-shadow: 0 20px 40px rgba(207, 168, 60, 0.15);
+        }
+
+        .portal-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            font-size: 40px;
+            color: var(--accent-gold);
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            font-family: 'Cinzel', serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .card-desc {
+            font-size: 14px;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .card-btn {
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: var(--accent-gold);
+            border: 1px solid var(--accent-gold);
+            padding: 10px 24px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .portal-card:hover .card-btn {
+            background-color: var(--accent-gold);
+            color: var(--bg-color);
+            box-shadow: 0 0 15px rgba(207, 168, 60, 0.4);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 80px;
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="emblem">◆ WEREWOLF ART ◆</div>
+            <h1>Game Art & Design Showcase</h1>
+            <div class="tagline">Gothic Engraving Card Deck and Brand Identity</div>
+        </header>
+
+        <div class="portal-grid">
+            <!-- Link 1: Card Viewer -->
+            <a href="card_viewer.html" class="portal-card">
+                <div>
+                    <div class="card-icon">🎴</div>
+                    <div class="card-title">Card Viewer</div>
+                    <div class="card-desc">
+                        Gペンエッチングで描かれた72種類のキャラクター。うっすらと揺らぐ呼吸モーション、指での操作に吸いつきぷるんと戻る3D視差（パララックス）をスマートフォン等で滑らかに体験できます。
+                    </div>
+                </div>
+                <button class="card-btn">Launch Viewer</button>
+            </a>
+
+            <!-- Link 2: Logo Designs -->
+            <a href="logo_viewer.html" class="portal-card">
+                <div>
+                    <div class="card-icon">🛡️</div>
+                    <div class="card-title">Logo Designs</div>
+                    <div class="card-desc">
+                        中世ゴシック調シールド金銀細工の美しい紋章マークをはじめ、ゲームの世界観を体現する8つのロゴマークデザインの提案。各デザインコンセプトと日英解説を収録。
+                    </div>
+                </div>
+                <button class="card-btn">Explore Logos</button>
+            </a>
+
+            <!-- Link 3: Making History -->
+            <a href="making_of_card_design.html" class="portal-card">
+                <div>
+                    <div class="card-icon">📜</div>
+                    <div class="card-title">Making Of</div>
+                    <div class="card-desc">
+                        「Gペンの木版画エッチングタッチを崩さず、背景を合成してスマホで動かす」。比類なきクオリティを追求するためにクライアントとAIが重ねた、数々の試行錯誤と知見を凝縮したコラム。
+                    </div>
+                </div>
+                <button class="card-btn">Read History</button>
+            </a>
+        </div>
+
+        <footer>
+            © 2026 Werewolf Art & Design Collection • Built for Vercel Deployment
+        </footer>
+    </div>
+</body>
+</html>

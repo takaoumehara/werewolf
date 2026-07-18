@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Making of Werewolf Card Designs - 人狼カード開発秘話</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700&family=Sawarabi+Mincho&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0c0f;
+            --text-color: #e2e8f0;
+            --accent-gold: #cfa83c;
+            --card-bg: #13151b;
+            --border-color: #2a2e39;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', 'Sawarabi Mincho', serif;
+            line-height: 1.8;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Gothic Header */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        header::after {
+            content: "◆";
+            color: var(--accent-gold);
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-color);
+            padding: 0 15px;
+            font-size: 14px;
+        }
+
+        .subtitle {
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--accent-gold);
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 38px;
+            font-weight: 900;
+            color: #ffffff;
+            line-height: 1.3;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+
+        .author-date {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        /* Navigation Home Link */
+        .back-nav {
+            margin-bottom: 40px;
+        }
+
+        .back-link {
+            font-family: 'Cinzel', serif;
+            color: var(--accent-gold);
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 2px;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #ffffff;
+        }
+
+        /* Article Layout */
+        article {
+            font-size: 16px;
+            font-weight: 300;
+        }
+
+        p {
+            margin-bottom: 25px;
+            text-align: justify;
+        }
+
+        /* Gothic Headings */
+        h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 24px;
+            color: var(--accent-gold);
+            margin: 50px 0 25px;
+            position: relative;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #1a1e26;
+        }
+
+        h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            color: #ffffff;
+            margin: 30px 0 15px;
+        }
+
+        /* Quotes & Highlights */
+        blockquote {
+            background-color: var(--card-bg);
+            border-left: 3px solid var(--accent-gold);
+            padding: 20px 25px;
+            margin: 35px 0;
+            border-radius: 4px;
+            font-style: italic;
+            color: #cbd5e1;
+        }
+
+        blockquote p {
+            margin-bottom: 0;
+        }
+
+        /* Styled Cards Showcase */
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        @media (max-width: 600px) {
+            .showcase-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .showcase-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .showcase-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-gold);
+        }
+
+        .showcase-card h4 {
+            font-family: 'Cinzel', serif;
+            color: var(--accent-gold);
+            margin-bottom: 10px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 80px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            font-size: 12px;
+            color: #475569;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="back-nav">
+            <a href="index.html" class="back-link">◀ BACK TO SHOWCASE INDEX</a>
+        </div>
+
+        <header>
+            <div class="subtitle">Making of This Card Design</div>
+            <h1>試行錯誤とこだわりが産んだ<br>ダークゴシック・アートの極致</h1>
+            <div class="author-date">Project Chronicles • July 2026</div>
+        </header>
+
+        <article>
+            <p>
+                本プロジェクトは、あるひとつの情熱から始まりました。それは、<strong>「伝統的なGペンによる木版画（エッチング）のダークで不気味な世界観を、一貫した美学でデジタルカードゲームとして表現する」</strong>ということです。
+            </p>
+            <p>
+                AIを用いた画像生成が日常化する現代において、単に指示を出して美しい絵を出力するだけでは、「一貫したゲーム」を作ることはできません。スタイルが乱れ、構図がズレ、何よりも「手触り」としての手抜き感が生まれてしまいます。本コラムでは、クライアント（ユーザー）と開発AI（Antigravity）が重ねた執拗なまでの試行錯誤と、クオリティ向上のための歴史を振り返ります。
+            </p>
+
+            <h2>Phase 1: 絵柄の同一化と「多層レイヤー構造」の英断</h2>
+            <p>
+                最初の大きな壁は、「生成のたびに背景のテイストやキャラクターの顔立ちが変わってしまう」ことでした。せっかく素晴らしいGペンタッチのイラストがあっても、背景を描き込ませようとするとスタイルが崩壊してしまう現象が発生したのです。
+            </p>
+            <blockquote>
+                「元々のイラストの絵柄はそのままに、キャラクターを完全に切り抜いて透明化し、同系色で細密に描かれた背景画像を別で生成して、HTML上で多層レイヤー（重ね合わせ）合成すれば良いのではないか」
+            </blockquote>
+            <p>
+                この英断により、キャラクター原画のクオリティを100%維持したまま、深みのある描き込み背景を重ねるハイブリッドHTML構造が誕生しました。この分離こそが、後の「立体アニメーション」の基礎となります。
+            </p>
+
+            <h2>Phase 2: 「数ピクセル・数ミリ秒」のこだわりとアライメント修正</h2>
+            <p>
+                構図の統一感は、ゲームのプレミアム感を決定づけます。私たちは1枚ずつのカードを検証し、以下の執拗なまでの微調整を重ねました：
+            </p>
+            <ul>
+                <li><strong>騎士団・カウンセラーの色彩強化</strong>: 白っぽく薄かった背景の青や白を、深みのある濃紺や重厚なトーンへ調整し、白いタイトル文字の視認性とダークファンタジーの闇の深さを両立。</li>
+                <li><strong>ネクロマンサーの余白と改行問題</strong>: 英語名が不自然に折り返されないよう幅を調整。</li>
+                <li><strong>ボディガードの頭部干渉回避</strong>: 英語タイトルと頭が被る問題に対し、画像を1.08倍ズームした上で、縦位置を下げることで解決。</li>
+                <li><strong>人狼の子供とアンドロイドの対比</strong>: 余白が多すぎたアンドロイドを上部にシフトさせ、逆に人狼の子供はタイトルと重ならないよう下げるなどの空間アライメント調整。</li>
+            </ul>
+
+            <h2>Phase 3: 騎士団のバリエーションと「神様」のスタイル再現</h2>
+            <p>
+                特に難しかったのは、複数人で構成される「騎士団 B」の開発でした。当初はAIがポーズや線の太さを変えてしまい、まるで別世界のキャラクターになってしまいました。
+            </p>
+            <p>
+                そこで、初代「騎士団 A」のGペンハッチング、desaturatedな鉄の質感、とくに最大の特長である<strong>「足元やエッジから照り返すオレンジの逆光（アンダーグロウ）」</strong>を100%模倣するプロンプトを開発。「大剣」「盾と剣」「ボウガン」という個別の武器を持たさせつつ、完全に同一スタイルの3人衆を作り上げることに成功しました。
+            </p>
+            <p>
+                また、神様（God）のイラストも一新。切り抜きの際に発生するシアン（青緑）のフチ（Chroma Keyノイズ）をスクリプトによる色域判定で完全除去し、極めてクリーンな金髪と黄金のローブを抽出しました。
+            </p>
+
+            <h2>Phase 4: 中世シールドを含む「ロゴマーク」の開発</h2>
+            <p>
+                ゲームの象徴となるロゴマークにも妥協はありませんでした。中世の古風な雰囲気に合わせ、銀細工と金細工で立体的に彫刻されたゴシック調の紋章盾（Crest Shield）を中心に据え、吠える狼をあしらった「Direction 01」をはじめ、8つの多角的なコンセプトを考案。これらを日英切り替え可能な美しいビューア（<code>logo_viewer.html</code>）に整理しました。
+            </p>
+
+            <h2>Phase 5: スマホでの手触りと「スプリング物理3D視差」の極致</h2>
+            <p>
+                最後のマイルストーンは、カードを操作した際の「手触り」でした。
+                単にイージングで大きくなったり小さくなったりするだけのループアニメーションは、機械的でチープな印象を与えます。そこで、私たちは以下の仕組みを実装しました：
+            </p>
+            <div class="showcase-grid">
+                <div class="showcase-card">
+                    <h4>呼吸する浮遊感</h4>
+                    <p>単純な拡大縮小を廃止し、微小な回転と平行移動を非同期でブレンド。風にそよぐような有機的な動きを再現。</p>
+                </div>
+                <div class="showcase-card">
+                    <h4>スプリング physics</h4>
+                    <p>スマホでの指ドラッグに合わせカードが3D傾斜し、指を離した瞬間にバネのように「ぷるん」とバウンスしながら元に戻る物理演算。</p>
+                </div>
+            </div>
+            <p>
+                さらにモバイル端末では、**スマホの傾き（ジャイロセンサー）にレイヤーの動きがリアルタイム連動**する機能を追加。スマホを傾けるだけで、手前のキャラクターと奥の背景が互い違いにズレ、画面の奥に本物の奥行きが存在するような3Dパララックスカード体験を実現しました。
+            </p>
+
+            <h2>結論：妥協なき試行錯誤がもたらす「学び」</h2>
+            <p>
+                このカードデザイン開発が私たちに教えてくれたのは、<strong>「クオリティは、全体の方針ではなく、数ピクセル・数ミリ秒のディテールへのこだわりの積み重ねによってのみ生まれる」</strong>という事実です。
+            </p>
+            <p>
+                クライアントの厳しい審美眼と指示、そしてそれに応え続けたAIの技術の融合により、このカードは単なるデジタルイラストを超え、触って動かして永遠に眺めていられる「生きたアート」へと昇華しました。
+            </p>
+        </article>
+
+        <footer>
+            © 2026 Werewolf Card Development Team • Built with Passion
+        </footer>
+    </div>
+</body>
+</html>
