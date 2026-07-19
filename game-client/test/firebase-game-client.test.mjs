@@ -321,6 +321,61 @@ test("subscription callbacks receive snapshot values and path-specific errors", 
   ]);
 });
 
+test("subscribeRoom rolls back earlier subscriptions when the third ref throws", async () => {
+  const setupError = new Error("third ref failed");
+  const unsubscribeAttempts = [];
+  let refCount = 0;
+  let subscriptionCount = 0;
+  const { client } = createHarness({
+    sdk: {
+      ref(database, path) {
+        refCount += 1;
+        if (refCount === 3) throw setupError;
+        return { database, path };
+      },
+      onValue() {
+        const index = subscriptionCount++;
+        return () => unsubscribeAttempts.push(index);
+      },
+    },
+  });
+
+  assert.throws(() => client.subscribeRoom("room-1", {}), (error) => error === setupError);
+  assert.deepEqual(unsubscribeAttempts, [0, 1]);
+  await client.dispose();
+  assert.deepEqual(unsubscribeAttempts, [0, 1]);
+});
+
+test("subscribeRoom aggregates a third onValue failure with rollback failures", async () => {
+  const setupError = new Error("third onValue failed");
+  const rollbackError = new Error("first rollback failed");
+  const unsubscribeAttempts = [];
+  let subscriptionCount = 0;
+  const { client } = createHarness({
+    sdk: {
+      onValue() {
+        const index = subscriptionCount++;
+        if (index === 2) throw setupError;
+        return () => {
+          unsubscribeAttempts.push(index);
+          if (index === 0) throw rollbackError;
+        };
+      },
+    },
+  });
+
+  assert.throws(
+    () => client.subscribeRoom("room-1", {}),
+    (error) =>
+      error instanceof AggregateError &&
+      error.errors[0] === setupError &&
+      error.errors[1] === rollbackError,
+  );
+  assert.deepEqual(unsubscribeAttempts, [0, 1]);
+  await client.dispose();
+  assert.deepEqual(unsubscribeAttempts, [0, 1]);
+});
+
 test("room-local unsubscribe is idempotent and does not affect another subscription", () => {
   const { client, subscriptions } = createHarness();
   const unsubscribeFirst = client.subscribeRoom("room-1", {});
@@ -487,6 +542,96 @@ test("re-registering presence in one room cancels only that room's old hook", as
   assert.equal(presenceCalls.filter(({ operation }) => operation === "onDisconnect").length, 3);
 });
 
+test("same-room presence waits for an earlier registration before applying a later offline request", async () => {
+  const registration = deferred();
+  const registrationStarted = deferred();
+  const directWrites = [];
+  let hook;
+  const { client } = createHarness({
+    sdk: {
+      onDisconnect(reference) {
+        registrationStarted.resolve();
+        hook = {
+          reference,
+          cancelCount: 0,
+          update() {
+            return registration.promise;
+          },
+          async cancel() {
+            hook.cancelCount += 1;
+          },
+        };
+        return hook;
+      },
+      async update(reference, value) {
+        directWrites.push({ reference, value });
+      },
+    },
+  });
+
+  const online = client.setPresence({ roomId: "room-1", connected: true });
+  await registrationStarted.promise;
+  assert.ok(hook);
+  const offline = client.setPresence({ roomId: "room-1", connected: false });
+  await Promise.resolve();
+  const writesBeforeRegistration = [...directWrites];
+
+  registration.resolve();
+  await Promise.all([online, offline]);
+
+  assert.deepEqual(writesBeforeRegistration, []);
+  assert.deepEqual(directWrites.map(({ value }) => value.connected), [true, false]);
+  assert.equal(hook.cancelCount, 1);
+});
+
+test("a failed presence write cannot delete or cancel a later same-room hook", async () => {
+  const firstWrite = deferred();
+  const firstWriteStarted = deferred();
+  const writeError = new Error("first online write failed");
+  const hooks = [];
+  let directWriteCount = 0;
+  const { client } = createHarness({
+    sdk: {
+      onDisconnect(reference) {
+        const hook = {
+          reference,
+          cancelCount: 0,
+          async update() {},
+          async cancel() {
+            hook.cancelCount += 1;
+          },
+        };
+        hooks.push(hook);
+        return hook;
+      },
+      async update() {
+        directWriteCount += 1;
+        if (directWriteCount === 1) {
+          firstWriteStarted.resolve();
+          return firstWrite.promise;
+        }
+      },
+    },
+  });
+
+  const first = client.setPresence({ roomId: "room-1", connected: true });
+  const firstRejected = assert.rejects(first, (error) => error === writeError);
+  await firstWriteStarted.promise;
+  const second = client.setPresence({ roomId: "room-1", connected: true });
+  await Promise.resolve();
+  const hooksBeforeFirstSettles = hooks.length;
+
+  firstWrite.reject(writeError);
+  await firstRejected;
+  await second;
+
+  assert.equal(hooksBeforeFirstSettles, 1);
+  assert.equal(hooks.length, 2);
+  assert.deepEqual(hooks.map(({ cancelCount }) => cancelCount), [1, 0]);
+  await client.dispose();
+  assert.deepEqual(hooks.map(({ cancelCount }) => cancelCount), [1, 1]);
+});
+
 test("manual offline cancels the room hook and writes only connected and server lastSeenAt", async () => {
   const { client, presenceCalls } = createHarness();
   await client.setPresence({ roomId: "room-1", connected: true });
@@ -495,14 +640,41 @@ test("manual offline cancels the room hook and writes only connected and server 
   await client.setPresence({ roomId: "room-1", connected: false, uid: "other-player" });
 
   assert.equal(hook.cancelCount, 1);
-  const finalWrite = presenceCalls.at(-1);
+  const finalWrite = presenceCalls.at(-2);
   assert.equal(finalWrite.operation, "update");
+  assert.equal(presenceCalls.at(-1).operation, "disconnect-cancel");
   assert.equal(finalWrite.reference.path, "rooms/room-1/players/player-1");
   assert.deepEqual(finalWrite.value, {
     connected: false,
     lastSeenAt: { ".sv": "timestamp", index: 3 },
   });
   assert.deepEqual(Object.keys(finalWrite.value).sort(), ["connected", "lastSeenAt"]);
+});
+
+test("manual offline write failure preserves the current disconnect hook for retry", async () => {
+  const offlineError = new Error("offline write failed");
+  let failOffline = true;
+  const { client, presenceCalls } = createHarness({
+    sdk: {
+      async update(reference, value) {
+        presenceCalls.push({ operation: "update", reference, value });
+        if (!value.connected && failOffline) throw offlineError;
+      },
+    },
+  });
+  await client.setPresence({ roomId: "room-1", connected: true });
+  const hook = presenceCalls.find(({ operation }) => operation === "onDisconnect").hook;
+
+  await assert.rejects(
+    client.setPresence({ roomId: "room-1", connected: false }),
+    (error) => error === offlineError,
+  );
+  assert.equal(hook.cancelCount, 0);
+
+  failOffline = false;
+  await client.setPresence({ roomId: "room-1", connected: false });
+  assert.equal(hook.cancelCount, 1);
+  assert.equal(presenceCalls.filter(({ operation }) => operation === "onDisconnect").length, 1);
 });
 
 test("presence rejects unsafe keys and non-boolean connected values before writing", async () => {
@@ -517,6 +689,107 @@ test("presence rejects unsafe keys and non-boolean connected values before writi
 
   const { client, presenceCalls } = createHarness({ currentUser: { uid: "other/player" } });
   await assert.rejects(client.setPresence({ roomId: "room-1", connected: true }), /RTDB-safe/);
+  assert.deepEqual(presenceCalls, []);
+});
+
+test("dispose waits for a pending disconnect registration and prevents an online write", async () => {
+  const registration = deferred();
+  const registrationStarted = deferred();
+  const directWrites = [];
+  let hook;
+  const { client } = createHarness({
+    sdk: {
+      onDisconnect(reference) {
+        hook = {
+          reference,
+          cancelCount: 0,
+          update() {
+            registrationStarted.resolve();
+            return registration.promise;
+          },
+          async cancel() {
+            hook.cancelCount += 1;
+          },
+        };
+        return hook;
+      },
+      async update(reference, value) {
+        directWrites.push({ reference, value });
+      },
+    },
+  });
+
+  const presence = client.setPresence({ roomId: "room-1", connected: true });
+  await registrationStarted.promise;
+  let disposeSettled = false;
+  const disposing = client.dispose().then(() => {
+    disposeSettled = true;
+  });
+  await Promise.resolve();
+  assert.equal(disposeSettled, false);
+
+  registration.resolve();
+  await assert.rejects(presence, /disposed/i);
+  await disposing;
+
+  assert.deepEqual(directWrites, []);
+  assert.equal(hook.cancelCount, 1);
+});
+
+test("dispose waits for an in-flight online write then writes offline before cancelling", async () => {
+  const onlineWrite = deferred();
+  const onlineWriteStarted = deferred();
+  const directWrites = [];
+  let hook;
+  const { client } = createHarness({
+    sdk: {
+      onDisconnect(reference) {
+        hook = {
+          reference,
+          cancelCount: 0,
+          async update() {},
+          async cancel() {
+            hook.cancelCount += 1;
+          },
+        };
+        return hook;
+      },
+      async update(reference, value) {
+        directWrites.push({ reference, value });
+        if (value.connected) {
+          onlineWriteStarted.resolve();
+          return onlineWrite.promise;
+        }
+      },
+    },
+  });
+
+  const presence = client.setPresence({ roomId: "room-1", connected: true });
+  await onlineWriteStarted.promise;
+  let disposeSettled = false;
+  const disposing = client.dispose().then(() => {
+    disposeSettled = true;
+  });
+  await Promise.resolve();
+  assert.equal(disposeSettled, false);
+
+  onlineWrite.resolve();
+  await presence;
+  await disposing;
+
+  assert.deepEqual(directWrites.map(({ value }) => value.connected), [true, false]);
+  assert.deepEqual(directWrites[1].value.lastSeenAt, { ".sv": "timestamp", index: 3 });
+  assert.equal(hook.cancelCount, 1);
+});
+
+test("setPresence rejects new operations after dispose starts", async () => {
+  const { client, presenceCalls } = createHarness();
+  await client.dispose();
+
+  await assert.rejects(
+    client.setPresence({ roomId: "room-1", connected: true }),
+    /disposed/i,
+  );
   assert.deepEqual(presenceCalls, []);
 });
 

@@ -50,7 +50,13 @@ export function createFirebaseGameClient({
   void app;
   const roomSubscriptions = new Set();
   const presenceHooks = new Map();
+  const presenceQueues = new Map();
   let signInPromise = null;
+  let disposed = false;
+
+  function disposedError() {
+    return new Error("Firebase game client has been disposed");
+  }
 
   async function ensureAnonymousAuth() {
     if (auth?.currentUser) return auth.currentUser;
@@ -93,14 +99,28 @@ export function createFirebaseGameClient({
     ];
     const record = { active: true, unsubscribers: [] };
 
-    for (const [suffix, onSnapshot, onError] of definitions) {
-      const reference = sdk.ref(database, `rooms/${safeRoomId}/${suffix}`);
-      const unsubscribe = sdk.onValue(
-        reference,
-        (snapshot) => onSnapshot?.(snapshot.val()),
-        (error) => onError?.(error),
-      );
-      record.unsubscribers.push(unsubscribe);
+    try {
+      for (const [suffix, onSnapshot, onError] of definitions) {
+        const reference = sdk.ref(database, `rooms/${safeRoomId}/${suffix}`);
+        const unsubscribe = sdk.onValue(
+          reference,
+          (snapshot) => onSnapshot?.(snapshot.val()),
+          (error) => onError?.(error),
+        );
+        record.unsubscribers.push(unsubscribe);
+      }
+    } catch (setupError) {
+      record.active = false;
+      const errors = [setupError];
+      for (const unsubscribe of record.unsubscribers) {
+        try {
+          unsubscribe();
+        } catch (rollbackError) {
+          errors.push(rollbackError);
+        }
+      }
+      if (errors.length === 1) throw setupError;
+      throw new AggregateError(errors, "Room subscription setup and rollback failed");
     }
     roomSubscriptions.add(record);
 
@@ -121,28 +141,44 @@ export function createFirebaseGameClient({
   }
 
   async function cancelPresenceHook(roomId) {
-    const hook = presenceHooks.get(roomId);
-    if (!hook) return;
-    await hook.cancel();
-    presenceHooks.delete(roomId);
+    const record = presenceHooks.get(roomId);
+    if (!record) return;
+    await record.hook.cancel();
+    if (presenceHooks.get(roomId) === record) presenceHooks.delete(roomId);
   }
 
-  async function setPresence({ roomId, connected } = {}) {
-    const safeRoomId = assertRtdbSafeKey(roomId, "room ID");
-    if (typeof connected !== "boolean") throw new TypeError("connected must be a boolean");
+  function enqueuePresence(roomId, operation) {
+    const previous = presenceQueues.get(roomId) ?? Promise.resolve();
+    const result = previous.catch(() => {}).then(operation);
+    const tail = result.catch(() => {});
+    presenceQueues.set(roomId, tail);
+    tail.then(() => {
+      if (presenceQueues.get(roomId) === tail) presenceQueues.delete(roomId);
+    });
+    return result;
+  }
+
+  async function updatePresence(safeRoomId, connected) {
+    if (disposed) throw disposedError();
     await ensureAnonymousAuth();
+    if (disposed) throw disposedError();
     const uid = currentUid();
     const reference = sdk.ref(database, `rooms/${safeRoomId}/players/${uid}`);
 
-    await cancelPresenceHook(safeRoomId);
-
     if (!connected) {
+      const record = presenceHooks.get(safeRoomId);
       await sdk.update(reference, {
         connected: false,
         lastSeenAt: sdk.serverTimestamp(),
       });
+      if (record && presenceHooks.get(safeRoomId) === record) {
+        await record.hook.cancel();
+        if (presenceHooks.get(safeRoomId) === record) presenceHooks.delete(safeRoomId);
+      }
       return;
     }
+
+    await cancelPresenceHook(safeRoomId);
 
     const hook = sdk.onDisconnect(reference);
     try {
@@ -159,13 +195,27 @@ export function createFirebaseGameClient({
       throw registrationError;
     }
 
-    presenceHooks.set(safeRoomId, hook);
+    if (disposed) {
+      try {
+        await hook.cancel();
+      } catch (cancelError) {
+        throw new AggregateError(
+          [disposedError(), cancelError],
+          "Presence registration completed after disposal and could not be cancelled",
+        );
+      }
+      throw disposedError();
+    }
+
+    const record = { hook, reference };
+    presenceHooks.set(safeRoomId, record);
     try {
       await sdk.update(reference, {
         connected: true,
         lastSeenAt: sdk.serverTimestamp(),
       });
     } catch (writeError) {
+      if (presenceHooks.get(safeRoomId) !== record) throw writeError;
       presenceHooks.delete(safeRoomId);
       try {
         await hook.cancel();
@@ -179,7 +229,15 @@ export function createFirebaseGameClient({
     }
   }
 
+  async function setPresence({ roomId, connected } = {}) {
+    const safeRoomId = assertRtdbSafeKey(roomId, "room ID");
+    if (typeof connected !== "boolean") throw new TypeError("connected must be a boolean");
+    if (disposed) throw disposedError();
+    return enqueuePresence(safeRoomId, () => updatePresence(safeRoomId, connected));
+  }
+
   async function dispose() {
+    disposed = true;
     const errors = [];
     const subscriptionRecords = [...roomSubscriptions];
     roomSubscriptions.clear();
@@ -195,13 +253,27 @@ export function createFirebaseGameClient({
       }
     }
 
-    const hooks = [...presenceHooks.values()];
-    presenceHooks.clear();
-    for (const hook of hooks) {
+    const pendingPresence = [...presenceQueues.values()];
+    await Promise.allSettled(pendingPresence);
+
+    const hooks = [...presenceHooks.entries()];
+    for (const [roomId, record] of hooks) {
+      if (presenceHooks.get(roomId) !== record) continue;
       try {
-        await hook.cancel();
-      } catch (error) {
-        errors.push(error);
+        await sdk.update(record.reference, {
+          connected: false,
+          lastSeenAt: sdk.serverTimestamp(),
+        });
+      } catch (offlineError) {
+        errors.push(offlineError);
+        continue;
+      }
+
+      if (presenceHooks.get(roomId) === record) presenceHooks.delete(roomId);
+      try {
+        await record.hook.cancel();
+      } catch (cancelError) {
+        errors.push(cancelError);
       }
     }
     throwCleanupErrors(errors, "One or more Firebase client resources could not be cleaned up");
