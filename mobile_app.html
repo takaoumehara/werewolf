@@ -343,8 +343,8 @@
     gap: var(--sp-2);
   }
   .composition-row .stepper .btn {
-    min-width: 36px;
-    min-height: 36px;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
   }
   .composition-total {
@@ -444,7 +444,7 @@
   .dev-drawer-grid .btn {
     padding: var(--sp-1);
     font-size: var(--fs-caption);
-    min-height: 36px;
+    min-height: var(--tap-min);
   }
 
   @keyframes mobile-app-spin-dot {
@@ -571,7 +571,7 @@
       <!-- s07: 役職構成 -->
       <section class="screen" id="s07">
         <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);">役職構成</h2>
-        <p class="center-note" style="text-align:left;">推奨構成(7人時): 人狼2 / 予言者1 / 騎士団1 / 市民3</p>
+        <p class="center-note" style="text-align:left;">推奨構成(8人時): 人狼2 / 予言者1 / 騎士団1 / 市民4</p>
         <div class="stack" id="compositionList"></div>
         <div class="composition-total" id="compositionTotal"></div>
         <button type="button" class="btn btn--primary" onclick="showScreen('s08')">この構成で進む</button>
@@ -1072,7 +1072,7 @@
     { id: 'werewolf', label: '人狼', count: 2 },
     { id: 'prophet', label: '予言者', count: 1 },
     { id: 'knights', label: '騎士団', count: 1 },
-    { id: 'citizen', label: '市民', count: 3 }
+    { id: 'citizen', label: '市民', count: 4 }
   ];
 
   const NIGHT_ACTIONS = {
