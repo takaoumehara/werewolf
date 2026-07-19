@@ -310,8 +310,8 @@ export function dispatch(inputState, command) {
       assert(state.phase === "vote", "Voting is closed");
       const actor = playerById(state, command.actorId);
       assert(actor.alive, "Dead players cannot vote");
-      const targetId = command.payload?.targetId ?? null;
-      if (targetId !== null) validateTarget(state, command.actorId, targetId);
+      const targetId = command.payload?.targetId ?? "";
+      if (targetId !== "") validateTarget(state, command.actorId, targetId);
       state.pendingVotes[command.actorId] = targetId;
       events.push(event(state, "VOTE_CAST", { playerId: command.actorId }, now));
       break;

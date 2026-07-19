@@ -450,3 +450,58 @@ test("duplicateもpruned snapshotをhydrateして後続command可能なgameを�
   });
   assert.equal(action.game.authoritative.revision, duplicate.game.authoritative.revision + 1);
 });
+
+test("棄権voteはRTDB round-tripとduplicate後もvoter countを保持して解決できる", () => {
+  const started = startDefaultGame();
+  const night = applyGameSessionCommand({
+    game: started, callerUid: "p1",
+    request: { commandId: "abstain-night", type: "BEGIN_NIGHT", payload: {},
+      expectedRevision: started.authoritative.revision },
+    now: 101,
+  });
+  const day = applyGameSessionCommand({
+    game: night.game, callerUid: "p1",
+    request: { commandId: "abstain-day", type: "RESOLVE_NIGHT", payload: {},
+      expectedRevision: night.game.authoritative.revision },
+    now: 102,
+  });
+  const vote = applyGameSessionCommand({
+    game: day.game, callerUid: "p1",
+    request: { commandId: "abstain-vote", type: "START_VOTE", payload: {},
+      expectedRevision: day.game.authoritative.revision },
+    now: 103,
+  });
+  const castRequest = { commandId: "abstain-cast", type: "CAST_VOTE",
+    payload: { targetId: null }, expectedRevision: vote.game.authoritative.revision };
+  const cast = applyGameSessionCommand({
+    game: vote.game, callerUid: "p2", request: castRequest, now: 104,
+  });
+  const castSnapshot = rtdbRoundTrip(cast.game);
+
+  assert.equal(Object.hasOwn(castSnapshot.authoritative.pendingVotes, "p2"), true);
+  assert.equal(castSnapshot.public.pendingVoteCount, 1);
+  const retry = applyGameSessionCommand({
+    game: castSnapshot, callerUid: "p2", request: castRequest, now: 105,
+  });
+  assert.equal(retry.duplicate, true);
+  assert.equal(retry.game.public.pendingVoteCount, 1);
+
+  const resolved = applyGameSessionCommand({
+    game: retry.game, callerUid: "p1",
+    request: { commandId: "abstain-resolve", type: "RESOLVE_VOTE", payload: {},
+      expectedRevision: retry.game.authoritative.revision },
+    now: 106,
+  });
+  assert.equal(resolved.game.public.phase, "day");
+  assert.equal(Object.values(resolved.game.authoritative.players)
+    .every((player) => player.alive), true);
+  const resolvedEvent = Object.values(resolved.game.publicEvents)
+    .find((event) => event.type === "VOTE_RESOLVED");
+  assert.deepEqual(resolvedEvent.payload, { executedPlayerId: null });
+
+  const resolvedSnapshot = rtdbRoundTrip(resolved.game);
+  const persistedResolvedEvent = Object.values(resolvedSnapshot.publicEvents)
+    .find((event) => event.type === "VOTE_RESOLVED");
+  assert.equal(persistedResolvedEvent.type, "VOTE_RESOLVED");
+  assert.equal(Object.hasOwn(persistedResolvedEvent, "payload"), false);
+});

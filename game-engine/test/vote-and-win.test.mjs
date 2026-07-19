@@ -48,3 +48,21 @@ test("同票では処刑されずゲームが継続する", () => {
   assert.equal(state.phase, "day");
   assert.equal(state.winner, null);
 });
+
+test("nullまたは省略した投票先はdurableな棄権として数え、誰も処刑しない", () => {
+  let state = atVote(["citizen", "citizen", "citizen", "werewolf"]);
+  ({ state } = dispatch(state, command(state, "p1", "CAST_VOTE", { targetId: null })));
+  ({ state } = dispatch(state, command(state, "p2", "CAST_VOTE")));
+
+  assert.equal(state.pendingVotes.p1, "");
+  assert.equal(state.pendingVotes.p2, "");
+  assert.equal(Object.keys(state.pendingVotes).length, 2);
+
+  let events;
+  ({ state, events } = dispatch(state, command(state, "p1", "RESOLVE_VOTE")));
+  assert.equal(Object.values(state.players).every((player) => player.alive), true);
+  assert.equal(state.phase, "day");
+  assert.equal(state.winner, null);
+  assert.deepEqual(events.find((event) => event.type === "VOTE_RESOLVED").payload,
+    { executedPlayerId: null });
+});
