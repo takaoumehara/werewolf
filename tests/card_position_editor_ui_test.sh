@@ -35,6 +35,11 @@ rg -q 'pointerdown' "$editor"
 rg -q "addEventListener\('wheel'" "$editor"
 rg -q 'navigator.clipboard.writeText' "$editor"
 rg -q 'serializePositions' "$editor"
+rg -q 'const REFINED_POSITIONS' "$editor"
+rg -F -q 'knights: { scale: 1.42, x: -2.36, y: -5.99 }' "$editor"
+rg -q 'const REFINED_POSITIONS' card_gallery.html
+rg -q 'const REFINED_POSITIONS' card_viewer.html
+rg -q 'refined-positioned' card_viewer.html
 rg -q 'href="card_position_editor.html"' card_gallery.html
 
 echo "card position editor UI checks passed"

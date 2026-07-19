@@ -173,6 +173,11 @@
             transform-origin: center bottom;
         }
 
+        .card-layer-char.refined-positioned {
+            animation: none;
+            transform-origin: center center;
+        }
+
         /* --- Ambient Idle Loops (Super Natural Floating, No Mechanical Zoom) --- */
         @keyframes idleFloatChar {
             0% {
@@ -686,6 +691,20 @@
             "raw-illustrations-72-a-lifelike",
             "raw-illustrations-72-a-refined"
         ]);
+        const REFINED_POSITIONS = {
+            dictator: { scale: 0.91, x: 1.76, y: 7.29 }, knights: { scale: 1.42, x: -2.36, y: -5.99 },
+            double: { scale: 0.94, x: -0.13, y: 4.98 }, counselor: { scale: 0.93, x: -2.9, y: 4.63 },
+            necromancer: { scale: 1.02, x: 0.75, y: 4.2 }, trapper: { scale: 0.96, x: -1, y: 4.28 },
+            citizen: { scale: 0.95, x: 2.21, y: 4.91 }, prophet: { scale: 0.95, x: -1.2, y: 2.93 },
+            bodyguard: { scale: 0.92, x: -1.25, y: 3.82 }, twins: { scale: 1.24, x: -0.39, y: 3.37 },
+            magician: { scale: 0.9, x: -2.72, y: 0.46 }, magician_c: { scale: 0.86, x: -1.77, y: 0.93 },
+            hunter: { scale: 1, x: -0.71, y: 0.72 }, tough_guy: { scale: 1, x: 0, y: 0 }, spy: { scale: 1, x: 0, y: 0 },
+            betrayal_twin: { scale: 0.89, x: -0.1, y: 5.32 }, werewolf: { scale: 0.98, x: 0.27, y: 8.16 },
+            traitor: { scale: 0.91, x: 1.75, y: 4.57 }, betrayer: { scale: 1, x: 1.57, y: 2.9 },
+            werewolf_child: { scale: 0.95, x: -0.15, y: 4.54 }, android: { scale: 1.02, x: 0.68, y: 4.56 },
+            lone_wolf: { scale: 1, x: -1.27, y: 4.8 }, god: { scale: 1.09, x: 0, y: 0 },
+            lovers: { scale: 1, x: 2.01, y: 0.52 }, mysterious_fox: { scale: 1, x: 0, y: 0 }
+        };
         const compositeCharacterFolders = {
             "raw-illustrations-72-a2": "raw-illustrations-transparent-72",
             "lifelike-trans": "00_transparent-illustrations-72-a-lifelike",
@@ -706,6 +725,8 @@
             const layerBg = document.getElementById("layer-bg");
             const layerChar = document.getElementById("layer-char");
             const layerVideo = document.getElementById("layer-video");
+            layerChar.classList.remove("refined-positioned");
+            layerChar.style.transform = "";
             
             // Reset videos & canvas by default
             stopChromaKeyLoop();
@@ -737,6 +758,11 @@
                     applyBlueScreenTransparency(chromaCanvas, characterPath);
                 } else {
                     layerChar.style.backgroundImage = `url('${characterPath}')`;
+                    if (versionSelect === "refined-trans") {
+                        const position = REFINED_POSITIONS[currentRole.id];
+                        layerChar.classList.add("refined-positioned");
+                        layerChar.style.transform = `translate3d(${position.x}%, ${position.y}%, 0) scale(${position.scale})`;
+                    }
                     layerChar.style.display = "block";
                 }
             } else if (versionSelect === "videos-72") {
