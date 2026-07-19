@@ -105,8 +105,9 @@ rooms/{roomId}/game/processedCommands/{commandId}
 - 呼び出しuidがroom memberであることを検証する。
 - `actorId` はリクエスト本文から受け取らず、`auth.uid` を使用する。
 - サーバー時刻、command ID、expected revisionを検証する。
-- `rooms/{roomId}/game` のtransaction内で `applyCommandOnce` を実行する。
-- 同じcommand IDの再送は同じ結果を返し、二重投票・二重進行を起こさない。
+- `rooms/{roomId}/game` のtransaction内で `processedCommands` のreceiptを確認してからdispatchする。
+- 初回処理では `{ revision, phase }` だけをreceiptとして保存し、完全な権威状態やイベントをcommandごとに複製しない。
+- 同じcommand IDの再送は保存済みの初回応答を返すが、transactionの現在状態は変更しない。後続command後の再送でも状態を過去へ戻さない。
 - 公開イベントと完全イベントを別パスへ保存する。
 
 ## Realtime Databaseルール

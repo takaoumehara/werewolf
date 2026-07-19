@@ -193,9 +193,9 @@ git commit -m "feat: add Firebase room domain"
 
 **Interfaces:**
 - Consumes: `createGame`, `dispatch`, `toPublicView`, `toPlayerView`
-- Consumes: `createCommandEnvelope`, `applyCommandOnce`, `buildPersistencePatch`
+- Consumes: `createCommandEnvelope`, `buildPersistencePatch`
 - Produces: `startGameSession(input)`
-- Produces: `applyGameSessionCommand(input)`
+- Produces: `applyGameSessionCommand(input) -> { game, commandResult, duplicate }`
 
 - [ ] **Step 1: host/member/secret/idempotencyの失敗テストを書く**
 
@@ -236,8 +236,36 @@ test("同じcommand idは一度だけ適用される", () => {
   const request = { commandId: "c1", type: "BEGIN_NIGHT", payload: {},
     expectedRevision: started.authoritative.revision };
   const first = applyGameSessionCommand({ game: started, callerUid: "p1", request, now: 101 });
-  const second = applyGameSessionCommand({ game: first, callerUid: "p1", request, now: 102 });
-  assert.equal(second.authoritative.revision, first.authoritative.revision);
+  const second = applyGameSessionCommand({ game: first.game, callerUid: "p1", request, now: 102 });
+  assert.equal(second.game.authoritative.revision, first.game.authoritative.revision);
+  assert.deepEqual(second.commandResult, first.commandResult);
+  assert.equal(second.duplicate, true);
+});
+
+test("後続command後に古いcommandを再送しても現在状態を巻き戻さない", () => {
+  const started = startGameSession({
+    roomId: "r1", callerUid: "p1", roomMeta: { hostId: "p1", status: "waiting" },
+    players, roleIds: ["citizen", "citizen", "citizen", "werewolf"],
+    gmMode: "computer", seed: 7, now: 100,
+  });
+  const firstRequest = { commandId: "c1", type: "BEGIN_NIGHT", payload: {},
+    expectedRevision: started.authoritative.revision };
+  const first = applyGameSessionCommand({
+    game: started, callerUid: "p1", request: firstRequest, now: 101,
+  });
+  const advanced = applyGameSessionCommand({
+    game: first.game, callerUid: "p1",
+    request: { commandId: "c2", type: "RESOLVE_NIGHT", payload: {},
+      expectedRevision: first.game.authoritative.revision },
+    now: 102,
+  });
+  const retry = applyGameSessionCommand({
+    game: advanced.game, callerUid: "p1", request: firstRequest, now: 103,
+  });
+  assert.equal(retry.game.authoritative.revision, advanced.game.authoritative.revision);
+  assert.equal(retry.game.public.phase, advanced.game.public.phase);
+  assert.deepEqual(retry.commandResult, first.commandResult);
+  assert.equal(retry.duplicate, true);
 });
 ```
 
@@ -252,7 +280,7 @@ Expected: missing module failure。
 ```js
 import { createGame, dispatch, toPublicView, toPlayerView }
   from "../../game-engine/src/engine.mjs";
-import { createCommandEnvelope, applyCommandOnce, buildPersistencePatch }
+import { createCommandEnvelope, buildPersistencePatch }
   from "../../game-engine/src/firebase-adapter-contract.mjs";
 
 function assert(condition, message) {
@@ -282,12 +310,27 @@ export function applyGameSessionCommand({ game, callerUid, request, now }) {
     id: request.commandId, actorId: callerUid, type: request.type,
     payload: request.payload ?? {}, expectedRevision: request.expectedRevision, now,
   });
+  assert(/^[A-Za-z0-9_-]{1,128}$/.test(command.id), "Invalid command ID");
   const processedCommands = structuredClone(game.processedCommands ?? {});
-  const result = applyCommandOnce({ state: game.authoritative, command, dispatch,
-    processedCommands });
+  if (Object.hasOwn(processedCommands, command.id)) {
+    const commandResult = structuredClone(processedCommands[command.id]);
+    assert(Number.isSafeInteger(commandResult?.revision), "Invalid command receipt");
+    assert(typeof commandResult?.phase === "string", "Invalid command receipt");
+    return { game: structuredClone(game), commandResult, duplicate: true };
+  }
+  const result = dispatch(game.authoritative, command);
   const patch = buildPersistencePatch({ state: result.state, events: result.events,
     toPublicView, toPlayerView });
-  return { ...patch, processedCommands };
+  const commandResult = { revision: patch.public.revision, phase: patch.public.phase };
+  Object.defineProperty(processedCommands, command.id, {
+    value: structuredClone(commandResult), enumerable: true,
+    configurable: true, writable: true,
+  });
+  return {
+    game: { ...patch, processedCommands },
+    commandResult: structuredClone(commandResult),
+    duplicate: false,
+  };
 }
 ```
 
@@ -486,9 +529,9 @@ export function createFirebaseRoomRepository({ database, now = Date.now }) {
       let response;
       const transaction = await gameRef.transaction((game) => {
         if (!game) return;
-        const next = applyGameSessionCommand({ game, callerUid, request, now: now() });
-        response = { revision: next.public.revision, phase: next.public.phase };
-        return next;
+        const result = applyGameSessionCommand({ game, callerUid, request, now: now() });
+        response = result.commandResult;
+        return result.game;
       });
       if (!transaction.committed) throw new Error("Game command conflict");
       return response;
