@@ -644,6 +644,16 @@ git commit -m "feat: expose Firebase game callables"
 - Self read: `rooms/{roomId}/game/privateViews/{uid}`
 - Server-only: pairingCodes, roomMembers, joinState, authoritative, events, processedCommands
 
+**Security invariants:**
+- root、`rooms/{roomId}`、`rooms/{roomId}/game`のparent read/writeは常に拒否し、許可したleaf/subtreeだけをmemberへ公開する。
+- `meta`、`players`、`game/public`、`game/publicEvents`は`roomMembers/{roomId}/{auth.uid} === true`のmemberだけがreadできる。
+- `game/privateViews/{uid}`は`auth.uid === uid`かつ同room memberの本人だけがreadできる。他人、非member、unauthenticatedは拒否する。
+- `pairingCodes`、`roomMembers`、`roomCreateRateLimits`、`joinState`、`authoritative`、完全`events`、`processedCommands`はクライアントread/writeを全面拒否する。
+- クライアントwriteは既存member本人の`players/{uid}/name`、`connected`、`lastSeenAt`だけ。nameは1〜30文字string、connectedはboolean、lastSeenAtは非負numberかつserver timeから大きく未来にしない。
+- 自分のplayer全体、`id`、`role`、`joinedAt`、他人のplayer、meta/status、公開/秘密game状態、未知child、削除はホストを含め拒否する。ゲーム操作はCallableだけを使う。
+- emulator testsはmember/nonmember/anonymous、親path read、self/other private、server-only paths、許可3 fieldのvalid/invalid type/range/delete、whole-record/unknown/meta/game writesを個別に固定する。
+- rules testは一意なdemo projectを使い、rules disabled seed後にauth contextで検証し、cleanupを必ず行う。
+
 - [ ] **Step 1: rules emulatorの許可／拒否テストを書く**
 
 ```js
