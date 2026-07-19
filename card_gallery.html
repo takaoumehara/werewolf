@@ -52,6 +52,31 @@
             margin: 0;
             font-weight: 500;
         }
+
+        .position-editor-link {
+            display: inline-flex;
+            align-items: center;
+            min-height: 32px;
+            margin-top: 16px;
+            padding: 0 14px;
+            border: 1px solid rgba(255, 65, 108, 0.48);
+            border-radius: 7px;
+            color: #ff809c;
+            background: rgba(255, 65, 108, 0.08);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-decoration: none;
+            transition: border-color 0.2s, background 0.2s, color 0.2s;
+        }
+
+        .position-editor-link:hover,
+        .position-editor-link:focus-visible {
+            border-color: #ff416c;
+            color: #fff;
+            background: rgba(255, 65, 108, 0.18);
+            outline: none;
+        }
         
         /* Dashboard controls container */
         .controls-panel {
@@ -353,6 +378,7 @@
     <header>
         <h1>CARD DECK GALLERY</h1>
         <p class="subtitle">人狼ゲーム 全カード一覧・一括プレビュー</p>
+        <a class="position-editor-link" href="card_position_editor.html">POSITION EDITOR</a>
     </header>
 
     <!-- Controls Dashboard -->

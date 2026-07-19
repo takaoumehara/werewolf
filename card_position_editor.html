@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Refined Card Position Editor</title>
+  <style>
+    :root {
+      --ink: #f6f1e8;
+      --muted: #a6a09a;
+      --line: rgba(246, 241, 232, 0.14);
+      --panel: #17191d;
+      --panel-strong: #202329;
+      --canvas: #0d0f12;
+      --accent: #e5b86f;
+      --accent-strong: #f1cf8d;
+      --danger: #ff6b6b;
+      --card-width: 210px;
+      --card-height: 368px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--canvas); }
+
+    body {
+      margin: 0;
+      min-width: 1120px;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(229, 184, 111, 0.08), transparent 28rem),
+        linear-gradient(135deg, #0d0f12 0%, #111419 56%, #0b0d10 100%);
+      font-family: "Helvetica Neue", "Hiragino Kaku Gothic ProN", sans-serif;
+    }
+
+    button, input { font: inherit; }
+
+    button { cursor: pointer; }
+
+    .page-shell {
+      width: min(1820px, calc(100vw - 64px));
+      margin: 0 auto;
+      padding: 34px 0 56px;
+    }
+
+    .masthead {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 28px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(32px, 3vw, 56px);
+      font-weight: 500;
+      letter-spacing: -0.04em;
+      line-height: 0.98;
+    }
+
+    .masthead-copy {
+      max-width: 610px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(23, 25, 29, 0.88);
+    }
+
+    .toolbar-note {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 14px rgba(229, 184, 111, 0.65);
+    }
+
+    .toolbar-actions, .language-switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .button {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 13px;
+      color: var(--ink);
+      background: transparent;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+    }
+
+    .button:hover, .button:focus-visible {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .button--primary {
+      border-color: var(--accent);
+      color: #16120d;
+      background: var(--accent);
+    }
+
+    .button--primary:hover, .button--primary:focus-visible {
+      border-color: var(--accent-strong);
+      background: var(--accent-strong);
+    }
+
+    .button--quiet {
+      color: var(--muted);
+      background: rgba(246, 241, 232, 0.04);
+    }
+
+    .language-button {
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .language-button[aria-pressed="true"] {
+      border-color: var(--line);
+      color: var(--ink);
+      background: var(--panel-strong);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 290px;
+      align-items: start;
+      gap: 22px;
+    }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(var(--card-width), 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    .editor-card {
+      position: relative;
+      width: 100%;
+      max-width: var(--card-width);
+      aspect-ratio: 4 / 7;
+      overflow: hidden;
+      border: 1px solid rgba(246, 241, 232, 0.12);
+      border-radius: 10px;
+      background: #101216;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+      cursor: grab;
+      isolation: isolate;
+      justify-self: center;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .editor-card:hover { border-color: rgba(229, 184, 111, 0.54); }
+
+    .editor-card:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    .editor-card.is-selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 20px 46px rgba(0, 0, 0, 0.45);
+    }
+
+    .editor-card.is-dragging { cursor: grabbing; }
+
+    .editor-card__background, .editor-card__character {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .editor-card__background {
+      z-index: 1;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    .editor-card__character {
+      z-index: 2;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+      transform-origin: center center;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .editor-card::after {
+      position: absolute;
+      z-index: 3;
+      inset: 0;
+      border: 1px solid rgba(9, 10, 12, 0.26);
+      content: "";
+      pointer-events: none;
+    }
+
+    .editor-card__name {
+      position: absolute;
+      z-index: 4;
+      top: 14px;
+      left: 14px;
+      max-width: calc(100% - 28px);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      line-height: 1.2;
+      pointer-events: none;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+    }
+
+    .editor-card__name[lang="en"] { font-family: Georgia, "Times New Roman", serif; }
+
+    .editor-card__selection {
+      position: absolute;
+      z-index: 5;
+      right: 10px;
+      bottom: 10px;
+      padding: 5px 7px;
+      border: 1px solid rgba(229, 184, 111, 0.65);
+      border-radius: 5px;
+      color: var(--accent-strong);
+      background: rgba(13, 15, 18, 0.76);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .editor-card.is-selected .editor-card__selection { opacity: 1; }
+
+    .inspector {
+      position: sticky;
+      top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      background: rgba(23, 25, 29, 0.95);
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.24);
+    }
+
+    .inspector-kicker {
+      margin: 0 0 7px;
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .inspector h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 26px;
+      font-weight: 500;
+    }
+
+    .inspector-subtitle {
+      min-height: 18px;
+      margin: 4px 0 22px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .control-block {
+      margin-bottom: 18px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .control-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 9px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .control-value {
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 72px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: ew-resize;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0 8px;
+      color: var(--ink);
+      background: #101216;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="number"]:focus-visible, input[type="range"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .axis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .axis-field label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .inspector-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .inspector-actions .button { width: 100%; padding: 0 8px; }
+
+    .help-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.65;
+    }
+
+    .export-area {
+      display: none;
+      width: 100%;
+      min-height: 180px;
+      margin-top: 10px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 10px;
+      color: var(--ink);
+      background: #101216;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      line-height: 1.5;
+      resize: vertical;
+    }
+
+    .export-area.is-visible { display: block; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 1450px) {
+      .editor-grid { grid-template-columns: repeat(3, minmax(var(--card-width), 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">Final Card Calibration / Refined + Transparent</p>
+        <h1>Position Editor</h1>
+      </div>
+      <p class="masthead-copy">25枚の人物レイヤーを背景に合わせて調整します。カードを選び、ドラッグ・ホイール・数値入力で整えたら、全設定をJSONでコピーできます。</p>
+    </header>
+
+    <section class="toolbar" aria-label="Editor actions">
+      <div class="toolbar-note"><span class="status-dot" aria-hidden="true"></span><span>Refined / Transparent / Background ON</span><span id="edited-count">0 / 25 adjusted</span></div>
+      <div class="toolbar-actions">
+        <div class="language-switch" aria-label="Language">
+          <button class="language-button" id="language-ja" type="button" aria-pressed="true">日本語</button>
+          <button class="language-button" id="language-en" type="button" aria-pressed="false">ENGLISH</button>
+        </div>
+        <button class="button button--quiet" id="reset-all" type="button">RESET ALL</button>
+        <button class="button button--primary" id="copy-all" type="button">COPY ALL POSITIONS</button>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <section class="editor-grid" id="editor-grid" aria-label="Refined card gallery"></section>
+
+      <aside class="inspector" aria-label="Selected card controls">
+        <p class="inspector-kicker">Selected Role</p>
+        <h2 id="selected-role">Knights</h2>
+        <p class="inspector-subtitle" id="selected-role-jp">騎士団</p>
+
+        <div class="control-block">
+          <label class="control-label" for="scale-input"><span>Scale</span><span class="control-value" id="scale-value">1.00×</span></label>
+          <div class="range-row">
+            <input id="scale-input" type="range" min="0.5" max="2.5" step="0.01" value="1" aria-label="Scale">
+            <input id="scale-number" type="number" min="0.5" max="2.5" step="0.01" value="1" aria-label="Scale value">
+          </div>
+        </div>
+
+        <div class="control-block">
+          <div class="control-label"><span>Offset</span><span class="control-value">%</span></div>
+          <div class="axis-grid">
+            <div class="axis-field"><label for="x-input">X horizontal</label><input id="x-input" type="number" min="-100" max="100" step="0.01" value="0" aria-label="Horizontal offset"></div>
+            <div class="axis-field"><label for="y-input">Y vertical</label><input id="y-input" type="number" min="-100" max="100" step="0.01" value="0" aria-label="Vertical offset"></div>
+          </div>
+        </div>
+
+        <div class="inspector-actions">
+          <button class="button button--quiet" id="reset-selected" type="button">RESET SELECTED</button>
+          <button class="button button--primary" id="copy-selected" type="button">COPY SELECTED</button>
+        </div>
+        <p class="help-copy">Drag a card to move its character. Scroll to scale. Arrow keys nudge 1%; Shift + Arrow nudges 10%.</p>
+        <div id="editor-status" aria-live="polite" class="sr-only">Editor ready</div>
+        <textarea id="export-area" class="export-area" aria-label="Position JSON fallback"></textarea>
+      </aside>
+    </div>
+  </main>
+
+  <script type="module">
+    import {
+      createPositionMap,
+      resetPosition,
+      serializePositions,
+      updatePosition
+    } from './card_position_editor.mjs';
+
+    const assetVersion = '20260719-refined-assets';
+    const roles = [
+      ['dictator', '独裁者', 'Dictator'], ['knights', '騎士団', 'Knights'], ['double', '影武者', 'Double'],
+      ['counselor', 'カウンセラー', 'Counselor'], ['necromancer', '霊媒師', 'Necromancer'], ['trapper', '罠師', 'Trapper'],
+      ['citizen', '市民', 'Citizen'], ['prophet', '予言者', 'Prophet'], ['bodyguard', 'ボディガード', 'Bodyguard'],
+      ['twins', '共有者', 'Twins'], ['magician', '奇術師', 'Magician'], ['magician_c', '奇術師 C', 'Magician C'],
+      ['hunter', 'ハンター', 'Hunter'], ['tough_guy', 'タフガイ', 'Tough Guy'], ['spy', 'スパイ', 'Spy'],
+      ['betrayal_twin', '裏切りの共有者', 'Betrayal Twin'], ['werewolf', '人狼', 'Werewolf'], ['traitor', '内通者', 'Traitor'],
+      ['betrayer', '裏切り者', 'Betrayer'], ['werewolf_child', '人狼の子ども', "Werewolf's Child"], ['android', 'アンドロイド', 'Android'],
+      ['lone_wolf', '一匹狼', 'Lone Wolf'], ['god', '神様', 'God'], ['lovers', '恋人', 'Lovers'], ['mysterious_fox', '妖狐', 'Mysterious Fox']
+    ].map(([id, jp, en]) => ({ id, jp, en }));
+
+    const roleIds = roles.map(role => role.id);
+    let positionMap = createPositionMap(roleIds);
+    let selectedRoleId = roleIds[0];
+    let currentLanguage = 'ja';
+    let pointerState = null;
+
+    const grid = document.getElementById('editor-grid');
+    const status = document.getElementById('editor-status');
+    const exportArea = document.getElementById('export-area');
+    const editedCount = document.getElementById('edited-count');
+    const selectedRole = document.getElementById('selected-role');
+    const selectedRoleJp = document.getElementById('selected-role-jp');
+    const scaleRange = document.getElementById('scale-input');
+    const scaleNumber = document.getElementById('scale-number');
+    const xInput = document.getElementById('x-input');
+    const yInput = document.getElementById('y-input');
+
+    const assetPath = path => `${path}?v=${assetVersion}`;
+    const imageName = roleId => roleId === 'magician_c' ? 'magician_ver_c.png' : `${roleId}_ver_a.png`;
+    const backgroundName = roleId => roleId === 'magician_c' || roleId === 'magician' ? 'magician_bg.png' : `${roleId}_bg.png`;
+    const getCard = roleId => grid.querySelector(`[data-role-id="${roleId}"]`);
+    const announce = message => {
+      status.textContent = message;
+      window.setTimeout(() => { if (status.textContent === message) status.textContent = ''; }, 2600);
+    };
+
+    function isChanged(position) {
+      return position.scale !== 1 || position.x !== 0 || position.y !== 0;
+    }
+
+    function updateEditedCount() {
+      const changed = roleIds.filter(roleId => isChanged(positionMap[roleId])).length;
+      editedCount.textContent = `${changed} / ${roleIds.length} adjusted`;
+    }
+
+    function applyTransform(roleId) {
+      const card = getCard(roleId);
+      if (!card) return;
+      const position = positionMap[roleId];
+      card.querySelector('.editor-card__character').style.transform = `translate3d(${position.x}%, ${position.y}%, 0) scale(${position.scale})`;
+    }
+
+    function syncInspector() {
+      const role = roles.find(item => item.id === selectedRoleId);
+      const position = positionMap[selectedRoleId];
+      selectedRole.textContent = currentLanguage === 'ja' ? role.jp : role.en;
+      selectedRoleJp.textContent = currentLanguage === 'ja' ? role.en : role.jp;
+      scaleRange.value = position.scale;
+      scaleNumber.value = position.scale;
+      xInput.value = position.x;
+      yInput.value = position.y;
+    }
+
+    function selectRole(roleId, announceSelection = true) {
+      selectedRoleId = roleId;
+      grid.querySelectorAll('.editor-card').forEach(card => card.classList.toggle('is-selected', card.dataset.roleId === roleId));
+      syncInspector();
+      if (announceSelection) announce(`${roles.find(role => role.id === roleId).en} selected`);
+    }
+
+    function setPosition(patch, message = 'Position updated') {
+      positionMap = updatePosition(positionMap, selectedRoleId, patch);
+      applyTransform(selectedRoleId);
+      syncInspector();
+      updateEditedCount();
+      announce(message);
+    }
+
+    function renderCards() {
+      grid.innerHTML = roles.map(role => {
+        const selected = role.id === selectedRoleId ? ' is-selected' : '';
+        const file = imageName(role.id);
+        const label = currentLanguage === 'ja' ? role.jp : role.en;
+        return `<article class="editor-card${selected}" data-role-id="${role.id}" tabindex="0" aria-label="${role.jp} ${role.en}">
+          <div class="editor-card__background" style="background-image:url('${assetPath(`backgrounds-72/${backgroundName(role.id)}`)}')"></div>
+          <img class="editor-card__character" src="${assetPath(`00_transparent-illustrations-72-a-refined/${file}`)}" alt="${role.en}" draggable="false">
+          <div class="editor-card__name" lang="${currentLanguage}">${label}</div>
+          <div class="editor-card__selection">EDITING</div>
+        </article>`;
+      }).join('');
+
+      roles.forEach(role => {
+        const card = getCard(role.id);
+        card.addEventListener('pointerdown', event => {
+          selectRole(role.id, false);
+          card.focus({ preventScroll: true });
+          pointerState = { roleId: role.id, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, start: { ...positionMap[role.id] } };
+          card.setPointerCapture(event.pointerId);
+          card.classList.add('is-dragging');
+        });
+        card.addEventListener('pointermove', event => {
+          if (!pointerState || pointerState.pointerId !== event.pointerId) return;
+          const deltaX = (event.clientX - pointerState.startX) / card.clientWidth * 100;
+          const deltaY = (event.clientY - pointerState.startY) / card.clientHeight * 100;
+          positionMap = updatePosition(positionMap, role.id, { x: pointerState.start.x + deltaX, y: pointerState.start.y + deltaY });
+          applyTransform(role.id);
+          syncInspector();
+          updateEditedCount();
+        });
+        card.addEventListener('pointerup', event => {
+          if (pointerState?.pointerId !== event.pointerId) return;
+          pointerState = null;
+          card.classList.remove('is-dragging');
+          announce('Position updated');
+        });
+        card.addEventListener('pointercancel', () => {
+          pointerState = null;
+          card.classList.remove('is-dragging');
+        });
+        card.addEventListener('wheel', event => {
+          selectRole(role.id, false);
+          event.preventDefault();
+          setPosition({ scale: positionMap[role.id].scale - event.deltaY * 0.001 }, 'Scale updated');
+        }, { passive: false });
+        card.addEventListener('keydown', event => {
+          if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+          event.preventDefault();
+          const step = event.shiftKey ? 10 : 1;
+          const position = positionMap[role.id];
+          const patch = {};
+          if (event.key === 'ArrowLeft') patch.x = position.x - step;
+          if (event.key === 'ArrowRight') patch.x = position.x + step;
+          if (event.key === 'ArrowUp') patch.y = position.y - step;
+          if (event.key === 'ArrowDown') patch.y = position.y + step;
+          setPosition(patch, 'Position nudged');
+        });
+      });
+      roleIds.forEach(applyTransform);
+    }
+
+    function setLanguage(language) {
+      currentLanguage = language;
+      document.getElementById('language-ja').setAttribute('aria-pressed', language === 'ja');
+      document.getElementById('language-en').setAttribute('aria-pressed', language === 'en');
+      renderCards();
+      syncInspector();
+    }
+
+    async function copyText(output, message) {
+      try {
+        await navigator.clipboard.writeText(output);
+        exportArea.classList.remove('is-visible');
+        announce(message);
+      } catch (error) {
+        exportArea.value = output;
+        exportArea.classList.add('is-visible');
+        exportArea.focus();
+        exportArea.select();
+        announce('Clipboard unavailable — JSON selected for manual copy');
+      }
+    }
+
+    document.getElementById('language-ja').addEventListener('click', () => setLanguage('ja'));
+    document.getElementById('language-en').addEventListener('click', () => setLanguage('en'));
+    document.getElementById('scale-input').addEventListener('input', event => setPosition({ scale: event.target.value }));
+    document.getElementById('scale-number').addEventListener('input', event => setPosition({ scale: event.target.value }));
+    document.getElementById('x-input').addEventListener('input', event => setPosition({ x: event.target.value }));
+    document.getElementById('y-input').addEventListener('input', event => setPosition({ y: event.target.value }));
+    document.getElementById('reset-selected').addEventListener('click', () => {
+      positionMap = resetPosition(positionMap, selectedRoleId);
+      applyTransform(selectedRoleId);
+      syncInspector();
+      updateEditedCount();
+      announce('Selected card reset');
+    });
+    document.getElementById('reset-all').addEventListener('click', () => {
+      positionMap = createPositionMap(roleIds);
+      roleIds.forEach(applyTransform);
+      syncInspector();
+      updateEditedCount();
+      announce('All cards reset');
+    });
+    document.getElementById('copy-all').addEventListener('click', () => copyText(serializePositions(positionMap, roleIds), 'All 25 positions copied'));
+    document.getElementById('copy-selected').addEventListener('click', () => {
+      const one = serializePositions(positionMap, [selectedRoleId]);
+      copyText(one, 'Selected position copied');
+    });
+
+    renderCards();
+    syncInspector();
+  </script>
+</body>
+</html>
