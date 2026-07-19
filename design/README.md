@@ -2,6 +2,10 @@
 
 このフォルダは、ゲームの世界観・カード・UI・アセット運用に関する最新のデザイン正本です。新しいAIセッションや別のAIが作業するときは、まずこのファイルを読み、必要な資料だけを順番に確認してください。
 
+## AIセッションの入口
+
+Codex、Claude Code、Gemini CLIでは、リポジトリ直下の `AGENTS.md`、`CLAUDE.md`、`GEMINI.md` から共通の [`AI_CONTEXT.md`](../AI_CONTEXT.md) を経由してこの目次へ到達する。AI別の入口へカード値やデザイントークンを複製せず、最新情報はこのフォルダの正本だけを更新する。
+
 ## 読む順番
 
 1. [`current-card-design.md`](current-card-design.md) — 現在の最終カード仕様と使い方
