@@ -72,6 +72,25 @@ rooms/{roomId}/game/processedCommands/{commandId}
 `authoritative`、完全イベント、処理済みコマンド、`joinState`、`pairingCodes` はAdmin SDKだけが
 読み書きする。クライアントへ部屋親パスのreadを与えない。
 
+Firebaseへ保存するgame subtreeは再帰的にJSON互換へ正規化する。plain object、array、string、
+boolean、finite number、`null` だけを許可し、object内の`undefined`は省略、array内の
+`undefined`は`null`へ変換する。非有限数、BigInt、Date、function、symbol、循環参照などは
+保存前に拒否する。
+
+Realtime Databaseは空object、空array、`null`のchildを保存後のsnapshotから省くため、command
+処理前にserver-only `authoritative`をdomain stateへhydrateする。`createGame` schemaの必須map、
+array、nullable fieldと各playerの`flags` / `death`をown propertyだけから復元し、通常commandと
+duplicate再送の両方で同じ境界を通す。duplicate時の公開・個人viewも復元した現在stateから再生成する。
+
+`CAST_VOTE`の公開commandは`targetId: null`または省略を棄権として受け付ける。authoritative内部では、
+RTDBにvoter keyを残すため棄権を空文字列で保存する。player IDはnon-emptyなので衝突せず、
+pending vote countには含めるが得票集計からは除外する。処刑なしの`VOTE_RESOLVED` eventは、RTDB
+往復後にnullable payloadが省略されてもevent自体の`id` / `type` / `at`を維持し、同じ意味として扱う。
+
+`events`と`publicEvents`はevent IDをkeyにしたrecordとして保存し、commandごとのdeltaを既存logへ
+追記する。既存eventの上書き、重複ID、Realtime Databaseで不正なkeyは拒否する。公開版の
+`DAY_STARTED`は`round`だけを含み、襲撃対象や護衛成否は完全eventと`authoritative`だけに残す。
+
 ## Callable Functions
 
 ### `createSnapRoom`
@@ -107,8 +126,12 @@ rooms/{roomId}/game/processedCommands/{commandId}
 - サーバー時刻、command ID、expected revisionを検証する。
 - `rooms/{roomId}/game` のtransaction内で `processedCommands` のreceiptを確認してからdispatchする。
 - 初回処理では `{ revision, phase }` だけをreceiptとして保存し、完全な権威状態やイベントをcommandごとに複製しない。
+- 保存済みreceiptに旧形式の余分なkeyがあっても、次回保存時に正確な `{ revision, phase }` へ正規化する。
 - 同じcommand IDの再送は保存済みの初回応答を返すが、transactionの現在状態は変更しない。後続command後の再送でも状態を過去へ戻さない。
 - 公開イベントと完全イベントを別パスへ保存する。
+- メンバー判定は`privateViews`自身のpropertyだけを対象にし、prototype由来の名前をmemberとして扱わない。
+- RTDB往復で消えたempty/null schemaを復元してからdispatchし、保存前snapshotをmutationしない。
+- 棄権投票はAPIでは`null`/省略、server-only pending voteではRTDB-safeな空文字列として保持する。
 
 ## Realtime Databaseルール
 

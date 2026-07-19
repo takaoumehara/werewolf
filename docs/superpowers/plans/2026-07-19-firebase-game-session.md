@@ -197,6 +197,14 @@ git commit -m "feat: add Firebase room domain"
 - Produces: `startGameSession(input)`
 - Produces: `applyGameSessionCommand(input) -> { game, commandResult, duplicate }`
 
+**Persistence invariants:**
+- 返却するgame subtreeは再帰的にFirebase/JSON互換へ正規化する。objectの`undefined`は省略し、arrayの`undefined`は`null`にする。非有限数、特殊object、循環参照は拒否する。
+- `events` / `publicEvents`はevent ID keyed recordとして既存logへ追記し、上書きと不正keyを拒否する。
+- 公開`DAY_STARTED`は`round`のみ。襲撃対象・護衛成否はserver-onlyに保つ。
+- member判定はown propertyのみ。receiptは常に正確な`{ revision, phase }`へ縮約する。
+- RTDBが削除するempty object / empty array / `null`はdispatch前にauthoritative schemaへhydrateし、duplicate viewも復元した現在stateから再生成する。
+- 棄権voteはcommandでは`null`/省略を受け、authoritative `pendingVotes`ではnon-empty player IDと衝突しない空文字列sentinelへ変換してvoter keyを維持する。
+
 - [ ] **Step 1: host/member/secret/idempotencyの失敗テストを書く**
 
 ```js
@@ -339,24 +347,35 @@ export function startGameSession({
     payload: {}, expectedRevision: state.revision, now }));
   const patch = buildPersistencePatch({ state, events: state.history,
     toPublicView, toPlayerView });
-  return { ...patch, processedCommands: {} };
+  return normalizeStoredGame({ ...patch, processedCommands: {} });
 }
 
 export function applyGameSessionCommand({ game, callerUid, request, now }) {
-  assert(game.privateViews?.[callerUid], "Caller is not a game member");
+  assert(Object.hasOwn(game.privateViews ?? {}, callerUid), "Caller is not a game member");
   const command = createCommandEnvelope({
     id: request.commandId, actorId: callerUid, type: request.type,
     payload: request.payload ?? {}, expectedRevision: request.expectedRevision, now,
   });
   assert(/^[A-Za-z0-9_-]{1,128}$/.test(command.id), "Invalid command ID");
-  const processedCommands = structuredClone(game.processedCommands ?? {});
+  const authoritative = hydrateAuthoritativeState(game.authoritative);
+  const processedCommands = normalizeProcessedCommands(game.processedCommands ?? {});
   if (Object.hasOwn(processedCommands, command.id)) {
-    const commandResult = structuredClone(processedCommands[command.id]);
-    assert(Number.isSafeInteger(commandResult?.revision), "Invalid command receipt");
-    assert(typeof commandResult?.phase === "string", "Invalid command receipt");
-    return { game: structuredClone(game), commandResult, duplicate: true };
+    const commandResult = compactReceipt(processedCommands[command.id]);
+    const currentViews = buildPersistencePatch({ state: authoritative, events: [],
+      toPublicView, toPlayerView });
+    return {
+      game: normalizeStoredGame({
+        ...game,
+        public: currentViews.public,
+        privateViews: currentViews.privateViews,
+        authoritative,
+        processedCommands,
+      }),
+      commandResult,
+      duplicate: true,
+    };
   }
-  const result = dispatch(game.authoritative, command);
+  const result = dispatch(authoritative, command);
   const patch = buildPersistencePatch({ state: result.state, events: result.events,
     toPublicView, toPlayerView });
   const commandResult = { revision: patch.public.revision, phase: patch.public.phase };
@@ -365,12 +384,23 @@ export function applyGameSessionCommand({ game, callerUid, request, now }) {
     configurable: true, writable: true,
   });
   return {
-    game: { ...patch, processedCommands },
+    game: normalizeStoredGame({
+      ...patch,
+      events: appendEventLog(game.events, patch.events),
+      publicEvents: appendEventLog(game.publicEvents, patch.publicEvents),
+      processedCommands,
+    }),
     commandResult: structuredClone(commandResult),
     duplicate: false,
   };
 }
 ```
+
+上のsampleで使う`normalizeStoredGame`、`normalizeProcessedCommands`、`compactReceipt`、
+`appendEventLog`、`hydrateAuthoritativeState`はproduction実装の保存境界helperであり、すべて
+新しいplain object/arrayを作って入力をmutationしないこと。hydrateは`pendingActions`、
+`pendingVotes`、`history`、`roleState`の全初期sub-map / nullable field、各playerの`flags` / `death`、
+top-level nullable fieldを`createGame` schemaどおりに復元すること。
 
 - [ ] **Step 4: GREENを確認する**
 
