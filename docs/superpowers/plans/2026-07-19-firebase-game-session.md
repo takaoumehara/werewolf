@@ -765,6 +765,18 @@ git commit -m "feat: protect Firebase game session data"
 - Produces: `createFirebaseGameClient(dependencies)`
 - Subscribes separately to meta, players, public, publicEvents, and self private view
 
+**Client invariants:**
+- Production factoryはFirebase modular Web SDK（Auth、Functions、Realtime Database）でそのまま動き、SDK adaptersをdependency injectionしてNode unit testできる。
+- `ensureAnonymousAuth()`は既存userを再利用し、同時呼出しを1つのsign-in promiseへまとめ、失敗後はretry可能にする。
+- create/join/start/dispatchは4つのCallableだけを使い、許可fieldだけを新しいplain objectへcopyする。dispatch bodyへ`actorId`、uid、server timeを送らない。
+- room IDと現在uidをRTDB-safe keyとして検証してからpathを組み立て、room親、game親、authoritative、完全events、processedCommands、joinState、membership indexは購読しない。
+- `subscribeRoom`は正確に5 pathを購読し、snapshotを`.val()`へ変換してcallbackへ渡す。返却unsubscribeはそのroomの5件だけを一度ずつ解除し、複数room/subscriptionを巻き込まない。
+- `dispose`は残る全subscriptionを冪等に解除し、登録済みpresence disconnect hookをcancelする。unsubscribe/cancelの一部失敗でも残りcleanupを続ける。
+- presenceは本人playerの`connected` / `lastSeenAt`だけを更新する。online化では`onDisconnect`を先に登録し、その成功後に`connected: true`を書く。online write失敗時はhookをcancelする。
+- 明示offlineと再登録を扱い、同じroomでpresenceを再設定しても古いhookを残さない。server timestampを使用し、クライアント時刻や他人uidをwriteしない。
+- testsはauth reuse/concurrency/failure retry、4 callable名/response/error/allowed payload、actor除外、5 exact paths/value callbacks/error callbacks、local/global unsubscribe idempotency、presence順序/failure cleanup/re-registration/disposeを固定する。
+- generic room writer、任意path subscriber、任意Callable名をpublic APIとして公開しない。
+
 - [ ] **Step 1: auth/callable/subscription/presenceの失敗テストを書く**
 
 ```js

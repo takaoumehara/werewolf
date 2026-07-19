@@ -171,6 +171,11 @@ createFirebaseGameClient({ app, auth, database, functions })
 `game/privateViews/{uid}` を別々に行う。部屋親パスは購読しない。presenceは
 `onDisconnect` を登録してから `connected: true` を書く。
 
+クライアント実装はFirebase modular Web SDKをproductionで直接利用し、testではSDK adapterを注入する。
+匿名sign-inは同時呼出しをdedupeし、Callableへは許可fieldだけを送り、`actorId`やuidを本文へ含めない。
+購読解除はroom単位と全体disposeの両方で冪等に行う。presence再設定時は古いdisconnect hookをcancelし、
+online write失敗時もhookを残さない。本人playerの`connected`と`lastSeenAt`以外を直接writeしない。
+
 ## ビルドとデプロイ
 
 Functions sourceは `firebase-backend/`。`esbuild` で既存game-engineをbundleへ含め、
