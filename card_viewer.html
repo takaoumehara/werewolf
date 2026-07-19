@@ -373,6 +373,8 @@
             <label for="version-select">背景デザイン:</label>
             <select id="version-select" onchange="updateCard()">
                 <option value="raw-illustrations-72-a">Ver.A (フラット背景)</option>
+                <option value="raw-illustrations-72-a-lifelike">Ver.A Lifelike</option>
+                <option value="raw-illustrations-72-a-refined">Ver.A Refined</option>
                 <option value="raw-illustrations-72-a2">Ver.A2 (背景描き込み)</option>
                 <option value="videos-72">Ver.A2 (動画ループ背景)</option>
                 <option value="kling-3">Ver.A2 (Kling 3.0動画)</option>
@@ -677,6 +679,11 @@
         // App state
         let currentRole = rolesData[0];
         let currentLang = 'ja'; // 'ja' or 'en'
+        const flatImageFolders = new Set([
+            "raw-illustrations-72-a",
+            "raw-illustrations-72-a-lifelike",
+            "raw-illustrations-72-a-refined"
+        ]);
         
         function updateCard() {
             const roleId = document.getElementById("role-select").value;
@@ -705,9 +712,9 @@
                 charImgName = "magician_ver_c.png";
             }
             
-            if (versionSelect === "raw-illustrations-72-a") {
+            if (flatImageFolders.has(versionSelect)) {
                 // Ver.A: フラット背景（元のイラストをそのまま1枚絵として layer-bg に設定）
-                layerBg.style.backgroundImage = `url('raw-illustrations-72-a/${flatImgName}')`;
+                layerBg.style.backgroundImage = `url('${versionSelect}/${flatImgName}')`;
                 layerChar.style.display = "none";
             } else if (versionSelect === "videos-72") {
                 // Ver.A2 Video edition
@@ -1249,8 +1256,37 @@
             }
         }
 
+        function applyUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const roleParam = params.get("role");
+            const langParam = params.get("lang");
+            const verParam = params.get("ver");
+            const roleSelect = document.getElementById("role-select");
+            const versionSelect = document.getElementById("version-select");
+
+            if (roleParam && rolesData.some(role => role.id === roleParam)) {
+                roleSelect.value = roleParam;
+            }
+
+            if (langParam === "en" || langParam === "ja") {
+                currentLang = langParam;
+                document.getElementById("btn-ja").className = `lang-btn ${langParam === 'ja' ? 'active' : ''}`;
+                document.getElementById("btn-en").className = `lang-btn ${langParam === 'en' ? 'active' : ''}`;
+            }
+
+            const legacyVersionMap = {
+                flat: "raw-illustrations-72-a",
+                char: "raw-illustrations-72-a2"
+            };
+            const normalizedVersion = legacyVersionMap[verParam] || verParam;
+            if (normalizedVersion && Array.from(versionSelect.options).some(option => option.value === normalizedVersion)) {
+                versionSelect.value = normalizedVersion;
+            }
+        }
+
         window.onload = () => {
             initChromaKey();
+            applyUrlParams();
             updateCard();
             init3DParallax();
         };

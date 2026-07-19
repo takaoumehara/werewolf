@@ -387,7 +387,9 @@
             <div class="control-item">
                 <label>VERSION</label>
                 <div class="btn-group">
-                    <button class="btn-segment active" id="ver-flat" onclick="setVersion('flat')">Ver.A (Flat)</button>
+                    <button class="btn-segment active" id="ver-a" onclick="setVersion('raw-illustrations-72-a')">Ver.A</button>
+                    <button class="btn-segment" id="ver-lifelike" onclick="setVersion('raw-illustrations-72-a-lifelike')">Lifelike</button>
+                    <button class="btn-segment" id="ver-refined" onclick="setVersion('raw-illustrations-72-a-refined')">Refined</button>
                     <button class="btn-segment" id="ver-trans" onclick="setVersion('trans')">Ver.A (Trans)</button>
                 </div>
             </div>
@@ -643,7 +645,7 @@
         ];
 
         let currentLang = 'ja'; // 'ja' or 'en'
-        let currentVersion = 'flat'; // 'flat' or 'trans'
+        let currentVersion = 'raw-illustrations-72-a'; // image folder or 'trans'
         let bgEnabled = true;
 
         // Render Card Gallery List
@@ -682,9 +684,9 @@
                         charImgName = "magician_ver_c.png";
                     }
                     
-                    if (currentVersion === 'flat') {
+                    if (currentVersion !== 'trans') {
                         // Flat backgrounds (one consolidated image)
-                        bgPath = `raw-illustrations-72-a/${flatImgName}`;
+                        bgPath = `${currentVersion}/${flatImgName}`;
                     } else {
                         // Transparent character + optional background image
                         if (bgEnabled) {
@@ -700,7 +702,8 @@
                     cardWrapper.className = "card-wrapper";
                     cardWrapper.onclick = () => {
                         // Link to detail card viewer
-                        window.open(`card_viewer.html?role=${role.id}&lang=${currentLang}&ver=${currentVersion === 'flat' ? 'flat' : 'char'}`, '_blank');
+                        const viewerVersion = currentVersion === 'trans' ? 'raw-illustrations-72-a2' : currentVersion;
+                        window.open(`card_viewer.html?role=${role.id}&lang=${currentLang}&ver=${encodeURIComponent(viewerVersion)}`, '_blank');
                     };
                     
                     // Build card DOM structure
@@ -789,8 +792,16 @@
         
         function setVersion(ver) {
             currentVersion = ver;
-            document.getElementById("ver-flat").classList.toggle("active", ver === 'flat');
-            document.getElementById("ver-trans").classList.toggle("active", ver === 'trans');
+            document.querySelectorAll(".control-item .btn-segment[id^='ver-']").forEach(btn => {
+                btn.classList.remove("active");
+            });
+            const activeButtonByVersion = {
+                "raw-illustrations-72-a": "ver-a",
+                "raw-illustrations-72-a-lifelike": "ver-lifelike",
+                "raw-illustrations-72-a-refined": "ver-refined",
+                "trans": "ver-trans"
+            };
+            document.getElementById(activeButtonByVersion[ver]).classList.add("active");
             
             // Dim/enable BG controller without removing it from flow to prevent shifting
             const bgControl = document.getElementById("bg-control-item");
