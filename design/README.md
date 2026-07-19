@@ -6,8 +6,9 @@
 
 1. [`current-card-design.md`](current-card-design.md) — 現在の最終カード仕様と使い方
 2. [`refined-position-calibration.json`](refined-position-calibration.json) — 25役職の人物レイヤー位置・倍率
-3. [`world-theme.md`](../world-theme.md) — 世界観・美術設定の詳細
-4. 必要に応じて [`docs/superpowers/specs/2026-07-19-refined-card-position-editor-design.md`](../docs/superpowers/specs/2026-07-19-refined-card-position-editor-design.md) — 調整画面の設計
+3. [`design-system.md`](design-system.md) — モバイル UI デザインシステム正本(トークン・コンポーネント・秘匿設計)
+4. [`world-theme.md`](../world-theme.md) — 世界観・美術設定の詳細
+5. 必要に応じて [`docs/superpowers/specs/2026-07-19-refined-card-position-editor-design.md`](../docs/superpowers/specs/2026-07-19-refined-card-position-editor-design.md) — 調整画面の設計
 
 ## 優先順位
 
