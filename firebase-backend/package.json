@@ -1,0 +1,22 @@
+{
+  "name": "werewolf-firebase-backend",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.mjs",
+  "engines": { "node": "20" },
+  "scripts": {
+    "build": "esbuild src/functions.mjs --bundle --platform=node --target=node20 --format=esm --packages=external --outfile=lib/index.mjs",
+    "test": "node --test test/*.test.mjs",
+    "test:rules": "firebase --config ../firebase.json emulators:exec --only database \"node --test test/database-rules.test.mjs\""
+  },
+  "dependencies": {
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.4.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "esbuild": "^0.25.6",
+    "firebase": "^11.10.0",
+    "firebase-tools": "^14.11.0"
+  }
+}
