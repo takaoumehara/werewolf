@@ -647,6 +647,11 @@
         let currentLang = 'ja'; // 'ja' or 'en'
         let currentVersion = 'raw-illustrations-72-a'; // image folder or 'trans'
         let bgEnabled = true;
+        const assetCacheVersion = '20260719-refined-assets';
+
+        function versionedAsset(path) {
+            return `${path}?v=${assetCacheVersion}`;
+        }
 
         // Render Card Gallery List
         function renderGallery() {
@@ -686,7 +691,7 @@
                     
                     if (currentVersion !== 'trans') {
                         // Flat backgrounds (one consolidated image)
-                        bgPath = `${currentVersion}/${flatImgName}`;
+                        bgPath = versionedAsset(`${currentVersion}/${flatImgName}`);
                     } else {
                         // Transparent character + optional background image
                         if (bgEnabled) {

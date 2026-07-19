@@ -684,6 +684,11 @@
             "raw-illustrations-72-a-lifelike",
             "raw-illustrations-72-a-refined"
         ]);
+        const assetCacheVersion = '20260719-refined-assets';
+
+        function versionedAsset(path) {
+            return `${path}?v=${assetCacheVersion}`;
+        }
         
         function updateCard() {
             const roleId = document.getElementById("role-select").value;
@@ -714,7 +719,7 @@
             
             if (flatImageFolders.has(versionSelect)) {
                 // Ver.A: フラット背景（元のイラストをそのまま1枚絵として layer-bg に設定）
-                layerBg.style.backgroundImage = `url('${versionSelect}/${flatImgName}')`;
+                layerBg.style.backgroundImage = `url('${versionedAsset(`${versionSelect}/${flatImgName}`)}')`;
                 layerChar.style.display = "none";
             } else if (versionSelect === "videos-72") {
                 // Ver.A2 Video edition
