@@ -153,3 +153,25 @@ test("buildPersistencePatch のpublicEventsは秘密のイベントpayloadを含
   assert.equal(patch.publicEvents[0].payload.kind, undefined);
   assert.equal(patch.publicEvents[1].payload.cause, "other");
 });
+
+test("DAY_STARTEDのpublic eventは夜襲対象と防御結果を漏らさない", () => {
+  const state = {
+    gameId: "room-1", revision: 3, phase: "day",
+    players: { p1: { id: "p1", roleId: "werewolf", alive: true } },
+  };
+  const events = [{
+    id: "3:1:DAY_STARTED", type: "DAY_STARTED",
+    payload: { round: 1, attack: { targetId: "secret-target", protected: true } }, at: 3,
+  }];
+
+  const patch = buildPersistencePatch({
+    state, events, toPublicView: () => ({}), toPlayerView: () => ({}),
+  });
+
+  assert.deepEqual(patch.publicEvents[0].payload, { round: 1 });
+  assert.equal(JSON.stringify(patch.publicEvents[0]).includes("secret-target"), false);
+  assert.equal(JSON.stringify(patch.publicEvents[0]).includes("protected"), false);
+  assert.deepEqual(patch.events[0].payload.attack, {
+    targetId: "secret-target", protected: true,
+  });
+});

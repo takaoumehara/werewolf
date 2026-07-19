@@ -109,10 +109,12 @@ function toPublicEvent(entry) {
   switch (entry?.type) {
     case "GAME_STARTED":
     case "NIGHT_STARTED":
-    case "DAY_STARTED":
     case "VOTE_STARTED":
     case "GAME_WON":
       safePayload = { ...payload };
+      break;
+    case "DAY_STARTED":
+      safePayload = { round: payload.round };
       break;
     case "PLAYER_DIED":
       safePayload = { playerId: payload.playerId, cause: publicCause(payload.cause) };
