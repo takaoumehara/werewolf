@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Refined Card Position Editor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=LINE+Seed+JP:wght@700&display=swap" rel="stylesheet">
   <style>
     :root {
       --ink: #f6f1e8;
@@ -15,8 +16,8 @@
       --accent: #e5b86f;
       --accent-strong: #f1cf8d;
       --danger: #ff6b6b;
-      --card-width: 210px;
-      --card-height: 368px;
+      --card-width: 360px;
+      --card-height: 640px;
     }
 
     * { box-sizing: border-box; }
@@ -171,7 +172,7 @@
 
     .editor-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(var(--card-width), 1fr));
+      grid-template-columns: repeat(4, var(--card-width));
       gap: 20px;
       align-items: start;
     }
@@ -179,8 +180,8 @@
     .editor-card {
       position: relative;
       width: 100%;
-      max-width: var(--card-width);
-      aspect-ratio: 4 / 7;
+      width: var(--card-width);
+      height: var(--card-height);
       overflow: hidden;
       border: 1px solid rgba(246, 241, 232, 0.12);
       border-radius: 10px;
@@ -255,6 +256,71 @@
     }
 
     .editor-card__name[lang="en"] { font-family: Georgia, "Times New Roman", serif; }
+
+    /* These title rules intentionally mirror card_viewer.html exactly. */
+    .role-name-japanese {
+      writing-mode: vertical-rl;
+      font-family: 'LINE Seed JP', sans-serif;
+      font-weight: 700;
+      font-size: 38px;
+      color: #ffffff;
+      letter-spacing: 6px;
+      position: absolute;
+      left: 24px;
+      top: 30px;
+      display: block;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .role-name-japanese ruby { ruby-position: over; }
+
+    .role-name-japanese rt {
+      font-family: 'LINE Seed JP', sans-serif;
+      font-weight: 700;
+      font-size: 10px;
+      color: #ffffff;
+      ruby-align: center;
+      padding-left: 5px;
+    }
+
+    .role-name-english-rt {
+      font-family: 'Cinzel Decorative', serif;
+      font-weight: 900;
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.8);
+      position: absolute;
+      right: 24px;
+      top: 32px;
+      letter-spacing: 0.5px;
+      display: block;
+      text-transform: capitalize;
+      z-index: 3;
+      text-align: right;
+      pointer-events: none;
+    }
+
+    .role-name-english-vertical {
+      writing-mode: horizontal-tb;
+      font-family: 'Cinzel Decorative', serif;
+      font-weight: 900;
+      font-size: 32px;
+      color: #ffffff;
+      position: absolute;
+      right: 24px;
+      left: auto;
+      text-align: right;
+      top: 30px;
+      width: 320px;
+      line-height: 1.15;
+      letter-spacing: -2px;
+      display: block;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      text-transform: capitalize;
+      z-index: 3;
+      pointer-events: none;
+    }
 
     .editor-card__selection {
       position: absolute;
@@ -420,8 +486,12 @@
       border: 0;
     }
 
+    @media (max-width: 1800px) {
+      .editor-grid { grid-template-columns: repeat(3, var(--card-width)); }
+    }
+
     @media (max-width: 1450px) {
-      .editor-grid { grid-template-columns: repeat(3, minmax(var(--card-width), 1fr)); }
+      .editor-grid { grid-template-columns: repeat(2, var(--card-width)); }
     }
   </style>
 </head>
@@ -514,15 +584,32 @@
 
     const assetVersion = '20260719-refined-assets';
     const roles = [
-      ['dictator', '独裁者', 'Dictator'], ['knights', '騎士団', 'Knights'], ['double', '影武者', 'Double'],
-      ['counselor', 'カウンセラー', 'Counselor'], ['necromancer', '霊媒師', 'Necromancer'], ['trapper', '罠師', 'Trapper'],
-      ['citizen', '市民', 'Citizen'], ['prophet', '予言者', 'Prophet'], ['bodyguard', 'ボディガード', 'Bodyguard'],
-      ['twins', '共有者', 'Twins'], ['magician', '奇術師', 'Magician'], ['magician_c', '奇術師 C', 'Magician C'],
-      ['hunter', 'ハンター', 'Hunter'], ['tough_guy', 'タフガイ', 'Tough Guy'], ['spy', 'スパイ', 'Spy'],
-      ['betrayal_twin', '裏切りの共有者', 'Betrayal Twin'], ['werewolf', '人狼', 'Werewolf'], ['traitor', '内通者', 'Traitor'],
-      ['betrayer', '裏切り者', 'Betrayer'], ['werewolf_child', '人狼の子ども', "Werewolf's Child"], ['android', 'アンドロイド', 'Android'],
-      ['lone_wolf', '一匹狼', 'Lone Wolf'], ['god', '神様', 'God'], ['lovers', '恋人', 'Lovers'], ['mysterious_fox', '妖狐', 'Mysterious Fox']
-    ].map(([id, jp, en]) => ({ id, jp, en }));
+      ['dictator', '独裁者', 'Dictator', ['どく', 'さい', 'しゃ']],
+      ['knights', '騎士団', 'Knights', ['き', 'し', 'だん']],
+      ['double', '影武者', 'Double', ['かげ', 'む', 'しゃ']],
+      ['counselor', 'カウンセラー', 'Counselor', []],
+      ['necromancer', '霊媒師', 'Necromancer', ['れい', 'ばい', 'し']],
+      ['trapper', '罠師', 'Trapper', ['わな', 'し']],
+      ['citizen', '市民', 'Citizen', ['し', 'みん']],
+      ['prophet', '予言者', 'Prophet', ['よ', 'げん', 'しゃ']],
+      ['bodyguard', 'ボディガード', 'Bodyguard', []],
+      ['twins', '共有者', 'Twins', ['きょう', 'ゆう', 'しゃ']],
+      ['magician', '奇術師', 'Magician', ['き', 'じゅつ', 'し']],
+      ['magician_c', '奇術師 C', 'Magician C', ['き', 'じゅつ', 'し', '']],
+      ['hunter', 'ハンター', 'Hunter', []],
+      ['tough_guy', 'タフガイ', 'Tough Guy', []],
+      ['spy', 'スパイ', 'Spy', []],
+      ['betrayal_twin', '裏切りの共有者', 'Betrayal Twin', ['うら', 'ぎ', '', '', 'きょう', 'ゆう', 'しゃ']],
+      ['werewolf', '人狼', 'Werewolf', ['じん', 'ろう']],
+      ['traitor', '内通者', 'Traitor', ['ない', 'つう', 'しゃ']],
+      ['betrayer', '裏切り者', 'Betrayer', ['うら', 'ぎ', '', 'もの']],
+      ['werewolf_child', '人狼の子ども', "Werewolf's Child", ['じん', 'ろう', '', 'こ', '', '']],
+      ['android', 'アンドロイド', 'Android', []],
+      ['lone_wolf', '一匹狼', 'Lone Wolf', ['いっ', 'ぴき', 'おおかみ']],
+      ['god', '神様', 'God', ['かみ', 'さま', '']],
+      ['lovers', '恋人', 'Lovers', ['こい', 'びと', '']],
+      ['mysterious_fox', '妖狐', 'Mysterious Fox', ['よう', 'こ', '']]
+    ].map(([id, jp, en, rubies]) => ({ id, jp, en, rubies }));
 
     const roleIds = roles.map(role => role.id);
     let positionMap = createPositionMap(roleIds);
@@ -577,6 +664,19 @@
       yInput.value = position.y;
     }
 
+    function japaneseTitle(role) {
+      return [...role.jp].map((char, index) => {
+        const ruby = role.rubies[index];
+        return ruby ? `<ruby>${char}<rt>${ruby}</rt></ruby>` : char;
+      }).join('');
+    }
+
+    function englishTitleStyle(role) {
+      if (role.en.length > 16) return 'font-size:22px;letter-spacing:-1.5px;';
+      if (role.en.length > 12) return 'font-size:26px;letter-spacing:-2px;';
+      return 'font-size:32px;letter-spacing:-2px;';
+    }
+
     function selectRole(roleId, announceSelection = true) {
       selectedRoleId = roleId;
       grid.querySelectorAll('.editor-card').forEach(card => card.classList.toggle('is-selected', card.dataset.roleId === roleId));
@@ -596,11 +696,13 @@
       grid.innerHTML = roles.map(role => {
         const selected = role.id === selectedRoleId ? ' is-selected' : '';
         const file = imageName(role.id);
-        const label = currentLanguage === 'ja' ? role.jp : role.en;
+        const titleMarkup = currentLanguage === 'ja'
+          ? `<div class="role-name-japanese">${japaneseTitle(role)}</div><div class="role-name-english-rt">${role.en}</div>`
+          : `<div class="role-name-english-vertical" style="${englishTitleStyle(role)}">${role.en}</div>`;
         return `<article class="editor-card${selected}" data-role-id="${role.id}" tabindex="0" aria-label="${role.jp} ${role.en}">
           <div class="editor-card__background" style="background-image:url('${assetPath(`backgrounds-72/${backgroundName(role.id)}`)}')"></div>
           <img class="editor-card__character" src="${assetPath(`00_transparent-illustrations-72-a-refined/${file}`)}" alt="${role.en}" draggable="false">
-          <div class="editor-card__name" lang="${currentLanguage}">${label}</div>
+          ${titleMarkup}
           <div class="editor-card__selection">EDITING</div>
         </article>`;
       }).join('');
