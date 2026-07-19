@@ -108,10 +108,11 @@
         }
         
         .control-item label {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             color: #94a3b8;
             white-space: nowrap;
+            letter-spacing: 0.5px;
         }
         
         select {
@@ -217,7 +218,7 @@
             z-index: 2;
         }
         
-        /* Card Overlay Texts (Scaled down slightly from main viewer) */
+        /* Card Overlay Texts (Scaled down from main viewer) */
         .role-name-japanese {
             writing-mode: vertical-rl;
             font-family: 'LINE Seed JP', sans-serif;
@@ -257,57 +258,60 @@
             max-width: 140px;
         }
         
-        /* Info Overlay at Bottom */
-        .card-info-overlay {
+        /* --- Bottom STICKY Description Band (Exactly matching proportion of card_viewer.html) --- */
+        .card-description-band {
             position: absolute;
             bottom: 0;
             left: 0;
-            width: 100%;
-            padding: 15px;
-            box-sizing: border-box;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.8) 60%, rgba(0, 0, 0, 0) 100%);
-            z-index: 4;
+            right: 0;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.85);
             display: flex;
-            flex-direction: column;
-            gap: 6px;
+            align-items: center;
+            padding: 8px 12px;
+            box-sizing: border-box;
+            gap: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            z-index: 4;
         }
         
+        .camp-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            width: 50px;
+            flex-shrink: 0;
+        }
+        .camp-icon {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+        }
         .camp-label {
-            align-self: flex-start;
-            font-size: 9px;
-            font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .camp-citizen {
-            background: rgba(37, 99, 235, 0.2);
-            color: #93c5fd;
-            border: 1px solid rgba(37, 99, 235, 0.4);
-        }
-        .camp-werewolf {
-            background: rgba(220, 38, 38, 0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(220, 38, 38, 0.4);
-        }
-        .camp-fox {
-            background: rgba(124, 58, 237, 0.2);
-            color: #ddd6fe;
-            border: 1px solid rgba(124, 58, 237, 0.4);
+            font-family: 'LINE Seed JP', sans-serif;
+            font-size: 7px;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            white-space: nowrap;
+            letter-spacing: 0.2px;
         }
         
         .description-text {
-            font-size: 11px;
+            font-family: 'LINE Seed JP', sans-serif;
+            font-size: 9.5px;
             line-height: 1.4;
-            color: #cbd5e1;
-            font-weight: 400;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            flex-grow: 1;
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-            min-height: 46px;
         }
         
         /* Stats summary */
@@ -387,11 +391,20 @@
                     <button class="btn-segment" id="ver-trans" onclick="setVersion('trans')">Ver.A (Trans)</button>
                 </div>
             </div>
+            
+            <!-- Background Toggle -->
+            <div class="control-item" id="bg-control-item" style="display: none;">
+                <label>BG</label>
+                <div class="btn-group">
+                    <button class="btn-segment active" id="bg-on" onclick="setBg(true)">ON</button>
+                    <button class="btn-segment" id="bg-off" onclick="setBg(false)">OFF</button>
+                </div>
+            </div>
         </div>
     </div>
     
     <div class="stats-summary" id="stats-summary">
-        Total: 25 cards showing
+        Total: 24 cards showing
     </div>
 
     <!-- Gallery Grid -->
@@ -400,7 +413,7 @@
     </div>
 
     <script>
-        // Full database from card_viewer.html
+        // Full database from card_viewer.html (with knights_b removed)
         const rolesData = [
             {
                 id: "dictator",
@@ -419,15 +432,6 @@
                 camp: "citizen",
                 desc_ja: "毎日一人を指定して、人狼の襲撃から守ることができる。ただし自分自身は守れない。",
                 desc_en: "Can protect one player from the werewolf attack every night. Cannot protect themselves."
-            },
-            {
-                id: "knights_b",
-                jp: "騎士団 B",
-                en: "Knights B",
-                rubies: ["き", "し", "だん", ""],
-                camp: "citizen",
-                desc_ja: "毎日一人を指定して、人狼の襲撃から守ることができる。ただし自分自身は守れない。(装備バリエーション版)",
-                desc_en: "Can protect one player from the werewolf attack every night. Cannot protect themselves. (Alternative equipment version)"
             },
             {
                 id: "double",
@@ -631,6 +635,7 @@
 
         let currentLang = 'ja'; // 'ja' or 'en'
         let currentVersion = 'flat'; // 'flat' or 'trans'
+        let bgEnabled = true;
 
         // Render Card Gallery List
         function renderGallery() {
@@ -659,11 +664,15 @@
                     let charPath = "";
                     
                     if (currentVersion === 'flat') {
-                        // Flat backgrounds
+                        // Flat backgrounds (one consolidated image)
                         bgPath = `raw-illustrations-72-a/${role.id}_ver_a.png`;
                     } else {
-                        // Transparent character + dark background template
-                        bgPath = "00_combined/black_empty_bg.png"; // Fallback/dark background template
+                        // Transparent character + optional background image
+                        if (bgEnabled) {
+                            bgPath = `backgrounds-72/${role.id}_bg.png`;
+                        } else {
+                            bgPath = ""; // Empty/black background
+                        }
                         charPath = `raw-illustrations-transparent-72/${role.id}_ver_a.png`;
                     }
                     
@@ -700,28 +709,36 @@
                         `;
                     }
                     
-                    // Camp text
-                    let campText = "市民陣営";
-                    if (role.camp === 'werewolf') campText = "人狼陣営";
+                    // Icon and Camp text mapping (matching card_viewer.html)
+                    let iconName = role.camp;
+                    if (role.camp === "fox") {
+                        iconName = "neutral";
+                    }
+                    
+                    let campText = "市民チーム";
+                    if (role.camp === 'werewolf') campText = "人狼チーム";
                     if (role.camp === 'fox') campText = "第三陣営";
                     if (currentLang === 'en') {
-                        campText = role.camp.toUpperCase();
-                        if (role.camp === 'fox') campText = "FOX TEAM";
+                        campText = role.camp === 'citizen' ? "CITIZEN TEAM" : 
+                                   role.camp === 'werewolf' ? "WEREWOLF TEAM" : "THIRD CAMP";
                     }
                     
                     const descText = currentLang === 'ja' ? role.desc_ja : role.desc_en;
                     
                     cardWrapper.innerHTML = `
                         <div class="card">
-                            <div class="card-layer-bg" style="background-image: url('${bgPath}')"></div>
+                            ${bgPath ? `<div class="card-layer-bg" style="background-image: url('${bgPath}')"></div>` : `<div class="card-layer-bg" style="background: #111317;"></div>`}
                             ${charPath ? `<div class="card-layer-char" style="background-image: url('${charPath}')"></div>` : ''}
                             
                             <!-- Header Text Overlays -->
                             ${nameHtml}
                             
-                            <!-- Info Overlay at Bottom -->
-                            <div class="card-info-overlay">
-                                <div class="camp-label camp-${role.camp}">${campText}</div>
+                            <!-- Bottom STICKY Description Band (Exactly matching proportion of card_viewer.html) -->
+                            <div class="card-description-band">
+                                <div class="camp-container">
+                                    <img class="camp-icon" src="gz/${iconName}.png" alt="Camp Icon">
+                                    <div class="camp-label">${campText}</div>
+                                </div>
                                 <div class="description-text">${descText}</div>
                             </div>
                         </div>
@@ -755,6 +772,21 @@
             currentVersion = ver;
             document.getElementById("ver-flat").classList.toggle("active", ver === 'flat');
             document.getElementById("ver-trans").classList.toggle("active", ver === 'trans');
+            
+            // Show background ON/OFF controller only in transparent mode
+            const bgControl = document.getElementById("bg-control-item");
+            if (ver === 'trans') {
+                bgControl.style.display = "flex";
+            } else {
+                bgControl.style.display = "none";
+            }
+            renderGallery();
+        }
+        
+        function setBg(enabled) {
+            bgEnabled = enabled;
+            document.getElementById("bg-on").classList.toggle("active", enabled);
+            document.getElementById("bg-off").classList.toggle("active", !enabled);
             renderGallery();
         }
         
