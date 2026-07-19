@@ -30,11 +30,13 @@
 {
   gameId: string,
   revision: number,
+  hostId: string,
   seed: number,
   gmMode: "computer" | "human_player" | "human_observer",
   phase: "lobby" | "role_reveal" | "night" | "day" | "vote" | "finished",
   round: number,
   deadlineAt: number | null,
+  phaseDurations: Record<string, number>,
   players: {
     [playerId]: {
       id: string,
@@ -100,6 +102,10 @@ dispatch(state, { id, actorId, type, payload, expectedRevision, now })
 
 すべてのコマンドは、現在フェーズ、操作者の生存状態、能力の有無、対象の有効性を検証する。
 
+`hostId` はルーム作成時に固定し、IDの辞書順から推測しない。ホストが死亡した場合、
+人間GMの進行コマンドは拒否する。フェーズ期限はサーバーが注入した `now` と
+`phaseDurations` から計算し、期限前の `FORCE_ADVANCE` は拒否する。
+
 ## フェーズと決定順序
 
 ### 夜
@@ -132,6 +138,10 @@ dispatch(state, { id, actorId, type, payload, expectedRevision, now })
 - アンドロイド: 自分以外が全員死亡した時点で単独勝利。
 - 複数の勝利条件が成立した場合は、`winner.teams` に成立した全陣営を安定順で記録する。
 
+アンドロイドが生存している間は、市民陣営の「人狼0人」だけではゲームを終了しない。
+アンドロイドが最後の1人になった場合だけ `android` の単独勝利とする。投票の同票は
+アンドロイドがいても特別扱いせず、処刑なしとする。
+
 ## 役職の段階実装
 
 最初のプレイ可能版で次を完全に実装する。
@@ -145,6 +155,11 @@ dispatch(state, { id, actorId, type, payload, expectedRevision, now })
 
 役職レジストリには、カードに存在する残りの役職IDも登録できる形を持たせる。第二段階以降で独裁者、ハンター、タフガイ、恋人、罠師、奇術師、影武者、スパイ、裏切り系、人狼の子ども、一匹狼、神様、アンドロイド、妖狐を追加する。`magician_c` は別能力ではなく奇術師のカードバリエーションとして同じルールIDを参照する。
 
+現行エンジンでは、罠師の `trap`、奇術師の `swap`、影武者の `choose_copy`、
+カウンセラーの `calm`、神様の `oracle`、スパイの `relay` を役職アクションとして
+登録し、夜のイベント解決へ接続できる。未定義の追加能力は、カード説明だけで勝手に
+解釈せず、テストと仕様を追加してから有効化する。
+
 ## Firebaseアダプター契約
 
 エンジン本体はFirebase SDKをimportしない。Cloud Function側に次の薄いアダプターを置く。
@@ -156,6 +171,9 @@ dispatch(state, { id, actorId, type, payload, expectedRevision, now })
 5. `commandId` を処理済み台帳へ保存し、再送時は同じ結果を返す。
 
 参加・招待の安全性は `docs/firebase-live-access-key.md` と `snap-pair` の契約に従い、クライアントから権威状態を直接書き換えられないようにする。
+
+イベントはサーバー専用の完全イベントと、クライアント配信用の `publicEvents` を分ける。
+夜行動の種類・対象、秘密結果、役職固有の死亡原因は `publicEvents` に含めない。
 
 ## 非目標
 

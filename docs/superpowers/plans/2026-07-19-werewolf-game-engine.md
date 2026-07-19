@@ -211,6 +211,34 @@ git commit -m "test: define werewolf engine core contract"
 - [ ] **Step 5: 静的検査とサンプルゲームの通し実行を行う**
 - [ ] **Step 6: コミットする**
 
+#### 実装済み契約（Task 2〜6）
+
+```js
+const state = createGame({ gameId, players, seed, roleIds, gmMode, hostId });
+const transition = dispatch(state, {
+  id: "command-1", actorId: hostId, type: "START_GAME", payload: {},
+  expectedRevision: state.revision, now: serverNow,
+});
+```
+
+`random.mjs` のseed付きshuffleと `state.eventSequence` により、役職配布とイベントIDを
+再現可能にする。`roles.mjs` の `createRoleRegistry(extraDefinitions)` は組み込み25役職
+へ追加定義を登録し、重複IDを拒否する。夜アクションは `attack`, `protect`, `divine`,
+`medium`, `trap`, `swap`, `calm`, `oracle`, `choose_copy`, `relay` を受け付ける。
+
+```js
+const patch = buildPersistencePatch({
+  state: transition.state,
+  events: transition.events,
+  toPublicView,
+  toPlayerView,
+});
+// patch.events: サーバー専用、patch.publicEvents: ルーム配信用
+```
+
+公開ビューは役職と内部死因を隠し、個人ビューだけが自分の役職・結果・仲間・行動状態を
+持つ。`applyCommandOnce` はcommand IDと結果を台帳へ保存して再送を冪等化する。
+
 ### Task 7: 完了監査
 
 **Files:**

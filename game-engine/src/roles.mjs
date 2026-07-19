@@ -1,14 +1,14 @@
-const definition = (id, team, actions = [], ruleId = id) => ({
-  id, team, actions, ruleId,
+const definition = (id, team, actions = [], ruleId = id) => Object.freeze({
+  id, team, actions: Object.freeze([...actions]), ruleId,
 });
 
-export const ROLE_IDS = [
+export const ROLE_IDS = Object.freeze([
   "dictator", "knights", "double", "counselor", "necromancer", "trapper",
   "citizen", "prophet", "bodyguard", "twins", "magician", "magician_c",
   "hunter", "tough_guy", "spy", "betrayal_twin", "werewolf", "traitor",
   "betrayer", "werewolf_child", "android", "lone_wolf", "god", "lovers",
   "mysterious_fox",
-];
+]);
 
 export const ROLE_DEFINITIONS = Object.freeze({
   dictator: definition("dictator", "citizen", ["dictate"]),
@@ -42,6 +42,46 @@ export function getRoleDefinition(roleId) {
   const role = ROLE_DEFINITIONS[roleId];
   if (!role) throw new Error(`Unknown role: ${roleId}`);
   return role;
+}
+
+function validateDefinition(role) {
+  if (!role || typeof role !== "object" || typeof role.id !== "string" || role.id.length === 0) {
+    throw new TypeError("Role definition must have a non-empty id");
+  }
+  if (!["citizen", "werewolf", "fox"].includes(role.team)) {
+    throw new TypeError(`Unknown role team for ${role.id}`);
+  }
+  if (!Array.isArray(role.actions)) throw new TypeError(`Role actions must be an array for ${role.id}`);
+}
+
+/**
+ * Creates an isolated registry for scenario-specific role plugins. The built-in
+ * definitions are copied into the registry and never mutated by registration.
+ */
+export function createRoleRegistry(extraDefinitions = {}) {
+  if (!extraDefinitions || typeof extraDefinitions !== "object" || Array.isArray(extraDefinitions)) {
+    throw new TypeError("extraDefinitions must be an object");
+  }
+  const definitions = new Map(Object.entries(ROLE_DEFINITIONS));
+  const register = (role) => {
+    validateDefinition(role);
+    if (definitions.has(role.id)) throw new Error(`duplicate role: ${role.id}`);
+    const normalized = definition(role.id, role.team, role.actions, role.ruleId ?? role.id);
+    definitions.set(normalized.id, normalized);
+    return normalized;
+  };
+  for (const role of Object.values(extraDefinitions)) register(role);
+  return Object.freeze({
+    get(roleId) {
+      const role = definitions.get(roleId);
+      if (!role) throw new Error(`Unknown role: ${roleId}`);
+      return role;
+    },
+    register,
+    ids() {
+      return [...definitions.keys()].sort();
+    },
+  });
 }
 
 export function isKillingWerewolf(player) {
