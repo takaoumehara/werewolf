@@ -48,7 +48,7 @@
   "scripts": {
     "build": "esbuild src/functions.mjs --bundle --platform=node --target=node20 --format=esm --packages=external --outfile=lib/index.mjs",
     "test": "node --test test/*.test.mjs",
-    "test:rules": "firebase emulators:exec --only database \"node --test test/database-rules.test.mjs\""
+    "test:rules": "firebase --config ../firebase.json emulators:exec --only database \"node --test test/database-rules.test.mjs\""
   },
   "dependencies": {
     "firebase-admin": "^13.4.0",
