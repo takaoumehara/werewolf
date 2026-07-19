@@ -26,6 +26,52 @@ function assertNoUndefined(value, path = "game") {
   }
 }
 
+function pruneLikeRtdb(value) {
+  if (value === null || value === undefined) return undefined;
+  if (Array.isArray(value)) {
+    const entries = value.map(pruneLikeRtdb).filter((entry) => entry !== undefined);
+    return entries.length > 0 ? entries : undefined;
+  }
+  if (typeof value === "object") {
+    const record = {};
+    for (const [key, entry] of Object.entries(value)) {
+      const pruned = pruneLikeRtdb(entry);
+      if (pruned !== undefined) {
+        Object.defineProperty(record, key, {
+          value: pruned, enumerable: true, configurable: true, writable: true,
+        });
+      }
+    }
+    return Object.keys(record).length > 0 ? record : undefined;
+  }
+  return value;
+}
+
+function rtdbRoundTrip(value) {
+  const snapshot = pruneLikeRtdb(value);
+  assert.notEqual(snapshot, undefined, "RTDB root snapshot must exist");
+  return structuredClone(snapshot);
+}
+
+function assertCompleteDomainState(state) {
+  for (const key of ["pendingActions", "pendingVotes", "roleState"]) {
+    assert.equal(Object.hasOwn(state, key), true, `authoritative.${key} must exist`);
+  }
+  assert.equal(Array.isArray(state.history), true);
+  for (const key of ["deadlineAt", "winner", "lastAttack"]) {
+    assert.equal(Object.hasOwn(state, key), true, `authoritative.${key} must exist`);
+  }
+  for (const key of [
+    "privateResults", "lovers", "twins", "betrayalTwins", "traps", "lastExecution",
+  ]) {
+    assert.equal(Object.hasOwn(state.roleState, key), true, `roleState.${key} must exist`);
+  }
+  for (const player of Object.values(state.players)) {
+    assert.equal(Object.hasOwn(player, "flags"), true, `player ${player.id}.flags must exist`);
+    assert.equal(Object.hasOwn(player, "death"), true, `player ${player.id}.death must exist`);
+  }
+}
+
 test("hostだけがgame sessionを開始できる", () => {
   assert.throws(() => startGameSession({
     roomId: "r1", callerUid: "p2", roomMeta: { hostId: "p1", status: "waiting" },
@@ -325,4 +371,82 @@ test("attack解決後も公開event logへ夜襲対象を漏らさない", () =>
   assert.deepEqual(publicDayEvent.payload, { round: 1 });
   assert.equal(JSON.stringify(publicDayEvent).includes(targetId), false);
   assert.equal(JSON.stringify(resolved.game.publicEvents).includes("protected"), false);
+});
+
+test("RTDB round-tripで空値が欠落してもnight actionとRESOLVE_NIGHTまで進行できる", () => {
+  const started = startDefaultGame();
+  const startSnapshot = rtdbRoundTrip(started);
+  delete startSnapshot.authoritative.history;
+  const startSnapshotBefore = structuredClone(startSnapshot);
+
+  assert.equal(Object.hasOwn(startSnapshot.authoritative, "pendingActions"), false);
+  assert.equal(Object.hasOwn(startSnapshot.authoritative, "pendingVotes"), false);
+  assert.equal(Object.hasOwn(startSnapshot.authoritative, "roleState"), false);
+  assert.equal(Object.hasOwn(startSnapshot.authoritative, "deadlineAt"), false);
+  assert.equal(Object.hasOwn(startSnapshot.authoritative.players.p1, "flags"), false);
+  assert.equal(Object.hasOwn(startSnapshot.authoritative.players.p1, "death"), false);
+
+  const night = applyGameSessionCommand({
+    game: startSnapshot, callerUid: "p1",
+    request: { commandId: "rtdb-night", type: "BEGIN_NIGHT", payload: {},
+      expectedRevision: startSnapshot.authoritative.revision },
+    now: 101,
+  });
+  assert.deepEqual(startSnapshot, startSnapshotBefore);
+  assertCompleteDomainState(night.game.authoritative);
+
+  const nightSnapshot = rtdbRoundTrip(night.game);
+  const nightSnapshotBefore = structuredClone(nightSnapshot);
+  const werewolfId = Object.values(nightSnapshot.privateViews)
+    .find((view) => view.self.roleId === "werewolf").self.id;
+  const targetId = Object.keys(players).find((id) => id !== werewolfId);
+  const action = applyGameSessionCommand({
+    game: nightSnapshot, callerUid: werewolfId,
+    request: { commandId: "rtdb-action", type: "SUBMIT_NIGHT_ACTION",
+      payload: { kind: "attack", targetId },
+      expectedRevision: nightSnapshot.authoritative.revision },
+    now: 102,
+  });
+  assert.deepEqual(nightSnapshot, nightSnapshotBefore);
+
+  const actionSnapshot = rtdbRoundTrip(action.game);
+  const resolved = applyGameSessionCommand({
+    game: actionSnapshot, callerUid: "p1",
+    request: { commandId: "rtdb-resolve", type: "RESOLVE_NIGHT", payload: {},
+      expectedRevision: actionSnapshot.authoritative.revision },
+    now: 103,
+  });
+
+  assert.equal(resolved.game.public.phase, "day");
+  assert.equal(resolved.game.authoritative.lastAttack.targetId, targetId);
+  assertCompleteDomainState(resolved.game.authoritative);
+});
+
+test("duplicateもpruned snapshotをhydrateして後続command可能なgameを返す", () => {
+  const started = startDefaultGame();
+  const request = { commandId: "rtdb-duplicate", type: "BEGIN_NIGHT", payload: {},
+    expectedRevision: started.authoritative.revision };
+  const first = applyGameSessionCommand({ game: started, callerUid: "p1", request, now: 101 });
+  const prunedSnapshot = rtdbRoundTrip(first.game);
+  const prunedSnapshotBefore = structuredClone(prunedSnapshot);
+
+  const duplicate = applyGameSessionCommand({
+    game: prunedSnapshot, callerUid: "p1", request, now: 102,
+  });
+
+  assert.equal(duplicate.duplicate, true);
+  assert.deepEqual(duplicate.commandResult, first.commandResult);
+  assert.deepEqual(prunedSnapshot, prunedSnapshotBefore);
+  assertCompleteDomainState(duplicate.game.authoritative);
+  const werewolfId = Object.values(duplicate.game.privateViews)
+    .find((view) => view.self.roleId === "werewolf").self.id;
+  const targetId = Object.keys(players).find((id) => id !== werewolfId);
+  const action = applyGameSessionCommand({
+    game: duplicate.game, callerUid: werewolfId,
+    request: { commandId: "after-duplicate", type: "SUBMIT_NIGHT_ACTION",
+      payload: { kind: "attack", targetId },
+      expectedRevision: duplicate.game.authoritative.revision },
+    now: 103,
+  });
+  assert.equal(action.game.authoritative.revision, duplicate.game.authoritative.revision + 1);
 });

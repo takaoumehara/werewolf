@@ -105,6 +105,66 @@ function normalizeProcessedCommands(input) {
   return normalized;
 }
 
+function ownValue(record, key) {
+  return Object.hasOwn(record, key) ? record[key] : undefined;
+}
+
+function recordOrEmpty(value, path) {
+  if (value === undefined || value === null) return {};
+  assert(isRecord(value), `${path} must be an object`);
+  const record = {};
+  for (const [key, entry] of Object.entries(value)) define(record, key, entry);
+  return record;
+}
+
+function arrayOrEmpty(value, path) {
+  if (value === undefined || value === null) return [];
+  assert(Array.isArray(value), `${path} must be an array`);
+  return value.slice();
+}
+
+function hydrateAuthoritativeState(snapshot) {
+  assert(isRecord(snapshot), "Invalid authoritative state");
+  const source = toJsonCompatible(snapshot);
+  const sourcePlayers = ownValue(source, "players");
+  assert(isRecord(sourcePlayers), "authoritative.players must be an object");
+
+  const players = {};
+  for (const [playerId, player] of Object.entries(sourcePlayers)) {
+    assert(isRecord(player), `authoritative.players.${playerId} must be an object`);
+    const hydratedPlayer = {};
+    for (const [key, value] of Object.entries(player)) define(hydratedPlayer, key, value);
+    define(hydratedPlayer, "flags",
+      recordOrEmpty(ownValue(player, "flags"), `authoritative.players.${playerId}.flags`));
+    define(hydratedPlayer, "death", ownValue(player, "death") ?? null);
+    define(players, playerId, hydratedPlayer);
+  }
+
+  const sourceRoleState = recordOrEmpty(ownValue(source, "roleState"),
+    "authoritative.roleState");
+  const roleState = {};
+  for (const [key, value] of Object.entries(sourceRoleState)) define(roleState, key, value);
+  for (const key of ["privateResults", "lovers", "twins", "betrayalTwins", "traps"]) {
+    define(roleState, key,
+      recordOrEmpty(ownValue(sourceRoleState, key), `authoritative.roleState.${key}`));
+  }
+  define(roleState, "lastExecution", ownValue(sourceRoleState, "lastExecution") ?? null);
+
+  const state = {};
+  for (const [key, value] of Object.entries(source)) define(state, key, value);
+  define(state, "players", players);
+  define(state, "pendingActions",
+    recordOrEmpty(ownValue(source, "pendingActions"), "authoritative.pendingActions"));
+  define(state, "pendingVotes",
+    recordOrEmpty(ownValue(source, "pendingVotes"), "authoritative.pendingVotes"));
+  define(state, "history", arrayOrEmpty(ownValue(source, "history"), "authoritative.history"));
+  define(state, "roleState", roleState);
+  for (const key of ["deadlineAt", "winner", "lastAttack"]) {
+    define(state, key, ownValue(source, key) ?? null);
+  }
+  return state;
+}
+
 function normalizeStoredGame(game) {
   return toJsonCompatible({
     ...game,
@@ -138,16 +198,25 @@ export function applyGameSessionCommand({ game, callerUid, request, now }) {
     payload: request.payload ?? {}, expectedRevision: request.expectedRevision, now,
   });
   assertCommandId(command.id);
+  const authoritative = hydrateAuthoritativeState(game.authoritative);
   const processedCommands = normalizeProcessedCommands(game.processedCommands ?? {});
   if (Object.hasOwn(processedCommands, command.id)) {
     const commandResult = compactReceipt(processedCommands[command.id]);
+    const currentViews = buildPersistencePatch({ state: authoritative, events: [],
+      toPublicView, toPlayerView });
     return {
-      game: normalizeStoredGame({ ...game, processedCommands }),
+      game: normalizeStoredGame({
+        ...game,
+        public: currentViews.public,
+        privateViews: currentViews.privateViews,
+        authoritative,
+        processedCommands,
+      }),
       commandResult,
       duplicate: true,
     };
   }
-  const result = dispatch(game.authoritative, command);
+  const result = dispatch(authoritative, command);
   const patch = buildPersistencePatch({ state: result.state, events: result.events,
     toPublicView, toPlayerView });
   const commandResult = { revision: patch.public.revision, phase: patch.public.phase };
