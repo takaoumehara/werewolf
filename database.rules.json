@@ -31,15 +31,15 @@
             ".write": false,
             "name": {
               ".write": "auth != null && auth.uid === $uid && root.child('roomMembers').child($roomId).child(auth.uid).val() === true && data.parent().exists() && newData.exists()",
-              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 30"
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 30 && newData.getPriority() === data.getPriority()"
             },
             "connected": {
               ".write": "auth != null && auth.uid === $uid && root.child('roomMembers').child($roomId).child(auth.uid).val() === true && data.parent().exists() && newData.exists()",
-              ".validate": "newData.isBoolean()"
+              ".validate": "newData.isBoolean() && newData.getPriority() === data.getPriority()"
             },
             "lastSeenAt": {
               ".write": "auth != null && auth.uid === $uid && root.child('roomMembers').child($roomId).child(auth.uid).val() === true && data.parent().exists() && newData.exists()",
-              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= now + 60000"
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= now + 60000 && newData.getPriority() === data.getPriority()"
             },
             "$other": {
               ".write": false

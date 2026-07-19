@@ -1,4 +1,5 @@
 import test, { after, before } from "node:test";
+import assert from "node:assert/strict";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -7,7 +8,15 @@ import {
   assertSucceeds,
   initializeTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { get, ref, remove, set } from "firebase/database";
+import {
+  get,
+  ref,
+  remove,
+  set,
+  setPriority,
+  setWithPriority,
+  update,
+} from "firebase/database";
 
 const ROOM_ID = "room-1";
 const MEMBER_UID = "member-1";
@@ -26,6 +35,33 @@ function databaseFor(uid) {
 
 function memberDatabase() {
   return databaseFor(MEMBER_UID);
+}
+
+async function valuesWithRulesDisabled(paths) {
+  let values;
+  await environment.withSecurityRulesDisabled(async (context) => {
+    const database = context.database();
+    const entries = await Promise.all(
+      paths.map(async (path) => [path, (await get(ref(database, path))).val()]),
+    );
+    values = Object.fromEntries(entries);
+  });
+  return values;
+}
+
+async function restoreValuesWithRulesDisabled(valuesByPath) {
+  await environment.withSecurityRulesDisabled(async (context) => {
+    await update(ref(context.database()), valuesByPath);
+  });
+}
+
+async function valueAndPriorityWithRulesDisabled(path) {
+  let valueAndPriority;
+  await environment.withSecurityRulesDisabled(async (context) => {
+    const snapshot = await get(ref(context.database(), path));
+    valueAndPriority = { value: snapshot.val(), priority: snapshot.priority };
+  });
+  return valueAndPriority;
 }
 
 before(async () => {
@@ -404,3 +440,232 @@ test("host client cannot write their own private view", async () => {
 test("host client cannot replace the game subtree", async () => {
   await assertFails(set(ref(memberDatabase(), `rooms/${ROOM_ID}/game`), { public: {} }));
 });
+
+const SELF_PLAYER_PATH = `rooms/${ROOM_ID}/players/${MEMBER_UID}`;
+const SELF_NAME_PATH = `${SELF_PLAYER_PATH}/name`;
+const SELF_CONNECTED_PATH = `${SELF_PLAYER_PATH}/connected`;
+const SELF_LAST_SEEN_PATH = `${SELF_PLAYER_PATH}/lastSeenAt`;
+
+test("member can atomically patch all three editable player fields", async () => {
+  const editablePaths = [SELF_NAME_PATH, SELF_CONNECTED_PATH, SELF_LAST_SEEN_PATH];
+  const beforeValues = await valuesWithRulesDisabled(editablePaths);
+  const patchedAt = Date.now();
+
+  try {
+    await assertSucceeds(
+      update(ref(memberDatabase(), SELF_PLAYER_PATH), {
+        name: "Atomic Host",
+        connected: true,
+        lastSeenAt: patchedAt,
+      }),
+    );
+
+    const afterValues = await valuesWithRulesDisabled(editablePaths);
+    assert.deepEqual(afterValues, {
+      [SELF_NAME_PATH]: "Atomic Host",
+      [SELF_CONNECTED_PATH]: true,
+      [SELF_LAST_SEEN_PATH]: patchedAt,
+    });
+  } finally {
+    await restoreValuesWithRulesDisabled(beforeValues);
+  }
+});
+
+for (const { label, forbiddenPath, forbiddenValue } of [
+  {
+    label: "role",
+    forbiddenPath: `${SELF_PLAYER_PATH}/role`,
+    forbiddenValue: "participant",
+  },
+  {
+    label: "meta",
+    forbiddenPath: `rooms/${ROOM_ID}/meta/status`,
+    forbiddenValue: "playing",
+  },
+  {
+    label: "game state",
+    forbiddenPath: `rooms/${ROOM_ID}/game/public/phase`,
+    forbiddenValue: "finished",
+  },
+  {
+    label: "unknown player child",
+    forbiddenPath: `${SELF_PLAYER_PATH}/admin`,
+    forbiddenValue: true,
+  },
+]) {
+  test(`mixed root update with allowed name and forbidden ${label} is atomic`, async () => {
+    const affectedPaths = [SELF_NAME_PATH, forbiddenPath];
+    const beforeValues = await valuesWithRulesDisabled(affectedPaths);
+
+    try {
+      await assertFails(
+        update(ref(memberDatabase()), {
+          [SELF_NAME_PATH]: "Must Not Persist",
+          [forbiddenPath]: forbiddenValue,
+        }),
+      );
+
+      assert.deepEqual(await valuesWithRulesDisabled(affectedPaths), beforeValues);
+    } finally {
+      await restoreValuesWithRulesDisabled(beforeValues);
+    }
+  });
+}
+
+test("mixed root update cannot edit name while revoking room membership", async () => {
+  const membershipPath = `roomMembers/${ROOM_ID}/${MEMBER_UID}`;
+  const affectedPaths = [SELF_NAME_PATH, membershipPath];
+  const beforeValues = await valuesWithRulesDisabled(affectedPaths);
+
+  try {
+    await assertFails(
+      update(ref(memberDatabase()), {
+        [SELF_NAME_PATH]: "Must Not Persist",
+        [membershipPath]: null,
+      }),
+    );
+
+    assert.deepEqual(await valuesWithRulesDisabled(affectedPaths), beforeValues);
+  } finally {
+    await restoreValuesWithRulesDisabled(beforeValues);
+  }
+});
+
+test("revoked member loses public, private, leaf-write, and multi-patch access", async () => {
+  const membershipPath = `roomMembers/${ROOM_ID}/${MEMBER_UID}`;
+  const editablePaths = [SELF_NAME_PATH, SELF_CONNECTED_PATH, SELF_LAST_SEEN_PATH];
+  const beforeValues = await valuesWithRulesDisabled([membershipPath, ...editablePaths]);
+
+  try {
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await remove(ref(context.database(), membershipPath));
+    });
+
+    const database = memberDatabase();
+    await assertFails(get(ref(database, `rooms/${ROOM_ID}/game/public`)));
+    await assertFails(
+      get(ref(database, `rooms/${ROOM_ID}/game/privateViews/${MEMBER_UID}`)),
+    );
+    await assertFails(set(ref(database, SELF_NAME_PATH), "Revoked"));
+    await assertFails(set(ref(database, SELF_CONNECTED_PATH), true));
+    await assertFails(set(ref(database, SELF_LAST_SEEN_PATH), Date.now()));
+    await assertFails(
+      update(ref(database, SELF_PLAYER_PATH), {
+        name: "Revoked",
+        connected: true,
+        lastSeenAt: Date.now(),
+      }),
+    );
+
+    assert.deepEqual(await valuesWithRulesDisabled(editablePaths), {
+      [SELF_NAME_PATH]: beforeValues[SELF_NAME_PATH],
+      [SELF_CONNECTED_PATH]: beforeValues[SELF_CONNECTED_PATH],
+      [SELF_LAST_SEEN_PATH]: beforeValues[SELF_LAST_SEEN_PATH],
+    });
+  } finally {
+    await restoreValuesWithRulesDisabled(beforeValues);
+  }
+});
+
+test("member cannot recreate editable leaves when their player record is missing", async () => {
+  const beforePlayer = await valuesWithRulesDisabled([SELF_PLAYER_PATH]);
+
+  try {
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await remove(ref(context.database(), SELF_PLAYER_PATH));
+    });
+
+    const database = memberDatabase();
+    await assertFails(set(ref(database, SELF_NAME_PATH), "Recreated"));
+    await assertFails(
+      update(ref(database), {
+        [SELF_NAME_PATH]: "Recreated",
+        [SELF_CONNECTED_PATH]: true,
+        [SELF_LAST_SEEN_PATH]: Date.now(),
+      }),
+    );
+
+    assert.equal(
+      (await valuesWithRulesDisabled([SELF_PLAYER_PATH]))[SELF_PLAYER_PATH],
+      null,
+    );
+  } finally {
+    await restoreValuesWithRulesDisabled(beforePlayer);
+  }
+});
+
+for (const { label, path, changedPriority } of [
+  { label: "name", path: SELF_NAME_PATH, changedPriority: 101 },
+  { label: "connected", path: SELF_CONNECTED_PATH, changedPriority: 102 },
+  { label: "lastSeenAt", path: SELF_LAST_SEEN_PATH, changedPriority: 103 },
+]) {
+  test(`member cannot change the priority of their ${label}`, async () => {
+    const beforeValue = await valueAndPriorityWithRulesDisabled(path);
+
+    try {
+      await assertFails(setPriority(ref(memberDatabase(), path), changedPriority));
+      assert.deepEqual(await valueAndPriorityWithRulesDisabled(path), beforeValue);
+    } finally {
+      await environment.withSecurityRulesDisabled(async (context) => {
+        await setWithPriority(
+          ref(context.database(), path),
+          beforeValue.value,
+          beforeValue.priority,
+        );
+      });
+    }
+  });
+}
+
+for (const { label, path, existingPriority, changedValue } of [
+  {
+    label: "name",
+    path: SELF_NAME_PATH,
+    existingPriority: 201,
+    changedValue: "Priority Preserved",
+  },
+  {
+    label: "connected",
+    path: SELF_CONNECTED_PATH,
+    existingPriority: 202,
+    changedValue: true,
+  },
+  {
+    label: "lastSeenAt",
+    path: SELF_LAST_SEEN_PATH,
+    existingPriority: 203,
+    changedValue: () => Date.now(),
+  },
+]) {
+  test(`member can update ${label} while retaining its existing priority`, async () => {
+    const beforeField = await valueAndPriorityWithRulesDisabled(path);
+    const nextValue =
+      typeof changedValue === "function" ? changedValue() : changedValue;
+
+    try {
+      await environment.withSecurityRulesDisabled(async (context) => {
+        await setWithPriority(
+          ref(context.database(), path),
+          beforeField.value,
+          existingPriority,
+        );
+      });
+
+      await assertSucceeds(
+        setWithPriority(ref(memberDatabase(), path), nextValue, existingPriority),
+      );
+      assert.deepEqual(await valueAndPriorityWithRulesDisabled(path), {
+        value: nextValue,
+        priority: existingPriority,
+      });
+    } finally {
+      await environment.withSecurityRulesDisabled(async (context) => {
+        await setWithPriority(
+          ref(context.database(), path),
+          beforeField.value,
+          beforeField.priority,
+        );
+      });
+    }
+  });
+}
