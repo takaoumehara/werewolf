@@ -20,7 +20,12 @@ check 'prefers-reduced-motion' "reduced motion"
 check '接続を復旧しています' "recorder reconnect copy"
 check '選択を記録しました' "recorder sync copy"
 check 'あと' "waiting count copy"
-# 中国語簡体字の混入チェック(代表字)
-if grep -qE '[们你请确认设置说]' mobile_app.html; then echo "FAIL: Chinese chars found"; FAIL=1; fi
+# 中国語簡体字の混入チェック(代表字)。C ロケールの grep はバイト単位で
+# CJK 継続バイトに誤マッチするため、文字単位で走査できる python3 を使う。
+if ! python3 -c "
+import sys
+data = open('mobile_app.html', encoding='utf-8').read()
+sys.exit(1 if any(ch in data for ch in '们你请确认设置说') else 0)
+"; then echo "FAIL: Chinese chars found"; FAIL=1; fi
 [ $FAIL -eq 0 ] && echo "OK: mobile_app_test passed"
 exit $FAIL
