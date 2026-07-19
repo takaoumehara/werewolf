@@ -1,0 +1,1060 @@
+/* =========================================================================
+   design-system.css
+   対面人狼ゲーム(スマホ完結) — モバイル UI デザインシステム
+
+   世界観: ゴシック木版画 × 旧世界端末。装飾は控えめ(Restraint 原則)。
+   3層構成:
+     1. Primitive  — 生の値。直接コンポーネントから参照しない。
+     2. Semantic   — [data-phase] ごとに切り替わる意味づけトークン。
+     3. Component  — 実際に見た目が成立する完全なスタイル。
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700&family=Cinzel+Decorative:wght@900&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+/* =========================================================================
+   1. PRIMITIVE LAYER — 生の値
+   ========================================================================= */
+:root {
+  /* primitive: color */
+  --p-soot: #07080a;
+  --p-charcoal: #0d0f12;
+  --p-surface: #111317;
+  --p-ash: #94a3b8;
+  --p-paper: #e8e0cf;
+  --p-oxidized: #8a8f98;
+  --p-line: rgba(255, 255, 255, 0.08);
+  --p-text: #f1f5f9;
+  --p-moonlight: #9fb4c7;
+  --p-daylight: #b7c3d0;
+  --p-ember: #b97a3d;
+  --p-verdict-red: #7a2226;
+
+  /* primitive: faction(秘密コンテキスト限定 — component 層でのみ参照すること) */
+  --p-citizen: #4a6a5f;
+  --p-werewolf: #8f1d22;
+  --p-third: #5f8f7a;
+
+  /* primitive: semantic-status */
+  --p-success: #4a7a5a;
+  --p-warning: #b08a3d;
+  --p-danger: #a03a30;
+  --p-info: #5a7a9a;
+  --p-offline: #6a6a72;
+
+  /* type */
+  --font-body: 'LINE Seed JP', sans-serif;
+  --font-display: 'Cinzel Decorative', serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --fs-display: 28px;
+  --fs-heading: 20px;
+  --fs-body: 15px;
+  --fs-label: 13px;
+  --fs-caption: 12px;
+  --fs-timer: 40px;
+  --fs-code: 32px;
+
+  /* spacing — 4px scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-12: 48px;
+
+  /* shape */
+  --r-control: 6px;
+  --r-sheet: 12px;
+  --r-card: 16px;
+  --tap-min: 44px;
+
+  /* motion */
+  --t-instant: 120ms;
+  --t-micro: 200ms;
+  --t-phase: 600ms;
+  --t-cinematic: 1200ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* texture — control 用。控えめな刻印/紙質表現。opacity は必ず 0.08 以下 */
+  --texture-opacity: 0.06;
+
+  /* NOTE: --secret-faction-color / --secret-role-accent はここでは定義しない。
+     秘密コンテキスト(.hold-to-reveal.revealed 等)以外から実値を参照できないよう、
+     :root では未定義のまま(下記フォールバックで initial 相当として扱う)。 */
+}
+
+/* =========================================================================
+   2. SEMANTIC LAYER — [data-phase] ごとの意味づけ
+   ========================================================================= */
+
+/* day: 城塞の公開評議会。石壁と昼光。 */
+body[data-phase="day"] {
+  --sem-bg: var(--p-charcoal);
+  --sem-bg-elevated: var(--p-surface);
+  --sem-text: var(--p-text);
+  --sem-text-dim: var(--p-ash);
+  --sem-line: var(--p-line);
+  --sem-accent: var(--p-daylight);
+  --sem-glow: rgba(183, 195, 208, 0.25);
+}
+
+/* night: 記録網による一斉消灯。煤(soot)と月光。 */
+body[data-phase="night"] {
+  --sem-bg: var(--p-soot);
+  --sem-bg-elevated: var(--p-charcoal);
+  --sem-text: var(--p-text);
+  --sem-text-dim: var(--p-oxidized);
+  --sem-line: var(--p-line);
+  --sem-accent: var(--p-moonlight);
+  --sem-glow: rgba(159, 180, 199, 0.3);
+}
+
+/* dawn: 夜明け。ランタンの鈍い橙色(ember)。 */
+body[data-phase="dawn"] {
+  --sem-bg: var(--p-charcoal);
+  --sem-bg-elevated: var(--p-surface);
+  --sem-text: var(--p-text);
+  --sem-text-dim: var(--p-ash);
+  --sem-line: var(--p-line);
+  --sem-accent: var(--p-ember);
+  --sem-glow: rgba(185, 122, 61, 0.28);
+}
+
+/* verdict: 生存権を決める裁定。verdict-red アクセント。 */
+body[data-phase="verdict"] {
+  --sem-bg: var(--p-soot);
+  --sem-bg-elevated: var(--p-charcoal);
+  --sem-text: var(--p-text);
+  --sem-text-dim: var(--p-ash);
+  --sem-line: var(--p-line);
+  --sem-accent: var(--p-verdict-red);
+  --sem-glow: rgba(122, 34, 38, 0.35);
+}
+
+/* finished: 幕引き。古紙(paper)系の落ち着いたトーン。 */
+body[data-phase="finished"] {
+  --sem-bg: var(--p-charcoal);
+  --sem-bg-elevated: var(--p-surface);
+  --sem-text: var(--p-paper);
+  --sem-text-dim: var(--p-oxidized);
+  --sem-line: var(--p-line);
+  --sem-accent: var(--p-paper);
+  --sem-glow: rgba(232, 224, 207, 0.18);
+}
+
+/* =========================================================================
+   3. COMPONENT LAYER
+   ========================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--sem-bg, var(--p-charcoal));
+  color: var(--sem-text, var(--p-text));
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color var(--t-phase) var(--ease-standard),
+    color var(--t-phase) var(--ease-standard);
+}
+
+/* -------------------------------------------------------------------------
+   Layout shells
+   ------------------------------------------------------------------------- */
+
+.app-shell {
+  position: relative;
+  min-height: 100dvh;
+  width: 100%;
+  background: var(--sem-bg, var(--p-charcoal));
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.safe-frame {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: max(var(--sp-4), env(safe-area-inset-top))
+    max(var(--sp-4), env(safe-area-inset-right))
+    max(var(--sp-6), env(safe-area-inset-bottom))
+    max(var(--sp-4), env(safe-area-inset-left));
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* phase-backdrop: 背景の淡いグロー。役職の記号にならないよう抽象的に留める */
+.phase-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    var(--sem-glow, transparent) 0%,
+    transparent 60%
+  );
+  transition: background var(--t-phase) var(--ease-standard);
+  pointer-events: none;
+}
+
+/* texture-overlay: 紙質/刻印のノイズ表現。opacity は必ず 0.08 以下に留める */
+.texture-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: var(--texture-opacity, 0.06);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.5) 0px,
+      transparent 1px,
+      transparent 3px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.3) 0px,
+      transparent 1px,
+      transparent 4px
+    );
+}
+
+/* engraved-rule: 銅版画の罫線のような、控えめな刻印区切り */
+.engraved-rule {
+  border: none;
+  height: 1px;
+  margin: var(--sp-4) 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--sem-line, var(--p-line)) 20%,
+    var(--sem-line, var(--p-line)) 80%,
+    transparent
+  );
+}
+
+/* -------------------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------------------- */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: var(--tap-min);
+  min-width: var(--tap-min);
+  padding: var(--sp-3) var(--sp-5);
+  border-radius: var(--r-control);
+  border: 1px solid var(--sem-line, var(--p-line));
+  background: var(--sem-bg-elevated, var(--p-surface));
+  color: var(--sem-text, var(--p-text));
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  transition: background-color var(--t-micro) var(--ease-standard),
+    border-color var(--t-micro) var(--ease-standard),
+    transform var(--t-instant) var(--ease-standard),
+    opacity var(--t-micro) var(--ease-standard);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn.is-loading {
+  color: transparent;
+  pointer-events: none;
+}
+
+.btn.is-loading::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: var(--p-text);
+  animation: ds-spin 800ms linear infinite;
+}
+
+.btn--primary {
+  background: var(--sem-accent, var(--p-moonlight));
+  border-color: var(--sem-accent, var(--p-moonlight));
+  color: var(--p-soot);
+}
+
+.btn--secondary {
+  background: transparent;
+  border-color: var(--sem-accent, var(--p-moonlight));
+  color: var(--sem-accent, var(--p-moonlight));
+}
+
+.btn--quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--sem-text-dim, var(--p-ash));
+  font-weight: 400;
+}
+
+.btn--quiet:hover {
+  color: var(--sem-text, var(--p-text));
+}
+
+.btn--danger {
+  background: var(--p-danger);
+  border-color: var(--p-danger);
+  color: var(--p-text);
+}
+
+/* btn--hold: 長押し進捗リング/バー。--hold-progress(0〜1) を JS 側で更新する */
+.btn--hold {
+  --hold-progress: 0;
+  background: var(--sem-bg-elevated, var(--p-surface));
+  border-color: var(--sem-line, var(--p-line));
+  overflow: hidden;
+}
+
+.btn--hold::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    90deg,
+    var(--sem-accent, var(--p-moonlight)) calc(var(--hold-progress, 0) * 100%),
+    transparent calc(var(--hold-progress, 0) * 100%)
+  );
+  opacity: 0.35;
+  transition: background var(--t-instant) linear;
+  pointer-events: none;
+}
+
+.btn--hold::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: var(--sem-accent, var(--p-moonlight));
+  transform-origin: left center;
+  transform: scaleX(var(--hold-progress, 0));
+  transition: transform var(--t-instant) linear;
+  pointer-events: none;
+}
+
+.btn--hold > * {
+  position: relative;
+  z-index: 1;
+}
+
+.btn--hold.is-pressed {
+  border-color: var(--sem-accent, var(--p-moonlight));
+}
+
+/* -------------------------------------------------------------------------
+   Inputs
+   ------------------------------------------------------------------------- */
+
+.seg-control {
+  display: inline-flex;
+  padding: var(--sp-1);
+  border-radius: var(--r-control);
+  background: var(--sem-bg-elevated, var(--p-surface));
+  border: 1px solid var(--sem-line, var(--p-line));
+  gap: var(--sp-1);
+}
+
+.seg-control > button {
+  min-height: calc(var(--tap-min) - var(--sp-2));
+  padding: var(--sp-2) var(--sp-4);
+  border: none;
+  border-radius: calc(var(--r-control) - 2px);
+  background: transparent;
+  color: var(--sem-text-dim, var(--p-ash));
+  font-family: var(--font-body);
+  font-size: var(--fs-label);
+  cursor: pointer;
+  transition: background-color var(--t-micro) var(--ease-standard),
+    color var(--t-micro) var(--ease-standard);
+}
+
+.seg-control > button.is-selected {
+  background: var(--sem-accent, var(--p-moonlight));
+  color: var(--p-soot);
+}
+
+.text-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.text-field input,
+.text-field textarea {
+  min-height: var(--tap-min);
+  padding: var(--sp-3);
+  border-radius: var(--r-control);
+  border: 1px solid var(--sem-line, var(--p-line));
+  background: var(--p-soot);
+  color: var(--sem-text, var(--p-text));
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  transition: border-color var(--t-micro) var(--ease-standard);
+}
+
+.text-field input:focus,
+.text-field textarea:focus {
+  outline: none;
+  border-color: var(--sem-accent, var(--p-moonlight));
+}
+
+.text-field.is-error input,
+.text-field.is-error textarea {
+  border-color: var(--p-danger);
+}
+
+/* code-input: 認証紋章の入力欄。等幅フォントで文字間を広く取る */
+.code-input {
+  display: flex;
+  gap: var(--sp-2);
+  justify-content: center;
+}
+
+.code-input input {
+  width: calc(var(--tap-min) + var(--sp-2));
+  height: calc(var(--tap-min) + var(--sp-2));
+  text-align: center;
+  border-radius: var(--r-control);
+  border: 1px solid var(--sem-line, var(--p-line));
+  background: var(--p-soot);
+  color: var(--sem-text, var(--p-text));
+  font-family: var(--font-mono);
+  font-size: var(--fs-code);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: border-color var(--t-micro) var(--ease-standard);
+}
+
+.code-input input:focus {
+  outline: none;
+  border-color: var(--sem-accent, var(--p-moonlight));
+}
+
+.code-input.is-error input {
+  border-color: var(--p-danger);
+}
+
+/* ready-control: 準備完了トグル */
+.ready-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--tap-min);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-control);
+  border: 1px solid var(--sem-line, var(--p-line));
+  background: var(--sem-bg-elevated, var(--p-surface));
+}
+
+.ready-control.is-selected {
+  border-color: var(--p-success);
+  color: var(--p-success);
+}
+
+/* -------------------------------------------------------------------------
+   Target / vote selection
+   ------------------------------------------------------------------------- */
+
+.target-selector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.target-option {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--tap-min);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-control);
+  border: 1px solid var(--sem-line, var(--p-line));
+  background: var(--sem-bg-elevated, var(--p-surface));
+  color: var(--sem-text, var(--p-text));
+  cursor: pointer;
+  transition: border-color var(--t-micro) var(--ease-standard),
+    background-color var(--t-micro) var(--ease-standard);
+}
+
+.target-option--selected,
+.target-option.is-selected {
+  border-color: var(--sem-accent, var(--p-moonlight));
+  background: color-mix(in srgb, var(--sem-accent, var(--p-moonlight)) 12%, var(--sem-bg-elevated, var(--p-surface)));
+}
+
+.target-option[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.vote-ballot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: var(--r-sheet);
+  border: 1px solid var(--sem-line, var(--p-line));
+  background: var(--sem-bg-elevated, var(--p-surface));
+}
+
+.vote-result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  border-radius: var(--r-sheet);
+  border: 1px solid var(--sem-line, var(--p-line));
+  background: var(--sem-bg-elevated, var(--p-surface));
+}
+
+.vote-result .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.vote-result .bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--sem-line, var(--p-line));
+  overflow: hidden;
+}
+
+.vote-result .bar > span {
+  display: block;
+  height: 100%;
+  background: var(--sem-accent, var(--p-moonlight));
+  transition: width var(--t-phase) var(--ease-standard);
+}
+
+/* -------------------------------------------------------------------------
+   Phase / timer / recorder
+   ------------------------------------------------------------------------- */
+
+.phase-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-2);
+}
+
+.phase-header .phase-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--fs-heading);
+  letter-spacing: 0.04em;
+  color: var(--sem-accent, var(--p-moonlight));
+}
+
+.countdown {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--fs-timer);
+  color: var(--sem-text, var(--p-text));
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.countdown.is-error {
+  color: var(--p-danger);
+}
+
+.discussion-timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+}
+
+.discussion-timer .track {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--sem-line, var(--p-line));
+  overflow: hidden;
+}
+
+.discussion-timer .track > span {
+  display: block;
+  height: 100%;
+  background: var(--sem-accent, var(--p-moonlight));
+  transition: width var(--t-instant) linear;
+}
+
+/* recorder-msg: 記録者(GM AI)からの発話。旧世界端末のテレタイプ的な体裁 */
+.recorder-msg {
+  padding: var(--sp-4);
+  border-radius: var(--r-sheet);
+  border: 1px solid var(--sem-line, var(--p-line));
+  background: var(--p-soot);
+  color: var(--sem-text, var(--p-text));
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  line-height: 1.6;
+}
+
+.recorder-msg::before {
+  content: '記録者';
+  display: block;
+  margin-bottom: var(--sp-2);
+  font-size: var(--fs-caption);
+  color: var(--sem-text-dim, var(--p-ash));
+  letter-spacing: 0.08em;
+}
+
+.night-panel {
+  padding: var(--sp-5);
+  border-radius: var(--r-card);
+  border: 1px solid var(--sem-line, var(--p-line));
+  background: var(--sem-bg-elevated, var(--p-charcoal));
+  box-shadow: 0 0 var(--sp-8) var(--sem-glow, transparent);
+}
+
+/* -------------------------------------------------------------------------
+   Status / connectivity
+   ------------------------------------------------------------------------- */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: 999px;
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  background: var(--sem-bg-elevated, var(--p-surface));
+  color: var(--sem-text-dim, var(--p-ash));
+  border: 1px solid var(--sem-line, var(--p-line));
+}
+
+.status-badge.is-completed {
+  color: var(--p-success);
+  border-color: var(--p-success);
+}
+
+.status-badge.is-error {
+  color: var(--p-danger);
+  border-color: var(--p-danger);
+}
+
+.status-badge.is-offline {
+  color: var(--p-offline);
+  border-color: var(--p-offline);
+}
+
+.conn-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: 36px;
+  padding: var(--sp-2) var(--sp-4);
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  color: var(--p-text);
+  background: var(--p-info);
+  text-align: center;
+}
+
+.conn-banner.is-offline {
+  background: var(--p-offline);
+}
+
+.conn-banner.is-reconnecting {
+  background: var(--p-warning);
+}
+
+.conn-banner.is-error {
+  background: var(--p-danger);
+}
+
+.sync-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-caption);
+  color: var(--sem-text-dim, var(--p-ash));
+}
+
+.sync-indicator::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--p-success);
+}
+
+.sync-indicator.is-offline::before {
+  background: var(--p-offline);
+}
+
+.sync-indicator.is-reconnecting::before {
+  background: var(--p-warning);
+  animation: ds-pulse var(--t-cinematic) var(--ease-standard) infinite;
+}
+
+.sync-indicator.is-error::before {
+  background: var(--p-danger);
+}
+
+.waiting-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  color: var(--sem-text-dim, var(--p-ash));
+}
+
+.waiting-count .num {
+  font-size: var(--fs-heading);
+  color: var(--sem-text, var(--p-text));
+}
+
+.inline-notice {
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-control);
+  border: 1px solid var(--sem-line, var(--p-line));
+  border-left: 3px solid var(--p-info);
+  background: var(--sem-bg-elevated, var(--p-surface));
+  font-size: var(--fs-label);
+  color: var(--sem-text, var(--p-text));
+}
+
+.inline-notice.is-error {
+  border-left-color: var(--p-danger);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--sp-8);
+  transform: translateX(-50%);
+  min-height: 40px;
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-control);
+  background: var(--p-soot);
+  border: 1px solid var(--sem-line, var(--p-line));
+  color: var(--p-text);
+  font-size: var(--fs-label);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 60;
+  transition: opacity var(--t-micro) var(--ease-standard),
+    transform var(--t-micro) var(--ease-standard);
+}
+
+.toast.is-error {
+  border-color: var(--p-danger);
+}
+
+.recovery-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-5);
+  border-radius: var(--r-sheet);
+  border: 1px solid var(--sem-line, var(--p-line));
+  background: var(--sem-bg-elevated, var(--p-surface));
+}
+
+.reconnect-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  background: rgba(7, 8, 10, 0.92);
+  color: var(--p-text);
+  text-align: center;
+  padding: var(--sp-6);
+}
+
+.reconnect-overlay.is-reconnecting .sync-indicator::before {
+  animation: ds-pulse var(--t-cinematic) var(--ease-standard) infinite;
+}
+
+/* -------------------------------------------------------------------------
+   QR / room code
+   ------------------------------------------------------------------------- */
+
+/* qr-panel: QR は必ず白地 + 最低 12px quiet zone を確保する */
+.qr-panel {
+  display: inline-flex;
+  padding: 12px;
+  background: #ffffff;
+  border-radius: var(--r-control);
+  box-shadow: 0 0 0 1px var(--sem-line, var(--p-line));
+}
+
+.qr-panel img,
+.qr-panel canvas,
+.qr-panel svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.room-code {
+  display: inline-flex;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-control);
+  border: 1px dashed var(--sem-line, var(--p-line));
+  background: var(--sem-bg-elevated, var(--p-surface));
+  font-family: var(--font-mono);
+  font-size: var(--fs-heading);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  color: var(--sem-accent, var(--p-moonlight));
+}
+
+/* -------------------------------------------------------------------------
+   Player list
+   ------------------------------------------------------------------------- */
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--tap-min);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-control);
+  border: 1px solid var(--sem-line, var(--p-line));
+  background: var(--sem-bg-elevated, var(--p-surface));
+}
+
+.player-row.is-selected {
+  border-color: var(--sem-accent, var(--p-moonlight));
+}
+
+.player-row.is-offline {
+  opacity: 0.5;
+}
+
+.player-row.is-completed .status-badge {
+  color: var(--p-success);
+  border-color: var(--p-success);
+}
+
+/* -------------------------------------------------------------------------
+   Privacy / secret reveal
+   ------------------------------------------------------------------------- */
+
+/* privacy-cover: 覗き見防止のスクリーンカバー。役職確認前の初期状態 */
+.privacy-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--p-soot);
+  color: var(--sem-text-dim, var(--p-ash));
+  font-size: var(--fs-label);
+  text-align: center;
+  padding: var(--sp-6);
+  transition: opacity var(--t-micro) var(--ease-standard);
+}
+
+/* hold-to-reveal: 長押しでのみ役職(機密記録)を開示する。
+   秘密トークンは、この revealed スコープの内側でのみ実値を持つ。
+   :root や公開 UI からは参照できない(常に initial)。 */
+.hold-to-reveal {
+  --secret-faction-color: initial;
+  --secret-role-accent: initial;
+  position: relative;
+  border-radius: var(--r-card);
+  overflow: hidden;
+}
+
+.hold-to-reveal .revealed,
+.hold-to-reveal.revealed {
+  --secret-faction-color: var(--p-werewolf);
+  --secret-role-accent: var(--p-moonlight);
+}
+
+.hold-to-reveal .revealed {
+  color: var(--secret-faction-color, var(--sem-text));
+}
+
+.hold-to-reveal:not(.revealed) .privacy-cover {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hold-to-reveal.revealed .privacy-cover {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------
+   Sheets / dialogs / drawers
+   ------------------------------------------------------------------------- */
+
+.bottom-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  max-height: 85dvh;
+  padding: var(--sp-5);
+  padding-bottom: calc(var(--sp-5) + env(safe-area-inset-bottom));
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  border: 1px solid var(--sem-line, var(--p-line));
+  border-bottom: none;
+  background: var(--sem-bg-elevated, var(--p-surface));
+  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.4);
+  transform: translateY(0);
+  transition: transform var(--t-phase) var(--ease-standard);
+}
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-5);
+  background: rgba(7, 8, 10, 0.75);
+}
+
+.dialog .dialog-panel {
+  width: 100%;
+  max-width: 360px;
+  padding: var(--sp-5);
+  border-radius: var(--r-sheet);
+  border: 1px solid var(--sem-line, var(--p-line));
+  background: var(--sem-bg-elevated, var(--p-surface));
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* fullscreen-reveal: 処刑/勝敗などの演出用フルスクリーン */
+.fullscreen-reveal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  background: var(--sem-bg, var(--p-soot));
+  color: var(--sem-text, var(--p-text));
+  text-align: center;
+  padding: var(--sp-6);
+  animation: ds-fade-in var(--t-cinematic) var(--ease-standard);
+}
+
+.rules-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 55;
+  width: min(85vw, 360px);
+  padding: var(--sp-5);
+  padding-top: max(var(--sp-5), env(safe-area-inset-top));
+  border-left: 1px solid var(--sem-line, var(--p-line));
+  background: var(--sem-bg-elevated, var(--p-surface));
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.4);
+  overflow-y: auto;
+  transform: translateX(0);
+  transition: transform var(--t-phase) var(--ease-standard);
+}
+
+/* =========================================================================
+   4. ANIMATIONS
+   ========================================================================= */
+
+@keyframes ds-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ds-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes ds-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* =========================================================================
+   5. ACCESSIBILITY — reduced motion
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-property: opacity !important;
+    scroll-behavior: auto !important;
+  }
+}
