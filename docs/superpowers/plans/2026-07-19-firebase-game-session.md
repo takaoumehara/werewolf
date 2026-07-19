@@ -427,6 +427,18 @@ git commit -m "feat: add authoritative game session service"
 - Produces callables: `createSnapRoom`, `joinSnapRoom`, `startWerewolfGame`, `dispatchWerewolfCommand`
 - Repository transaction target: `rooms/{roomId}/game`
 
+**Correctness and security invariants:**
+- `request.auth.uid`だけをcaller/actorとして使用し、bodyの`actorId`は無視する。未認証、validation、conflict、expired/full等は安定した`HttpsError` codeへ変換する。
+- 全callableでApp Checkを強制する。入力はplain recordとして検証し、name、maxPlayers、roomId、code、roleIds、gmMode、commandId、type、payload、expectedRevisionを境界で制限する。
+- pairing codeはread-then-writeだけで確保せず、`pairingCodes/{code}` transactionで空きを原子的に予約する。競合時は暗号学的乱数で再生成し、途中失敗時は自分のreservationだけを条件付きで解放する。
+- room作成はuid単位の短時間rate-limit ledgerをserver-only pathへtransaction保存する。
+- joinはroom transaction内でstatus、TTL、capacity、既存uidを再検証する。同じuidの再参加はcountを増やさず、その後のmulti-location updateで`roomMembers`とplayer recordを修復できる。
+- transaction updaterはpure/deterministicにする。時刻、seed、IDはtransaction外で一度だけ生成し、外側のmutable responseへ依存せずcommitted snapshotから応答を導く。
+- startはhost、waiting、4〜30人、role数一致を同じroom transaction内で検証し、gameとstatusを一緒にcommitする。
+- dispatchは`rooms/{roomId}/game`だけをtransactionし、Task 2のhydrate、compact receipt、duplicate非巻戻しをそのまま使う。
+- fake RTDBはtransaction retry、collision、aborted commit、multi-location updateを再現し、rate limit、atomic code reservation、full/ended/expired/idempotent rejoin、host/role validation、duplicate commandをunit testする。
+- buildはNode 20 ESMでgame-engine relative importsをbundleし、画像フォルダや秘密ファイルを成果物へ含めない。
+
 - [ ] **Step 1: exported callable namesとactor bindingの失敗テストを書く**
 
 ```js
