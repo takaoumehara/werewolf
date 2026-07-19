@@ -375,6 +375,7 @@
                 <option value="raw-illustrations-72-a">Ver.A (フラット背景)</option>
                 <option value="raw-illustrations-72-a2">Ver.A2 (背景描き込み)</option>
                 <option value="videos-72">Ver.A2 (動画ループ背景)</option>
+                <option value="kling-3">Ver.A2 (Kling 3.0動画)</option>
             </select>
         </div>
         <div class="control-group">
@@ -721,6 +722,22 @@
                     const videoEl = document.getElementById("layer-char-green-video");
                     videoEl.src = "videos-72/werewolf_char_green_loop.mp4";
                     startChromaKeyLoop();
+                } else {
+                    // Fallback to static A2 layered view for other roles
+                    layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
+                    layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charId}_ver_a.png')`;
+                    layerChar.style.display = "block";
+                }
+            } else if (versionSelect === "kling-3") {
+                // Kling 3.0 combined video loop
+                if (currentRole.id === "werewolf") {
+                    layerVideo.src = "00_combined/Kling3.0/werewolf.mp4";
+                    layerVideo.style.display = "block";
+                    layerVideo.play().catch(err => console.log("Kling 3.0 Video play failed:", err));
+                    
+                    // Hide static elements
+                    layerChar.style.display = "none";
+                    layerBg.style.backgroundImage = "none";
                 } else {
                     // Fallback to static A2 layered view for other roles
                     layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
