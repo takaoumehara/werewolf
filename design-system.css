@@ -43,7 +43,7 @@
 
   /* type */
   --font-body: 'LINE Seed JP', sans-serif;
-  --font-display: 'Cinzel Decorative', serif;
+  --font-display: 'Cinzel Decorative', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
   --font-mono: 'IBM Plex Mono', monospace;
   --fs-display: 28px;
   --fs-heading: 20px;
@@ -919,8 +919,23 @@ body {
 
 .hold-to-reveal .revealed,
 .hold-to-reveal.revealed {
-  --secret-faction-color: var(--p-werewolf);
   --secret-role-accent: var(--p-moonlight);
+}
+
+/* 陣営色は revealed 状態 × 陣営 class の組み合わせでのみ解決される */
+.hold-to-reveal.revealed.faction-citizen,
+.hold-to-reveal .revealed.faction-citizen {
+  --secret-faction-color: var(--p-citizen);
+}
+
+.hold-to-reveal.revealed.faction-werewolf,
+.hold-to-reveal .revealed.faction-werewolf {
+  --secret-faction-color: var(--p-werewolf);
+}
+
+.hold-to-reveal.revealed.faction-third,
+.hold-to-reveal .revealed.faction-third {
+  --secret-faction-color: var(--p-third);
 }
 
 .hold-to-reveal .revealed {
@@ -930,6 +945,8 @@ body {
 .hold-to-reveal:not(.revealed) .privacy-cover {
   opacity: 1;
   pointer-events: auto;
+  /* 秘匿方向は即時に戻す(指を離した瞬間に隠れる要件)。開示方向のみフェード */
+  transition: none;
 }
 
 .hold-to-reveal.revealed .privacy-cover {

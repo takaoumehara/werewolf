@@ -356,6 +356,8 @@
   .role-secret-info {
     padding: var(--sp-3) var(--sp-4);
     border-top: 1px solid var(--sem-line);
+    /* 陣営色は秘密トークン経由でのみ解決される(revealed × faction class のときだけ実値を持つ) */
+    border-left: 3px solid var(--secret-faction-color, var(--sem-line));
     background: var(--sem-bg-elevated);
     font-size: var(--fs-label);
   }
@@ -652,7 +654,6 @@
 
       <!-- s15: 投票 -->
       <section class="screen" id="s15">
-        <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);">投票</h2>
         <div class="inline-notice">一度確定すると、投票を変更できません。</div>
         <div class="vote-ballot">
           <div class="target-selector" id="voteTargetList"></div>
@@ -710,7 +711,7 @@
         <div class="reconnect-overlay" style="position:relative;inset:auto;background:transparent;">
           <p class="sync-indicator is-reconnecting">接続を復旧しています。</p>
           <p class="center-note">最後に確認した状態: 昼の議論(残り 02:14)</p>
-          <button type="button" class="btn btn--secondary" onclick="showScreen('s01')">再試行</button>
+          <button type="button" class="btn btn--secondary" onclick="showScreen('s14')">復旧して合流する</button>
         </div>
       </section>
 
@@ -1278,7 +1279,8 @@
     document.getElementById('phTitle').textContent = meta.title;
     document.getElementById('phTask').textContent = meta.task;
     document.getElementById('phSync').textContent = voteLocked && id === 's15' ? '記録済み' : '同期済み';
-    document.getElementById('phCountdown').textContent = id === 's14' ? formatClock(discussionSecondsLeft) : '--:--';
+    /* s14 は画面中央に大型タイマーを持つため、ヘッダー側は空にして二重表示を避ける */
+    document.getElementById('phCountdown').textContent = id === 's14' ? '' : '--:--';
   }
 
   function formatClock(totalSeconds) {
@@ -1439,6 +1441,9 @@
     const role = getRole(roleId);
     renderCardIntoSlot(document.getElementById('roleCardSlot'), roleId);
     const camp = role.camp;
+    const hold = document.getElementById('roleHold');
+    hold.classList.remove('faction-citizen', 'faction-werewolf', 'faction-third');
+    hold.classList.add(camp === 'citizen' ? 'faction-citizen' : camp === 'werewolf' ? 'faction-werewolf' : 'faction-third');
     document.getElementById('roleSecretInfo').innerHTML =
       '<span class="label">勝利条件</span>' + (VICTORY_TEXT_BY_CAMP[camp] || VICTORY_TEXT_BY_CAMP.fox);
     roleRevealedOnce = false;
@@ -1524,10 +1529,6 @@
     if (countdownEl) countdownEl.textContent = formatClock(Math.max(0, discussionSecondsLeft));
     const bar = document.getElementById('discussionBar');
     if (bar) bar.style.width = Math.max(0, (discussionSecondsLeft / 180) * 100) + '%';
-    if (appState.screen === 's14') {
-      const headerCountdown = document.getElementById('phCountdown');
-      if (headerCountdown) headerCountdown.textContent = formatClock(Math.max(0, discussionSecondsLeft));
-    }
   }
 
   /* ===================================================================
@@ -1622,8 +1623,8 @@
     if (id === 's07') renderComposition();
     if (id === 's09') renderS09();
     if (id === 's10') setPhase('night');
-    if (id === 's11') renderS11();
-    if (id === 's12') { /* 全員共通の待機画面。役職に依存しない */ }
+    if (id === 's11') { setPhase('night'); renderS11(); }
+    if (id === 's12') setPhase('night'); /* 全員共通の待機画面。役職に依存しない */
     if (id === 's13') setPhase('dawn');
     if (id === 's14') { setPhase('day'); renderS14(); }
     if (id === 's15') renderS15();
@@ -1780,7 +1781,9 @@
 
     document.querySelectorAll('.hold-to-reveal').forEach(setupHoldToReveal);
 
-    showScreen('s01');
+    // レビュー用ディープリンク: mobile_app.html#s09 のように画面へ直接ジャンプできる
+    const hashScreen = (location.hash || '').replace('#', '');
+    showScreen(/^s(0[1-9]|1[0-9]|20)$/.test(hashScreen) ? hashScreen : 's01');
   });
 
   /* ===================================================================
