@@ -18,11 +18,45 @@ test("衝突時にcodeを再生成する", async () => {
   assert.equal(code, "BBBBBB");
 });
 
+test("全attemptsで衝突した場合は指定回数で停止してrejectする", async () => {
+  let checks = 0;
+
+  await assert.rejects(
+    createPairingCode({
+      randomInt: () => 0,
+      isTaken: async () => {
+        checks += 1;
+        return true;
+      },
+      attempts: 3,
+    }),
+    /Unable to allocate pairing code/,
+  );
+  assert.equal(checks, 3);
+});
+
 test("同じuidの再参加はcountを増やさない", () => {
   const first = joinLedger({ count: 1, members: { host: true } }, { uid: "p2", maxPlayers: 3 });
   const second = joinLedger(first, { uid: "p2", maxPlayers: 3 });
   assert.equal(first.count, 2);
   assert.equal(second.count, 2);
+});
+
+test("満室では新規uidの参加を拒否する", () => {
+  const full = { count: 2, members: { host: true, p2: true } };
+
+  assert.throws(
+    () => joinLedger(full, { uid: "p3", maxPlayers: 2 }),
+    /Room is full/,
+  );
+});
+
+test("満室でも既存uidの再参加は冪等に許可する", () => {
+  const full = { count: 2, members: { host: true, p2: true } };
+
+  const rejoined = joinLedger(full, { uid: "p2", maxPlayers: 2 });
+
+  assert.deepEqual(rejoined, full);
 });
 
 test("hostを含むroomとpairingの初期レコードを構築する", () => {
