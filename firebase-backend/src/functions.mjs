@@ -17,7 +17,8 @@ function invalid(message) {
 
 function requireUid(request) {
   const uid = request?.auth?.uid;
-  if (typeof uid !== "string" || uid.length === 0 || uid.length > 128) {
+  if (typeof uid !== "string" || uid.length === 0 || uid.length > 128
+    || /[.#$\/\[\]\u0000-\u001f\u007f]/u.test(uid)) {
     throw new HttpsError("unauthenticated", "Authentication required");
   }
   return uid;
@@ -97,51 +98,62 @@ function cleanExpectedRevision(value) {
 
 function cleanPayload(value) {
   if (!isRecord(value)) invalid("payload must be a plain object");
-  let bytes = 0;
+  const maxNodes = 4_096;
+  let nodes = 0;
   const ancestors = new WeakSet();
 
-  function visit(entry, depth) {
+  function preflight(entry, depth) {
+    nodes += 1;
+    if (nodes > maxNodes) invalid("payload contains too many values");
     if (depth > 8) invalid("payload is too deeply nested");
-    if (entry === null || typeof entry === "boolean") return entry;
-    if (typeof entry === "string") {
-      bytes += new TextEncoder().encode(entry).byteLength;
-      if (bytes > 16_384) invalid("payload is too large");
-      return entry;
-    }
+    if (entry === null || typeof entry === "boolean" || typeof entry === "string") return;
     if (typeof entry === "number") {
       if (!Number.isFinite(entry)) invalid("payload numbers must be finite");
-      return entry;
+      return;
     }
     if (typeof entry !== "object" || entry === null || ancestors.has(entry)) {
       invalid("payload must be JSON-compatible");
     }
     ancestors.add(entry);
-    let result;
     if (Array.isArray(entry)) {
       if (entry.length > 256) invalid("payload array is too large");
-      result = entry.map((child) => visit(child, depth + 1));
+      entry.forEach((child) => preflight(child, depth + 1));
     } else {
       if (!isRecord(entry) || Object.keys(entry).length > 128
         || Object.getOwnPropertySymbols(entry).length > 0) {
         invalid("payload must contain plain objects");
       }
-      result = {};
       for (const [key, child] of Object.entries(entry)) {
         if (key.length === 0 || key.length > 128) invalid("payload key is invalid");
-        bytes += new TextEncoder().encode(key).byteLength;
-        Object.defineProperty(result, key, {
-          value: visit(child, depth + 1),
-          enumerable: true,
-          configurable: true,
-          writable: true,
-        });
+        nodes += 1;
+        if (nodes > maxNodes) invalid("payload contains too many values");
+        preflight(child, depth + 1);
       }
     }
     ancestors.delete(entry);
+  }
+
+  function normalize(entry) {
+    if (entry === null || typeof entry !== "object") return entry;
+    if (Array.isArray(entry)) return entry.map(normalize);
+    const result = {};
+    for (const [key, child] of Object.entries(entry)) {
+      Object.defineProperty(result, key, {
+        value: normalize(child),
+        enumerable: true,
+        configurable: true,
+        writable: true,
+      });
+    }
     return result;
   }
 
-  return visit(value, 0);
+  preflight(value, 0);
+  const normalized = normalize(value);
+  if (Buffer.byteLength(JSON.stringify(normalized), "utf8") > 16_384) {
+    invalid("payload is too large");
+  }
+  return normalized;
 }
 
 async function callService(action) {

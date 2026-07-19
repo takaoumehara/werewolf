@@ -5,11 +5,21 @@ import {
 
 import { PAIRING_ALPHABET, buildRoomRecords, normalizePairingCode } from "./room-domain.mjs";
 import { startGameSession, applyGameSessionCommand } from "./game-session-service.mjs";
+import { ROLE_DEFINITIONS } from "../../game-engine/src/roles.mjs";
 
 const PAIRING_TTL_MS = 5 * 60 * 1000;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX = 3;
 const PAIRING_ATTEMPTS = 8;
+const SUPPORTED_COMMANDS = new Set([
+  "START_GAME", "BEGIN_NIGHT", "SUBMIT_NIGHT_ACTION", "REVEAL_DICTATOR",
+  "RESOLVE_NIGHT", "START_VOTE", "CAST_VOTE", "RESOLVE_VOTE", "END_DAY",
+  "FORCE_ADVANCE",
+]);
+const HOST_COMMANDS = new Set([
+  "START_GAME", "BEGIN_NIGHT", "RESOLVE_NIGHT", "START_VOTE", "RESOLVE_VOTE",
+  "END_DAY", "FORCE_ADVANCE",
+]);
 
 export class RepositoryError extends Error {
   constructor(code, message, options) {
@@ -38,6 +48,14 @@ function cleanName(value) {
   return name;
 }
 
+function cleanCallerUid(value) {
+  if (typeof value !== "string" || value.length === 0 || value.length > 128
+    || /[.#$\/\[\]\u0000-\u001f\u007f]/u.test(value)) {
+    throw fail("invalid-argument", "Invalid caller UID");
+  }
+  return value;
+}
+
 function cleanMaxPlayers(value) {
   if (!Number.isInteger(value) || value < 4 || value > 30) {
     throw fail("invalid-argument", "maxPlayers must be between 4 and 30");
@@ -55,7 +73,8 @@ function cleanRoomId(value) {
 function cleanRoleIds(value) {
   if (!Array.isArray(value) || value.length < 4 || value.length > 30
     || value.some((roleId) => typeof roleId !== "string"
-      || !/^[a-z][a-z0-9_]{0,63}$/.test(roleId))) {
+      || !/^[a-z][a-z0-9_]{0,63}$/.test(roleId)
+      || !Object.hasOwn(ROLE_DEFINITIONS, roleId))) {
     throw fail("invalid-argument", "Invalid role IDs");
   }
   return value.slice();
@@ -74,21 +93,40 @@ function pairingCode(randomInt) {
 
 function translateError(error, fallbackCode = "internal") {
   if (error instanceof RepositoryError) return error;
-  const message = error instanceof Error ? error.message : "Repository operation failed";
-  const lower = message.toLowerCase();
-  if (lower.includes("revision")) return fail("aborted", "Game command conflict", { cause: error });
-  if (lower.includes("host") || lower.includes("member")) {
-    return fail("permission-denied", "Caller is not allowed", { cause: error });
+  const messages = {
+    "invalid-argument": "Invalid game request",
+    "failed-precondition": "Game state does not allow this operation",
+    aborted: "Game command conflict",
+    internal: "Repository operation failed",
+  };
+  return fail(fallbackCode, messages[fallbackCode] ?? "Repository operation failed", { cause: error });
+}
+
+function prevalidateDispatch(game, callerUid, request) {
+  if (!isRecord(game.privateViews) || !Object.hasOwn(game.privateViews, callerUid)) {
+    throw fail("permission-denied", "Caller is not a game member");
   }
-  if (lower.includes("role") || lower.includes("player") || lower.includes("command")
-    || lower.includes("payload") || lower.includes("json") || lower.includes("gm mode")) {
-    return fail("invalid-argument", "Invalid game request", { cause: error });
+  if (!isRecord(game.authoritative) || !Number.isSafeInteger(game.authoritative.revision)
+    || typeof game.authoritative.hostId !== "string") {
+    throw fail("failed-precondition", "Stored game state is invalid");
   }
-  if (lower.includes("phase") || lower.includes("waiting") || lower.includes("alive")
-    || lower.includes("cannot") || lower.includes("may ") || lower.includes("only ")) {
-    return fail("failed-precondition", "Game state does not allow this operation", { cause: error });
+  if (typeof request.commandId !== "string"
+    || !/^[A-Za-z0-9_-]{1,128}$/.test(request.commandId)
+    || !SUPPORTED_COMMANDS.has(request.type)) {
+    throw fail("invalid-argument", "Unsupported game command");
   }
-  return fail(fallbackCode, "Repository operation failed", { cause: error });
+  const duplicate = isRecord(game.processedCommands)
+    && Object.hasOwn(game.processedCommands, request.commandId);
+  if (duplicate) return;
+  if (!Number.isSafeInteger(request.expectedRevision) || request.expectedRevision < 0) {
+    throw fail("invalid-argument", "Invalid expected revision");
+  }
+  if (request.expectedRevision !== game.authoritative.revision) {
+    throw fail("aborted", "Game command conflict");
+  }
+  if (HOST_COMMANDS.has(request.type) && callerUid !== game.authoritative.hostId) {
+    throw fail("permission-denied", "Only the host may use this command");
+  }
 }
 
 function assertRoster(room, roleIds) {
@@ -137,6 +175,7 @@ export function createFirebaseRoomRepository({
 
   return {
     async createRoom({ callerUid, input }) {
+      cleanCallerUid(callerUid);
       const timestamp = now();
       const roomId = randomUUID();
       const name = cleanName(input?.name);
@@ -187,6 +226,7 @@ export function createFirebaseRoomRepository({
     },
 
     async joinRoom({ callerUid, input }) {
+      cleanCallerUid(callerUid);
       let code;
       try {
         code = normalizePairingCode(input?.code);
@@ -238,7 +278,6 @@ export function createFirebaseRoomRepository({
       }
       if (!transaction.committed) throw fail("aborted", "Unable to join room");
       const committedRoom = transaction.snapshot.val();
-      const count = committedRoom.joinState.count;
       const existingPlayer = isRecord(committedRoom.players?.[callerUid])
         ? committedRoom.players[callerUid] : undefined;
       const joinedAt = Number.isSafeInteger(existingPlayer?.joinedAt)
@@ -254,8 +293,6 @@ export function createFirebaseRoomRepository({
             joinedAt,
             lastSeenAt: timestamp,
           },
-          [`rooms/${roomId}/meta/participantCount`]: count,
-          [`rooms/${roomId}/meta/updatedAt`]: timestamp,
         });
       } catch (error) {
         throw fail("unavailable", "Unable to repair room membership", { cause: error });
@@ -264,6 +301,7 @@ export function createFirebaseRoomRepository({
     },
 
     async startGame({ callerUid, input }) {
+      cleanCallerUid(callerUid);
       const roomId = cleanRoomId(input?.roomId);
       const roleIds = cleanRoleIds(input?.roleIds);
       const gmMode = cleanGmMode(input?.gmMode);
@@ -285,7 +323,7 @@ export function createFirebaseRoomRepository({
               roleIds, gmMode, seed, now: timestamp,
             });
           } catch (error) {
-            throw translateError(error, "invalid-argument");
+            throw translateError(error, "failed-precondition");
           }
           return {
             ...room,
@@ -307,12 +345,14 @@ export function createFirebaseRoomRepository({
     },
 
     async dispatchCommand({ callerUid, request }) {
+      cleanCallerUid(callerUid);
       const roomId = cleanRoomId(request?.roomId);
       const timestamp = now();
       let transaction;
       try {
         transaction = await database.ref(`rooms/${roomId}/game`).transaction((game) => {
           if (!isRecord(game)) throw fail("not-found", "Game not found");
+          prevalidateDispatch(game, callerUid, request);
           try {
             return applyGameSessionCommand({ game, callerUid, request, now: timestamp }).game;
           } catch (error) {
