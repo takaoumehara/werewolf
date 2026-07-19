@@ -455,15 +455,7 @@
                 desc_ja: "毎日一人を指定して、人狼の襲撃から守ることができる。ただし自分自身は守れない。",
                 desc_en: "Can protect one player from the werewolf attack every night. Cannot protect themselves."
             },
-            {
-                id: "knights_b",
-                jp: "騎士団 B",
-                en: "Knights B",
-                rubies: ["き", "し", "だん", ""],
-                camp: "citizen",
-                desc_ja: "毎日一人を指定して、人狼の襲撃から守ることができる。ただし自分自身は守れない。(装備バリエーション版)",
-                desc_en: "Can protect one player from the werewolf attack every night. Cannot protect themselves. (Alternative equipment version)"
-            },
+
             {
                 id: "double",
                 jp: "影武者",
@@ -544,6 +536,15 @@
                 camp: "citizen",
                 desc_ja: "手品のように他のプレイヤーの役職を一時的に入れ替え、議論の方向性を攪乱する。",
                 desc_en: "Temporarily swaps roles of other players like a magic trick to confuse the direction of the discussion."
+            },
+            {
+                id: "magician_c",
+                jp: "奇術師 C",
+                en: "Magician C",
+                rubies: ["き", "じゅつ", "し", ""],
+                camp: "citizen",
+                desc_ja: "手品のように他のプレイヤーの役職を一時的に入れ替え、議論の方向性を攪乱する。(カードバリエーション版)",
+                desc_en: "Temporarily swaps roles of other players like a magic trick to confuse the direction of the discussion. (Alternative card version)"
             },
             {
                 id: "hunter",
@@ -695,15 +696,18 @@
             } catch(e) {}
             
             let bgId = currentRole.id;
-            let charId = currentRole.id;
-            if (currentRole.id === "knights_b") {
-                bgId = "knights";
+            let flatImgName = `${currentRole.id}_ver_a.png`;
+            let charImgName = `${currentRole.id}_ver_a.png`;
+            
+            if (currentRole.id === "magician_c") {
+                bgId = "magician";
+                flatImgName = "magician_ver_c.png";
+                charImgName = "magician_ver_c.png";
             }
             
             if (versionSelect === "raw-illustrations-72-a") {
                 // Ver.A: フラット背景（元のイラストをそのまま1枚絵として layer-bg に設定）
-                let imgId = currentRole.id === "knights_b" ? "knights" : currentRole.id;
-                layerBg.style.backgroundImage = `url('raw-illustrations-72-a/${imgId}_ver_a.png')`;
+                layerBg.style.backgroundImage = `url('raw-illustrations-72-a/${flatImgName}')`;
                 layerChar.style.display = "none";
             } else if (versionSelect === "videos-72") {
                 // Ver.A2 Video edition
@@ -725,7 +729,7 @@
                 } else {
                     // Fallback to static A2 layered view for other roles
                     layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
-                    layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charId}_ver_a.png')`;
+                    layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charImgName}')`;
                     layerChar.style.display = "block";
                 }
             } else if (versionSelect === "kling-3") {
@@ -741,13 +745,13 @@
                 } else {
                     // Fallback to static A2 layered view for other roles
                     layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
-                    layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charId}_ver_a.png')`;
+                    layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charImgName}')`;
                     layerChar.style.display = "block";
                 }
             } else {
-                // Ver.A2: レイヤード合成エディション（背景のみ画像 + 透過キャラクター画像）
+                // Ver.A2: レレイヤード合成エディション（背景のみ画像 + 透過キャラクター画像）
                 layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
-                layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charId}_ver_a.png')`;
+                layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charImgName}')`;
                 layerChar.style.display = "block";
             }
             

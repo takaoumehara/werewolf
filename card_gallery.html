@@ -393,7 +393,7 @@
             </div>
             
             <!-- Background Toggle -->
-            <div class="control-item" id="bg-control-item" style="display: none;">
+            <div class="control-item" id="bg-control-item" style="opacity: 0.25; pointer-events: none; transition: opacity 0.2s;">
                 <label>BG</label>
                 <div class="btn-group">
                     <button class="btn-segment active" id="bg-on" onclick="setBg(true)">ON</button>
@@ -513,6 +513,15 @@
                 camp: "citizen",
                 desc_ja: "手品のように他のプレイヤーの役職を一時的に入れ替え、議論の方向性を攪乱する。",
                 desc_en: "Temporarily swaps roles of other players like a magic trick to confuse the direction of the discussion."
+            },
+            {
+                id: "magician_c",
+                jp: "奇術師 C",
+                en: "Magician C",
+                rubies: ["き", "じゅつ", "し", ""],
+                camp: "citizen",
+                desc_ja: "手品のように他のプレイヤーの役職を一時的に入れ替え、議論の方向性を攪乱する。(カードバリエーション版)",
+                desc_en: "Temporarily swaps roles of other players like a magic trick to confuse the direction of the discussion. (Alternative card version)"
             },
             {
                 id: "hunter",
@@ -663,17 +672,27 @@
                     let bgPath = "";
                     let charPath = "";
                     
+                    let bgId = role.id;
+                    let flatImgName = `${role.id}_ver_a.png`;
+                    let charImgName = `${role.id}_ver_a.png`;
+                    
+                    if (role.id === "magician_c") {
+                        bgId = "magician";
+                        flatImgName = "magician_ver_c.png";
+                        charImgName = "magician_ver_c.png";
+                    }
+                    
                     if (currentVersion === 'flat') {
                         // Flat backgrounds (one consolidated image)
-                        bgPath = `raw-illustrations-72-a/${role.id}_ver_a.png`;
+                        bgPath = `raw-illustrations-72-a/${flatImgName}`;
                     } else {
                         // Transparent character + optional background image
                         if (bgEnabled) {
-                            bgPath = `backgrounds-72/${role.id}_bg.png`;
+                            bgPath = `backgrounds-72/${bgId}_bg.png`;
                         } else {
                             bgPath = ""; // Empty/black background
                         }
-                        charPath = `raw-illustrations-transparent-72/${role.id}_ver_a.png`;
+                        charPath = `raw-illustrations-transparent-72/${charImgName}`;
                     }
                     
                     // Create card element
@@ -773,12 +792,14 @@
             document.getElementById("ver-flat").classList.toggle("active", ver === 'flat');
             document.getElementById("ver-trans").classList.toggle("active", ver === 'trans');
             
-            // Show background ON/OFF controller only in transparent mode
+            // Dim/enable BG controller without removing it from flow to prevent shifting
             const bgControl = document.getElementById("bg-control-item");
             if (ver === 'trans') {
-                bgControl.style.display = "flex";
+                bgControl.style.opacity = "1";
+                bgControl.style.pointerEvents = "auto";
             } else {
-                bgControl.style.display = "none";
+                bgControl.style.opacity = "0.25";
+                bgControl.style.pointerEvents = "none";
             }
             renderGallery();
         }
