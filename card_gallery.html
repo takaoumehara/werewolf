@@ -383,17 +383,25 @@
                 </div>
             </div>
             
-            <!-- Version Switcher -->
+            <!-- Style Switcher -->
             <div class="control-item">
-                <label>VERSION</label>
+                <label>STYLE</label>
                 <div class="btn-group">
-                    <button class="btn-segment active" id="ver-a" onclick="setVersion('raw-illustrations-72-a')">Ver.A</button>
-                    <button class="btn-segment" id="ver-lifelike" onclick="setVersion('raw-illustrations-72-a-lifelike')">Lifelike</button>
-                    <button class="btn-segment" id="ver-refined" onclick="setVersion('raw-illustrations-72-a-refined')">Refined</button>
-                    <button class="btn-segment" id="ver-trans" onclick="setVersion('trans')">Ver.A (Trans)</button>
+                    <button class="btn-segment active" id="style-a" onclick="setStyle('a')">Ver.A</button>
+                    <button class="btn-segment" id="style-lifelike" onclick="setStyle('lifelike')">Lifelike</button>
+                    <button class="btn-segment" id="style-refined" onclick="setStyle('refined')">Refined</button>
                 </div>
             </div>
-            
+
+            <!-- Mode Switcher (Flat combined image vs. Transparent character + separate BG) -->
+            <div class="control-item">
+                <label>MODE</label>
+                <div class="btn-group">
+                    <button class="btn-segment active" id="mode-flat" onclick="setMode('flat')">Flat</button>
+                    <button class="btn-segment" id="mode-trans" onclick="setMode('trans')">Transparent</button>
+                </div>
+            </div>
+
             <!-- Background Toggle -->
             <div class="control-item" id="bg-control-item" style="opacity: 0.25; pointer-events: none; transition: opacity 0.2s;">
                 <label>BG</label>
@@ -645,12 +653,64 @@
         ];
 
         let currentLang = 'ja'; // 'ja' or 'en'
-        let currentVersion = 'raw-illustrations-72-a'; // image folder or 'trans'
+        let currentStyle = 'a'; // 'a' | 'lifelike' | 'refined'
+        let currentMode = 'flat'; // 'flat' | 'trans'
         let bgEnabled = true;
         const assetCacheVersion = '20260719-refined-assets';
 
+        // Per-style folders: flatFolder = single combined image, transFolder = transparent character cutout
+        const styleConfig = {
+            a: {
+                flatFolder: 'raw-illustrations-72-a',
+                transFolder: 'raw-illustrations-transparent-72',
+                compositeViewerVersion: 'raw-illustrations-72-a2'
+            },
+            lifelike: {
+                flatFolder: 'raw-illustrations-72-a-lifelike',
+                transFolder: '00_transparent-illustrations-72-a-lifelike',
+                compositeViewerVersion: 'lifelike-trans'
+            },
+            refined: {
+                flatFolder: 'raw-illustrations-72-a-refined',
+                transFolder: '00_transparent-illustrations-72-a-refined',
+                compositeViewerVersion: 'refined-trans'
+            }
+        };
+
         function versionedAsset(path) {
             return `${path}?v=${assetCacheVersion}`;
+        }
+
+        // The supplied Lifelike PNGs use a blue-screen background on some cards.
+        // Convert only strongly blue pixels to transparent in the browser, keeping
+        // metal highlights and dark ink lines intact. Refined assets already carry alpha.
+        function applyBlueScreenTransparency(canvas, imageUrl) {
+            const image = new Image();
+            image.decoding = 'async';
+            image.onload = () => {
+                const width = 384;
+                const height = 672;
+                const context = canvas.getContext('2d', { willReadFrequently: true });
+                canvas.width = width;
+                canvas.height = height;
+                context.drawImage(image, 0, 0, width, height);
+
+                const imageData = context.getImageData(0, 0, width, height);
+                const pixels = imageData.data;
+                for (let index = 0; index < pixels.length; index += 4) {
+                    const red = pixels[index];
+                    const green = pixels[index + 1];
+                    const blue = pixels[index + 2];
+                    const strongestNonBlue = Math.max(red, green);
+
+                    if (blue > 115 && blue > red * 1.35 && blue > green * 1.22) {
+                        const strength = Math.min(1, (blue - strongestNonBlue * 1.22) / 42);
+                        pixels[index + 3] = Math.round(pixels[index + 3] * (1 - strength));
+                    }
+                }
+                context.putImageData(imageData, 0, 0);
+            };
+            image.src = imageUrl;
         }
 
         // Render Card Gallery List
@@ -689,25 +749,29 @@
                         charImgName = "magician_ver_c.png";
                     }
                     
-                    if (currentVersion !== 'trans') {
+                    const styleFolders = styleConfig[currentStyle];
+
+                    if (currentMode === 'flat') {
                         // Flat backgrounds (one consolidated image)
-                        bgPath = versionedAsset(`${currentVersion}/${flatImgName}`);
+                        bgPath = versionedAsset(`${styleFolders.flatFolder}/${flatImgName}`);
                     } else {
-                        // Transparent character + optional background image
+                        // Transparent character + optional background image, matched to the selected style
                         if (bgEnabled) {
-                            bgPath = `backgrounds-72/${bgId}_bg.png`;
+                            bgPath = versionedAsset(`backgrounds-72/${bgId}_bg.png`);
                         } else {
                             bgPath = ""; // Empty/black background
                         }
-                        charPath = `raw-illustrations-transparent-72/${charImgName}`;
+                        charPath = versionedAsset(`${styleFolders.transFolder}/${charImgName}`);
                     }
-                    
+                    const needsBlueKey = currentMode === 'trans' && currentStyle === 'lifelike';
+
                     // Create card element
                     const cardWrapper = document.createElement("div");
                     cardWrapper.className = "card-wrapper";
                     cardWrapper.onclick = () => {
-                        // Link to detail card viewer
-                        const viewerVersion = currentVersion === 'trans' ? 'raw-illustrations-72-a2' : currentVersion;
+                        const viewerVersion = currentMode === 'trans'
+                            ? styleFolders.compositeViewerVersion
+                            : styleFolders.flatFolder;
                         window.open(`card_viewer.html?role=${role.id}&lang=${currentLang}&ver=${encodeURIComponent(viewerVersion)}`, '_blank');
                     };
                     
@@ -755,7 +819,11 @@
                     cardWrapper.innerHTML = `
                         <div class="card">
                             ${bgPath ? `<div class="card-layer-bg" style="background-image: url('${bgPath}')"></div>` : `<div class="card-layer-bg" style="background: #111317;"></div>`}
-                            ${charPath ? `<div class="card-layer-char" style="background-image: url('${charPath}')"></div>` : ''}
+                            ${charPath
+                                ? (needsBlueKey
+                                    ? `<canvas class="card-layer-char" aria-hidden="true"></canvas>`
+                                    : `<div class="card-layer-char" style="background-image: url('${charPath}')"></div>`)
+                                : ''}
                             
                             <!-- Header Text Overlays -->
                             ${nameHtml}
@@ -772,6 +840,9 @@
                     `;
                     
                     grid.appendChild(cardWrapper);
+                    if (needsBlueKey) {
+                        applyBlueScreenTransparency(cardWrapper.querySelector('canvas.card-layer-char'), charPath);
+                    }
                 }
             });
             
@@ -795,22 +866,25 @@
             renderGallery();
         }
         
-        function setVersion(ver) {
-            currentVersion = ver;
-            document.querySelectorAll(".control-item .btn-segment[id^='ver-']").forEach(btn => {
+        function setStyle(style) {
+            currentStyle = style;
+            document.querySelectorAll(".control-item .btn-segment[id^='style-']").forEach(btn => {
                 btn.classList.remove("active");
             });
-            const activeButtonByVersion = {
-                "raw-illustrations-72-a": "ver-a",
-                "raw-illustrations-72-a-lifelike": "ver-lifelike",
-                "raw-illustrations-72-a-refined": "ver-refined",
-                "trans": "ver-trans"
-            };
-            document.getElementById(activeButtonByVersion[ver]).classList.add("active");
-            
+            document.getElementById(`style-${style}`).classList.add("active");
+            renderGallery();
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll(".control-item .btn-segment[id^='mode-']").forEach(btn => {
+                btn.classList.remove("active");
+            });
+            document.getElementById(`mode-${mode}`).classList.add("active");
+
             // Dim/enable BG controller without removing it from flow to prevent shifting
             const bgControl = document.getElementById("bg-control-item");
-            if (ver === 'trans') {
+            if (mode === 'trans') {
                 bgControl.style.opacity = "1";
                 bgControl.style.pointerEvents = "auto";
             } else {

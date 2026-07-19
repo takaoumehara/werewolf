@@ -376,6 +376,8 @@
                 <option value="raw-illustrations-72-a-lifelike">Ver.A Lifelike</option>
                 <option value="raw-illustrations-72-a-refined">Ver.A Refined</option>
                 <option value="raw-illustrations-72-a2">Ver.A2 (背景描き込み)</option>
+                <option value="lifelike-trans">Lifelike（背景合成）</option>
+                <option value="refined-trans">Refined（背景合成）</option>
                 <option value="videos-72">Ver.A2 (動画ループ背景)</option>
                 <option value="kling-3">Ver.A2 (Kling 3.0動画)</option>
             </select>
@@ -684,6 +686,11 @@
             "raw-illustrations-72-a-lifelike",
             "raw-illustrations-72-a-refined"
         ]);
+        const compositeCharacterFolders = {
+            "raw-illustrations-72-a2": "raw-illustrations-transparent-72",
+            "lifelike-trans": "00_transparent-illustrations-72-a-lifelike",
+            "refined-trans": "00_transparent-illustrations-72-a-refined"
+        };
         const assetCacheVersion = '20260719-refined-assets';
 
         function versionedAsset(path) {
@@ -721,6 +728,17 @@
                 // Ver.A: フラット背景（元のイラストをそのまま1枚絵として layer-bg に設定）
                 layerBg.style.backgroundImage = `url('${versionedAsset(`${versionSelect}/${flatImgName}`)}')`;
                 layerChar.style.display = "none";
+            } else if (compositeCharacterFolders[versionSelect]) {
+                const characterPath = versionedAsset(`${compositeCharacterFolders[versionSelect]}/${charImgName}`);
+                layerBg.style.backgroundImage = `url('${versionedAsset(`backgrounds-72/${bgId}_bg.png`)}')`;
+
+                if (versionSelect === "lifelike-trans") {
+                    layerChar.style.display = "none";
+                    applyBlueScreenTransparency(chromaCanvas, characterPath);
+                } else {
+                    layerChar.style.backgroundImage = `url('${characterPath}')`;
+                    layerChar.style.display = "block";
+                }
             } else if (versionSelect === "videos-72") {
                 // Ver.A2 Video edition
                 if (currentRole.id === "werewolf") {
@@ -1189,6 +1207,7 @@
         let chromaCtx = null;
         let tempCanvas = null;
         let tempCtx = null;
+        let staticChromaRequest = 0;
         
         function initChromaKey() {
             chromaVideo = document.getElementById("layer-char-green-video");
@@ -1249,6 +1268,7 @@
         }
         
         function stopChromaKeyLoop() {
+            staticChromaRequest++;
             if (chromaInterval) {
                 cancelAnimationFrame(chromaInterval);
                 chromaInterval = null;
@@ -1259,6 +1279,42 @@
             if (chromaCanvas) {
                 chromaCanvas.style.display = "none";
             }
+        }
+
+        // Some Lifelike source files are delivered on a blue-screen rather than
+        // with an alpha channel. Key that blue once, on-device, for static cards.
+        function applyBlueScreenTransparency(canvas, imageUrl) {
+            const request = ++staticChromaRequest;
+            const image = new Image();
+            image.decoding = 'async';
+            image.onload = () => {
+                if (request !== staticChromaRequest) return;
+
+                const width = 768;
+                const height = 1344;
+                canvas.width = width;
+                canvas.height = height;
+                const context = canvas.getContext('2d', { willReadFrequently: true });
+                context.clearRect(0, 0, width, height);
+                context.drawImage(image, 0, 0, width, height);
+
+                const imageData = context.getImageData(0, 0, width, height);
+                const pixels = imageData.data;
+                for (let index = 0; index < pixels.length; index += 4) {
+                    const red = pixels[index];
+                    const green = pixels[index + 1];
+                    const blue = pixels[index + 2];
+                    const strongestNonBlue = Math.max(red, green);
+
+                    if (blue > 115 && blue > red * 1.35 && blue > green * 1.22) {
+                        const strength = Math.min(1, (blue - strongestNonBlue * 1.22) / 42);
+                        pixels[index + 3] = Math.round(pixels[index + 3] * (1 - strength));
+                    }
+                }
+                context.putImageData(imageData, 0, 0);
+                canvas.style.display = "block";
+            };
+            image.src = imageUrl;
         }
 
         function applyUrlParams() {
