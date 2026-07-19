@@ -79,9 +79,9 @@
   /* texture — control 用。控えめな刻印/紙質表現。opacity は必ず 0.08 以下 */
   --texture-opacity: 0.06;
 
-  /* NOTE: --secret-faction-color / --secret-role-accent はここでは定義しない。
-     秘密コンテキスト(.hold-to-reveal.revealed 等)以外から実値を参照できないよう、
-     :root では未定義のまま(下記フォールバックで initial 相当として扱う)。 */
+  /* NOTE: 秘密ロール系のカスタムプロパティ(faction color / role accent)は
+     ここでは定義しない。秘密コンテキスト(hold-to-reveal の revealed 状態)
+     以外から実値を参照できないよう、:root では未定義のまま留める。 */
 }
 
 /* =========================================================================
