@@ -1,6 +1,100 @@
 {
   "rules": {
     ".read": false,
-    ".write": false
+    ".write": false,
+    "pairingCodes": {
+      ".read": false,
+      ".write": false
+    },
+    "roomMembers": {
+      ".read": false,
+      ".write": false
+    },
+    "roomCreateRateLimits": {
+      ".read": false,
+      ".write": false
+    },
+    "rooms": {
+      ".read": false,
+      ".write": false,
+      "$roomId": {
+        ".read": false,
+        ".write": false,
+        "meta": {
+          ".read": "auth != null && root.child('roomMembers').child($roomId).child(auth.uid).val() === true",
+          ".write": false
+        },
+        "players": {
+          ".read": "auth != null && root.child('roomMembers').child($roomId).child(auth.uid).val() === true",
+          ".write": false,
+          "$uid": {
+            ".write": false,
+            "name": {
+              ".write": "auth != null && auth.uid === $uid && root.child('roomMembers').child($roomId).child(auth.uid).val() === true && data.parent().exists() && newData.exists()",
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 30"
+            },
+            "connected": {
+              ".write": "auth != null && auth.uid === $uid && root.child('roomMembers').child($roomId).child(auth.uid).val() === true && data.parent().exists() && newData.exists()",
+              ".validate": "newData.isBoolean()"
+            },
+            "lastSeenAt": {
+              ".write": "auth != null && auth.uid === $uid && root.child('roomMembers').child($roomId).child(auth.uid).val() === true && data.parent().exists() && newData.exists()",
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= now + 60000"
+            },
+            "$other": {
+              ".write": false
+            }
+          }
+        },
+        "joinState": {
+          ".read": false,
+          ".write": false
+        },
+        "game": {
+          ".read": false,
+          ".write": false,
+          "public": {
+            ".read": "auth != null && root.child('roomMembers').child($roomId).child(auth.uid).val() === true",
+            ".write": false
+          },
+          "publicEvents": {
+            ".read": "auth != null && root.child('roomMembers').child($roomId).child(auth.uid).val() === true",
+            ".write": false
+          },
+          "privateViews": {
+            ".read": false,
+            ".write": false,
+            "$uid": {
+              ".read": "auth != null && auth.uid === $uid && root.child('roomMembers').child($roomId).child(auth.uid).val() === true",
+              ".write": false
+            }
+          },
+          "authoritative": {
+            ".read": false,
+            ".write": false
+          },
+          "events": {
+            ".read": false,
+            ".write": false
+          },
+          "processedCommands": {
+            ".read": false,
+            ".write": false
+          },
+          "$other": {
+            ".read": false,
+            ".write": false
+          }
+        },
+        "$other": {
+          ".read": false,
+          ".write": false
+        }
+      }
+    },
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
   }
 }
