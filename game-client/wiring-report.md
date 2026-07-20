@@ -74,8 +74,103 @@ Fixed with a one-line change: `revealedRoleId: ... : (state.revealedRoles?.[id] 
 
 **This fix is committed locally in `game-engine/src/engine.mjs` and rebuilt into `functions/lib/index.mjs`, but it has NOT been deployed to production** (`firebase deploy --only functions --project jinro-bb5a5` was blocked by the permission system as an unrequested production deploy — correctly, since redeploying wasn't part of this task's ask). **Production `jinro-bb5a5` currently has the pre-fix code**, meaning any real device hitting "この構成で進む" in live mode today will get a toast error ("開始できませんでした。") until someone runs `firebase deploy --only functions --project jinro-bb5a5`. This is the single concern that should be resolved before a live two-phone test.
 
-## Deferred to Increment 3
+## Deferred to Increment 3 (superseded — see Increment 3 section below)
 
 - s10–s20: night action submission, morning reveal, discussion timer sync, vote casting/tie-break/execution result, win + full-roster reveal, rematch, and reconnect — none of these call `send()`/`onPublic()` yet. The `send()` method and `onPublic` subscription are already implemented and exercised structurally (unit-level) but not wired into any screen.
 - Host-driven computer-GM phase advancement (`BEGIN_NIGHT`/`RESOLVE_NIGHT`/`START_VOTE`/`RESOLVE_VOTE`/`END_DAY` timers) — not started.
 - Idempotent retry / revision-conflict retry / illegal-command error surfacing in the UI — not started (Increment 4).
+
+## Increment 3 — full live game loop (s10–s20) + host driver + full-round smoke test
+
+### `client.onPublic` is now actually subscribed
+
+Increment 1–2 already implemented `onPublic` on the client, but `attachLiveSubscriptions()` never called it. It's now wired: `client.onPublic(pub => { latestPublic = pub; updateHostAdvanceButton(); syncLiveScreen(); hostDriverTick(); })`. `client.onSelf`'s existing callback also now calls `syncLiveScreen()` at the end (in addition to its existing s08→s09 auto-advance), since night-screen choice (`s11` vs `s12`) depends on `self.pendingAction`.
+
+### `syncLiveScreen(pub, self)` — per-client screen derivation
+
+A single dispatcher (`function syncLiveScreen()`, reading the module-level `latestPublic`/`latestSelf`) derives the screen from `pub.phase`/`pub.round` and shows it via the existing `showScreen()`. It's idempotent by construction: it only calls `showScreen()` when the derived screen differs from `appState.screen`, and phase/round-change bookkeeping (`liveLastPhase`, `liveMorningShownForRound`) is tracked module-locally so repeated `onPublic` deliveries with unchanged phase/round just re-render in place (e.g. `renderS14Live()` re-ticks the countdown) rather than re-navigating.
+
+- `lobby` / `role_reveal` → no-op; s05–s09 are still driven by the existing `meta.status`/`self.roleId` auto-advance from Increment 1–2.
+- `night` → transitioning in from `role_reveal` or `day` shows **s10** (一斉暗転) for 1.6s, then `enterNightActionScreen()` picks **s11** (if `self.alive && self.roleId` has a night action && `self.pendingAction` is null) or **s12** otherwise. Once `SUBMIT_NIGHT_ACTION` succeeds, the next `self` update flips `pendingAction` to non-null, which flips the derived screen from s11 to s12 automatically.
+- `day` → first delivery of a new `pub.round` shows **s13** (morning reveal, text built from `pub.players` where `death.round === pub.round`) for 2.4s, then **s14** (discussion), whose timer is computed live from `pub.deadlineAt - Date.now()` every second (no local 180s countdown — it re-derives from the server deadline on every tick, so it survives reconnects/refreshes for free). A `day` reached right after `vote` (see below) is treated as a transition, not a fresh round.
+- `vote` → **s15**, ballot built from `pub.players` (self excluded, dead disabled).
+- day-after-vote (i.e. `prevPhase === 'vote'`) → shows **s17** (処刑結果) if any player has `death.round === pub.round && death.cause === 'execution'`, else **s16** (同票note, kept intentionally simple — no real tally, since the public view never exposes per-candidate vote counts) for 1.6s, then re-syncs (which will show s10/night once the host's driver has advanced the game, or s18 if that vote ended it).
+- `finished` → **s18**, winner banner from `pub.winner.teams`, roster from `pub.players` using `revealedRoleId` through the **unchanged** `renderCardIntoSlot`/canonical card renderer.
+
+All of s10/s13/s16/s17's "continue" buttons now go through `handleInterstitialSkip(demoTarget)`: in live mode it just cancels the pending interstitial timer and re-runs `syncLiveScreen()` immediately (letting the dispatcher pick the real next screen); in demo mode it's `showScreen(demoTarget)`, i.e. byte-for-byte the old behavior.
+
+### Player actions (live)
+
+- **s11** (`renderS11Live`): `LIVE_NIGHT_ACTIONS` maps `roleId → {kind, verb, question}` per the spec (prophet/divine, werewolf+werewolf_child+lone_wolf/attack, knights+bodyguard/protect, necromancer/medium, trapper/trap, magician+magician_c/swap, counselor/calm, god/oracle). Roles without an entry (citizen, dictator, twins, …) render the "特別な行動はありません" wait panel. `swap` requires picking 2 targets (`liveNightSelected` array, max length 2, oldest evicted on a 3rd pick) since the engine's `SUBMIT_NIGHT_ACTION` requires `secondTargetId` for that kind; every other kind sends a single `targetId`. On confirm: `client.send({type:'SUBMIT_NIGHT_ACTION', payload})`, immediate "選択を記録しました。" + disabled inputs, then the real screen flip to s12 follows from the next `self` update.
+- **s15** (`renderS15Live`/`selectLiveVoteTarget`/`openVoteConfirm`/`finalizeVote`): existing vote-confirm dialog reused; live branch added at the top of `openVoteConfirm`/`finalizeVote` (same "MODE==='live' → …; return;" pattern as Increment 1–2), sends `client.send({type:'CAST_VOTE', payload:{targetId}})`. `liveVoteLockedRound` resets the lock when `pub.round` changes so a new vote round isn't pre-locked from the previous one.
+
+### Host driver (`computeNextHostCommand` / `sendHostCommand` / `hostDriverTick`)
+
+- `computeNextHostCommand(pub, {force})` is a **pure** function returning the next command type (or `null`) for the current `pub.phase`. It also folds in a bug found while integration-testing (see below): `startWerewolfGame` persists the freshly-created game **still in `phase: "lobby"`** (it calls `createGame()` directly, never dispatches `START_GAME`), so the driver's first job for a `lobby` room is always `START_GAME`.
+- `role_reveal` → `BEGIN_NIGHT` after a 10s local grace period (`ROLE_REVEAL_GRACE_MS`) in computer-GM mode, or immediately when `force` (manual button / human-GM).
+- `night`/`day`/`vote` → `RESOLVE_NIGHT`/`START_VOTE`/`RESOLVE_VOTE` once `Date.now() >= pub.deadlineAt` (computer-GM) or immediately when `force`.
+- **day-after-vote chaining**: the engine's `RESOLVE_VOTE` returns the room to `phase: "day"` **without** calling `setDeadline` (so `pub.deadlineAt` is just whatever the vote's deadline was — already in the past, not a fresh discussion window). Rather than trying to distinguish "discussion day" from "just-resolved-a-vote day" from the public view alone, the driver remembers `hostDriver.lastSentType`: if the last command **we** sent was `RESOLVE_VOTE`, the next command for a `day` phase is unconditionally `BEGIN_NIGHT` (matches the spec: "then if `pub.winner` still null, send `BEGIN_NIGHT`"), regardless of `gmMode` or `deadlineAt`. This makes the human-GM "進める" button correctly require exactly one more tap after resolving a vote, and lets the computer-GM's 1s tick auto-chain into the next night without any extra bookkeeping.
+- `sendHostCommand(type)` guards against double-send with `hostDriver.inFlight` (no overlapping sends) and `hostDriver.lastRevisionAtSend` (only re-evaluate once `pub.revision` has actually advanced past the revision we last acted on) — this is the "only advance when revision increased" guard from the spec. Commands never include `actorId` (the client interface already forbids it).
+- `hostDriverTick()` — `setInterval(1000)`, started once for `MODE === 'live'` — is a no-op unless `appState.view === 'host' && gmMode === 'ai'`. In human-GM mode (`gmMode === 'human'`, chosen on s06) this interval never sends anything; **every** step (including the lobby→role_reveal and vote→night chain steps) requires an explicit tap of the new "進める" button in the top bar (`#hostAdvanceBtn`, shown only for the host once a game is live and not yet finished), calling `handleHostManualAdvance()` → `computeNextHostCommand(pub, {force:true})`. The same button/handler is reused (via `handleLiveHostSkip(demoTarget)`) for s09's "夜へ進む" and s14's "投票へ進む" buttons in live mode, so a host isn't stuck waiting on deadlines even in computer-GM mode.
+
+### s19 rematch
+
+`handleS19Rematch()` (host only) re-calls `client.startGame({roleIds: lastRoleIds, seed})` on the same room. **Known limitation**: the deployed `startWerewolfGame` callable rejects with `failed-precondition` ("すでに開始済みです。") once `meta.status` has ever become `"playing"`, and nothing resets it back to `"waiting"` — so true same-room rematch is not actually possible against the current backend. The handler still attempts it (in case a future backend adds a reset path) and falls back to a toast + `showScreen('s05')` on failure, matching the "keep as demo" fallback the spec allows for s20. This is a backend gap, not a client bug; flagging it rather than silently working around it by touching `functions/index.js`'s room-status lifecycle, which is out of this increment's scope.
+
+### Three bugs found and fixed via the new full-round emulator smoke test
+
+All three are the same root cause as the Increment 2 `revealedRoleId` fix — **the Admin SDK rejects any `update()`/transaction-return payload that contains a bare `undefined` anywhere in the tree**, and **Realtime Database silently drops (does not store) any child path whose value is `null`, `[]`, or `{}`** — so a value that was legitimately `null`/empty when *written* comes back as `undefined` (not `null`/`[]`/`{}`) on the *next* read, and if that state is echoed back into another write (directly, or nested inside a `structuredClone` of the whole authoritative object), the transaction throws and — because this happens inside the Functions emulator's process, not just as a caught `HttpsError` — killed every in-flight request with `ECONNRESET`/`socket hang up` until the emulator's request handling recovered.
+
+1. **`state.history` (and other containers) becoming `undefined` after the very first round-trip.** `createGame()` seeds `history: []`, `pendingActions: {}`, `pendingVotes: {}`, and several `roleState` sub-maps (`lovers`, `twins`, `betrayalTwins`, `traps`) as empty. The very first `dispatchWerewolfCommand` after `startWerewolfGame` re-reads that state from RTDB (where the empty containers were dropped on write) and immediately crashed on `state.history.push(...events)`. Fixed with a new `rehydratePersistedContainers(state)` called at the top of `dispatch()`, defaulting every one of these (plus `deadlineAt`, `winner`, `roleState.lastExecution`, `lastAttack`, and each player's `death`/`flags`) back to their `null`/`{}`/`[]` default with `??=` before any command logic runs.
+2. **`SUBMIT_NIGHT_ACTION` always stored a `secondTargetId` key, `undefined` for every non-`swap` kind** (`{ actorId, kind, targetId, secondTargetId }` where `secondTargetId` was `command.payload?.secondTargetId`). This crashed on the **first** night-action submission of any test run, no round-trip needed — a plain latent bug independent of the RTDB round-trip issue above. Fixed with `secondTargetId: secondTargetId ?? null`.
+3. **`startWerewolfGame` never dispatches `START_GAME`** — it calls `createGame()` directly and persists that state as-is, which has `phase: "lobby"`. `BEGIN_NIGHT` asserts `phase === "role_reveal" || phase === "day"`, so nothing could ever leave the lobby phase without an explicit `START_GAME` first. This isn't an RTDB bug, just a missing step; the client-side host driver now special-cases `phase === "lobby" → "START_GAME"` (see above), and the smoke test does the same.
+
+All three fixes are in `game-engine/src/engine.mjs` only (no `functions/index.js` changes) and are covered by the existing 30/30 `game-engine` unit tests still passing, **plus** they are what makes `tests/functions_smoke_test.sh` possible at all — the smoke test could not get past round 1 without them.
+
+### `tests/functions_smoke_test.sh` / `tests/functions_smoke_test.mjs`
+
+`tests/functions_smoke_test.sh` rebuilds `functions/lib` and runs `firebase emulators:exec --only functions,database,auth --project jinro-bb5a5 "node tests/functions_smoke_test.mjs"`. The Node script:
+
+1. Signs up a host + 5 guests via the auth emulator's `accounts:signUp` REST endpoint.
+2. `createSnapRoom` (host) → `joinSnapRoom` × 5 (guests).
+3. `startWerewolfGame` with `roleIds: ["werewolf","werewolf","prophet","knights","citizen","citizen"]`, `seed: 42`.
+4. Reads each player's own `roleId` via `rooms/{roomId}/game/privateViews/{uid}/self` (using that player's own ID token — incidentally re-verifies the per-user RTDB read isolation from Increment 2).
+5. Drives the loop exactly like the host driver: `START_GAME` (lobby only) → per round: `BEGIN_NIGHT` → alive werewolves `SUBMIT_NIGHT_ACTION(attack)` at a deterministic target (lexicographically-first alive non-werewolf uid) + the prophet `SUBMIT_NIGHT_ACTION(divine)` → `RESOLVE_NIGHT` → `START_VOTE` → every alive player `CAST_VOTE`s for a deterministic target (lexicographically-first alive uid, or the second-lowest if that uid is themselves — guarantees a clean plurality, no ties, every round) → `RESOLVE_VOTE` → repeat, capped at 8 rounds.
+6. Asserts `pub.winner` is non-null before the cap and prints `SMOKE_TEST_WINNER=<teams>`; exits 1 with the phase/round it got stuck on otherwise.
+
+Run twice locally; both times reached `finished` in round 1–2 (`citizen` win once, `werewolf` win once, depending on the auth emulator's randomly-assigned uids feeding the deterministic-but-uid-order-dependent attack/vote target selection) — confirms the loop isn't hard-coded to one outcome.
+
+### Not deployed to production
+
+Like Increment 2's `revealedRoleId` fix, none of this increment's `game-engine/src/engine.mjs` changes have been deployed (`firebase deploy --only functions --project jinro-bb5a5` was not run — out of scope for this task and would need explicit sign-off). **This means live prod games would currently crash on the very first `dispatchWerewolfCommand`** call after `startWerewolfGame` (bug #1/#3 above — nothing can leave `lobby`/survive the first round-trip). Increment 2's `revealedRoleId` fix has the same undeployed status. Deploying `functions` (which bundles `game-engine` via esbuild) is a prerequisite for any real two-phone test of s10–s20.
+
+### Verify
+
+```
+$ bash tests/design_system_test.sh
+OK: design_system_test passed
+
+$ bash tests/mobile_app_test.sh
+OK: mobile_app_test passed
+
+$ bash tests/functions_smoke_test.sh
+...
+[smoke] WINNER: {"reason":"win_condition","teams":["citizen"]}
+SMOKE_TEST_WINNER=citizen
+OK: functions_smoke_test reached a winner
+
+$ (cd game-engine && node --test test/*.test.mjs)
+# tests 30
+# pass 30
+# fail 0
+
+$ node --check <extracted classic + module <script> blocks from mobile_app.html>
+OK (both blocks)
+```
+
+### Deferred to Increment 4
+
+- Idempotent retry / revision-conflict retry / illegal-command error surfacing in the UI.
+- s20 reconnect is still demo-only (no real disconnect detection wired to `onValue`'s built-in reconnection — `onValue` already re-subscribes automatically on reconnect, so state recovers for free, but there's no UI signal that a disconnect happened).
+- s19 true rematch requires a backend change (reset `meta.status` back to `"waiting"`, or a dedicated `resetRoom`/`rematchRoom` callable) — out of scope here, documented above as a known limitation.
+- Deploying the accumulated `game-engine` fixes (Increment 2 + Increment 3) to production.

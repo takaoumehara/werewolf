@@ -149,7 +149,8 @@ export const startWerewolfGame = onCall(async (req) => {
   if (!metaSnap.exists()) throw new HttpsError("not-found", "部屋が見つかりません。");
   const meta = metaSnap.val();
   if (meta.hostId !== uid) throw new HttpsError("permission-denied", "ホストのみ開始できます。");
-  if (meta.status !== "waiting") throw new HttpsError("failed-precondition", "すでに開始済みです。");
+  // waiting(初回)と finished(再戦)は開始可。playing 中の二重開始だけ弾く。
+  if (meta.status === "playing") throw new HttpsError("failed-precondition", "すでに進行中です。");
 
   const playersSnap = await db().ref(`rooms/${roomId}/players`).get();
   const players = Object.values(playersSnap.val() || {})
@@ -165,16 +166,14 @@ export const startWerewolfGame = onCall(async (req) => {
   }
   const patch = buildPersistencePatch({ state, events: [], toPublicView, toPlayerView });
 
-  const updates = {};
-  updates[`rooms/${roomId}/game/public`] = patch.public;
-  updates[`rooms/${roomId}/game/authoritative`] = patch.authoritative;
-  updates[`rooms/${roomId}/game/processedCommands`] = {};
-  for (const [pid, view] of Object.entries(patch.privateViews)) {
-    updates[`rooms/${roomId}/game/privateViews/${pid}`] = view;
-  }
-  updates[`rooms/${roomId}/meta/status`] = "playing";
-  updates[`rooms/${roomId}/meta/updatedAt`] = Date.now();
-  await db().ref().update(updates);
+  // game ノードを丸ごと set し直す(再戦時に前回の events / 旧 privateViews を残さない)。
+  await db().ref(`rooms/${roomId}/game`).set({
+    public: patch.public,
+    authoritative: patch.authoritative,
+    processedCommands: {},
+    privateViews: patch.privateViews,
+  });
+  await db().ref(`rooms/${roomId}/meta`).update({ status: "playing", updatedAt: Date.now() });
 
   return { ok: true, revision: state.revision };
 });
@@ -221,7 +220,11 @@ export const dispatchWerewolfCommand = onCall(async (req) => {
       game.publicEvents = game.publicEvents || {};
       for (const ev of patch.publicEvents) game.publicEvents[ev.id] = ev;
 
-      outcome = { revision: patch.authoritative.revision };
+      outcome = {
+        revision: patch.authoritative.revision,
+        phase: patch.public.phase,
+        finished: !!patch.public.winner,
+      };
       return game;
     } catch (error) {
       domainError = error; // 不正コマンド等 → abort して下で 400 に変換
@@ -231,5 +234,10 @@ export const dispatchWerewolfCommand = onCall(async (req) => {
 
   if (domainError) throw new HttpsError("failed-precondition", domainError.message);
   if (!txn.committed) throw new HttpsError("aborted", "コマンドを適用できませんでした。");
+
+  // 終局したら meta.status を finished にする(再戦=startWerewolfGame の再実行を許可するため)。
+  if (outcome?.finished) {
+    await db().ref(`rooms/${roomId}/meta`).update({ status: "finished", updatedAt: Date.now() });
+  }
   return outcome ?? { ok: true };
 });

@@ -36,7 +36,8 @@ function playerById(state, playerId) {
 
 function assertHostActor(state, actorId) {
   assert(actorId === state.hostId, "Only the room host may advance the game");
-  assert(state.players[actorId]?.alive, "A dead host cannot advance the game");
+  // GM/進行コマンドはホストの権限で行う。ホストがプレイヤーとして死亡していても
+  // 夜開始・夜解決・投票開始/解決などの進行は継続できる必要がある。
 }
 
 function kill(state, playerId, cause, events, now) {
@@ -224,8 +225,40 @@ export function createGame({ gameId, players, seed = 1, roleIds = [], gmMode = "
   };
 }
 
+// Realtime Database drops any child path whose value is `null`, an empty
+// array, or an empty object on write (there is nothing to store at that
+// node) — so every persisted "authoritative" state that round-trips through
+// Firebase can silently lose fields like `history: []`, `pendingActions: {}`,
+// `deadlineAt: null`, or `winner: null` once they happen to hold one of those
+// values. On the next transaction, that missing key comes back as `undefined`
+// (not `null`), and re-persisting an `undefined` anywhere in the tree makes
+// the Admin SDK reject the whole write. dispatch() is the single entry point
+// for every server-applied command, so re-hydrate those fields here rather
+// than at every call site (mirrors the same class of bug already fixed for
+// `revealedRoleId` in toPublicView).
+function rehydratePersistedContainers(state) {
+  state.history ??= [];
+  state.pendingActions ??= {};
+  state.pendingVotes ??= {};
+  state.roleState ??= {};
+  state.roleState.privateResults ??= {};
+  state.roleState.lovers ??= {};
+  state.roleState.twins ??= {};
+  state.roleState.betrayalTwins ??= {};
+  state.roleState.traps ??= {};
+  state.roleState.lastExecution ??= null;
+  state.deadlineAt ??= null;
+  state.winner ??= null;
+  state.lastAttack ??= null;
+  for (const player of Object.values(state.players ?? {})) {
+    player.death ??= null;
+    player.flags ??= {};
+  }
+  return state;
+}
+
 export function dispatch(inputState, command) {
-  const state = clone(inputState);
+  const state = rehydratePersistedContainers(clone(inputState));
   assert(PHASES.has(state.phase), "Invalid game phase");
   assert(command.expectedRevision === state.revision, `revision mismatch: expected ${state.revision}`);
   playerById(state, command.actorId);
@@ -264,7 +297,10 @@ export function dispatch(inputState, command) {
         assert(secondTargetId !== targetId, "swap targets must be different");
         validateTarget(state, command.actorId, secondTargetId);
       }
-      state.pendingActions[command.actorId] = { actorId: command.actorId, kind, targetId, secondTargetId };
+      // secondTargetId is only ever populated for "swap"; storing a bare
+      // `undefined` here (instead of `null`) makes the RTDB Admin SDK reject
+      // the write once this pendingActions record is persisted.
+      state.pendingActions[command.actorId] = { actorId: command.actorId, kind, targetId, secondTargetId: secondTargetId ?? null };
       events.push(event(state, "NIGHT_ACTION_SUBMITTED", { playerId: command.actorId, kind }, now));
       break;
     }
