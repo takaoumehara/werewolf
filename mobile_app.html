@@ -199,23 +199,27 @@
     transform-origin: center center;
   }
   .card-slot--hero {
-    max-width: 300px;
+    max-width: 252px;
     margin: 0 auto;
   }
 
   .roster-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--sp-3);
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-2);
+  }
+  .roster-grid .card-slot {
+    border-radius: 8px;
+    background: var(--p-surface);
   }
   .roster-grid .roster-cell {
     display: flex;
     flex-direction: column;
-    gap: var(--sp-1);
+    gap: 4px;
   }
   .roster-grid .roster-cell .roster-name {
-    font-size: var(--fs-caption);
-    color: var(--sem-text-dim);
+    font-size: 10px;
+    color: rgba(237, 233, 220, 0.65);
     text-align: center;
   }
 
@@ -229,10 +233,11 @@
     padding-right: 44px; /* dev drawer ホットスポットのための空き */
   }
   .top-bar-title {
-    font-family: var(--font-display);
-    font-size: var(--fs-heading);
-    color: var(--sem-accent);
-    letter-spacing: 0.05em;
+    font-family: var(--font-eyebrow);
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    color: rgba(237, 233, 220, 0.45);
   }
 
   .dev-hotspot {
@@ -282,37 +287,167 @@
     text-align: center;
   }
   .splash-logo {
-    width: 120px;
-    height: 120px;
-    object-fit: contain;
+    display: none;
+  }
+  .splash-mark {
+    width: 10px;
+    height: 10px;
+    transform: rotate(45deg);
+    background: var(--sem-accent, var(--p-gold));
   }
   .app-title {
-    font-family: var(--font-display);
-    font-size: var(--fs-display);
-    color: var(--sem-accent);
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 36px;
+    letter-spacing: 0.14em;
+    color: var(--sem-text, var(--p-text));
     margin: 0;
+  }
+  .app-title-en {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    color: color-mix(in srgb, var(--sem-accent, var(--p-gold)) 80%, transparent);
+    margin: 10px 0 0;
   }
   .app-subtitle {
-    color: var(--sem-text-dim);
-    font-size: var(--fs-label);
+    color: rgba(237, 233, 220, 0.55);
+    font-size: 13px;
+    line-height: 1.9;
     margin: 0;
   }
+  .app-version {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: rgba(237, 233, 220, 0.3);
+    text-align: center;
+  }
 
-  .option-card {
+  .option-row {
     width: 100%;
-    flex-direction: column;
-    align-items: flex-start;
+    justify-content: flex-start;
     text-align: left;
-    padding: var(--sp-5);
-    gap: var(--sp-1);
+    padding: 20px;
+    gap: var(--sp-3);
+    border-radius: var(--r-sheet);
+    border: 1px solid rgba(237, 233, 220, 0.22);
+    background: transparent;
+    min-height: var(--tap-min);
+    font-family: var(--font-body);
+    letter-spacing: normal;
+  }
+  .option-row .option-body {
+    flex: 1;
   }
   .option-title {
-    font-size: var(--fs-heading);
+    display: block;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--sem-text, var(--p-text));
   }
   .option-sub {
-    font-size: var(--fs-caption);
+    display: block;
+    font-size: 12px;
     font-weight: 400;
-    opacity: 0.85;
+    color: rgba(237, 233, 220, 0.45);
+    margin-top: 3px;
+  }
+  .option-row .option-chevron {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: rgba(237, 233, 220, 0.4);
+  }
+
+  /* gm-panel: s06 進行役の選択 — 一枚の枠内に2行を積んだ選択パネル */
+  .gm-panel {
+    border: 1px solid rgba(237, 233, 220, 0.16);
+    border-radius: var(--r-sheet);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .gm-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    width: 100%;
+    min-height: var(--tap-min);
+    padding: 18px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    text-align: left;
+    font-family: var(--font-body);
+    letter-spacing: normal;
+    cursor: pointer;
+  }
+  .gm-row.is-selected {
+    background: rgba(201, 168, 76, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(201, 168, 76, 0.55);
+  }
+  .gm-row-diamond {
+    width: 7px;
+    height: 7px;
+    flex: none;
+    transform: rotate(45deg);
+    background: transparent;
+    border: 1px solid rgba(237, 233, 220, 0.5);
+    box-sizing: border-box;
+  }
+  .gm-row.is-selected .gm-row-diamond {
+    background: var(--sem-accent, var(--p-gold));
+    border: none;
+  }
+  .gm-row-body {
+    flex: 1;
+  }
+  .gm-row-title {
+    display: block;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 15px;
+    color: rgba(237, 233, 220, 0.7);
+  }
+  .gm-row.is-selected .gm-row-title {
+    color: var(--sem-text, var(--p-text));
+  }
+  .gm-row-title-sub {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(237, 233, 220, 0.5);
+  }
+  .gm-row-desc {
+    display: block;
+    font-size: 11.5px;
+    line-height: 1.7;
+    color: rgba(237, 233, 220, 0.4);
+    margin-top: 3px;
+  }
+  .gm-row.is-selected .gm-row-desc {
+    color: rgba(237, 233, 220, 0.5);
+  }
+
+  /* vote-pill: s16 同票の得票数表示 */
+  .vote-pill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--sp-2);
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid rgba(201, 168, 76, 0.5);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--sem-text, var(--p-text));
+  }
+  .vote-pill .vote-pill-count {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--sem-accent, var(--p-gold));
   }
 
   .qr-wrap {
@@ -322,48 +457,78 @@
     gap: var(--sp-3);
   }
   .qr-wrap .qr-panel {
-    width: 180px;
-    height: 180px;
+    width: 176px;
+    height: 176px;
+  }
+
+  .ledger-list {
+    display: flex;
+    flex-direction: column;
   }
 
   .composition-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: var(--sp-3);
-    min-height: var(--tap-min);
-    padding: var(--sp-2) var(--sp-3);
-    border-radius: var(--r-control);
-    border: 1px solid var(--sem-line);
-    background: var(--sem-bg-elevated);
+    min-height: 62px;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid rgba(237, 233, 220, 0.07);
+    background: transparent;
+  }
+  .composition-row .role-label {
+    flex: 1;
+    font-family: var(--font-heading);
+    font-size: 14px;
+    color: var(--sem-text, var(--p-text));
   }
   .composition-row .stepper {
     display: flex;
     align-items: center;
     gap: var(--sp-2);
   }
+  .composition-row .stepper .count {
+    width: 26px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    color: var(--sem-text, var(--p-text));
+  }
   .composition-row .stepper .btn {
     min-width: 44px;
     min-height: 44px;
     padding: 0;
+    border-radius: 10px;
+    font-family: var(--font-mono);
+    font-size: 15px;
   }
   .composition-total {
     text-align: right;
-    color: var(--sem-text-dim);
-    font-size: var(--fs-label);
+    color: rgba(237, 233, 220, 0.45);
+    font-size: 11px;
+    padding: var(--sp-2) 0;
+  }
+  .composition-total .num {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--sem-accent, var(--p-gold));
   }
 
   .role-secret-info {
-    padding: var(--sp-3) var(--sp-4);
-    border-top: 1px solid var(--sem-line);
+    padding: 12px 16px;
+    border-top: none;
+    border-radius: 0 10px 10px 0;
     /* 陣営色は秘密トークン経由でのみ解決される(revealed × faction class のときだけ実値を持つ) */
     border-left: 3px solid var(--secret-faction-color, var(--sem-line));
-    background: var(--sem-bg-elevated);
-    font-size: var(--fs-label);
+    background: rgba(237, 233, 220, 0.04);
+    font-size: 12px;
   }
   .role-secret-info .label {
-    color: var(--sem-text-dim);
-    font-size: var(--fs-caption);
+    color: rgba(237, 233, 220, 0.45);
+    font-size: 10px;
+    letter-spacing: 0.14em;
     margin-right: var(--sp-2);
   }
 
@@ -374,7 +539,8 @@
     align-items: center;
   }
   .privacy-cover-seal {
-    font-family: var(--font-display);
+    font-family: var(--font-heading);
+    font-weight: 700;
     font-size: var(--fs-body);
     color: var(--sem-accent);
     letter-spacing: 0.06em;
@@ -382,13 +548,14 @@
 
   .center-note {
     text-align: center;
-    color: var(--sem-text-dim);
-    font-size: var(--fs-label);
+    color: rgba(237, 233, 220, 0.45);
+    font-size: 12px;
   }
 
   .victory-banner {
-    font-family: var(--font-display);
-    font-size: var(--fs-display);
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 26px;
     color: var(--sem-accent);
   }
 
@@ -456,13 +623,25 @@
   .waiting-dot::after {
     content: '';
     display: inline-block;
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     margin-left: var(--sp-1);
-    border-radius: 50%;
+    transform: rotate(45deg);
     background: var(--sem-accent);
     animation: mobile-app-spin-dot 1.4s ease-in-out infinite;
   }
+  .waiting-diamonds {
+    display: flex;
+    gap: 6px;
+  }
+  .waiting-diamonds span {
+    width: 5px;
+    height: 5px;
+    transform: rotate(45deg);
+    background: var(--sem-accent, var(--p-gold));
+  }
+  .waiting-diamonds span:nth-child(2) { opacity: 0.45; }
+  .waiting-diamonds span:nth-child(3) { opacity: 0.2; }
 
   @media (prefers-reduced-motion: reduce) {
     .waiting-dot::after {
@@ -487,8 +666,8 @@
   <div class="safe-frame">
 
     <div class="top-bar">
-      <span class="top-bar-title">人狼ゲーム</span>
-      <button type="button" class="btn btn--quiet" id="rulesBtn">ルール</button>
+      <span class="top-bar-title">Kirokumō</span>
+      <button type="button" class="btn btn--quiet rules-link" id="rulesBtn">ルール</button>
     </div>
 
     <div class="conn-banner u-hidden" id="connBanner">接続状態を確認しています。</div>
@@ -509,72 +688,106 @@
       <!-- s01: 起動 -->
       <section class="screen" id="s01">
         <div class="splash">
-          <img class="splash-logo" src="logos/concept-v2/recorder_a.png" alt="記録者の紋章">
-          <h1 class="app-title">人狼ゲーム</h1>
-          <p class="app-subtitle">対面のプレイヤーを、記録者が見届ける。</p>
-          <div class="stack" style="width:100%;">
-            <button type="button" class="btn btn--primary" onclick="showScreen('s02')">はじめる</button>
+          <span class="splash-mark" aria-hidden="true"></span>
+          <div>
+            <h1 class="app-title">記録網</h1>
+            <div class="app-title-en">Kirokumō</div>
           </div>
+          <p class="app-subtitle">対面のプレイヤーを、<br>記録者が見届ける。</p>
+        </div>
+        <div class="stack" style="width:100%;">
+          <button type="button" class="btn btn--primary" onclick="showScreen('s02')">はじめる</button>
+          <div class="app-version">REC. 0.4.1</div>
         </div>
       </section>
 
       <!-- s02: つくる/入る選択 -->
       <section class="screen" id="s02">
-        <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);">部屋を選ぶ</h2>
+        <h2 class="screen-title">部屋を選ぶ</h2>
+        <p class="screen-sub">名簿を開くか、名簿に加わってください。</p>
         <div class="stack">
-          <button type="button" class="btn btn--primary option-card" onclick="appState.view='host'; showScreen('s03');">
-            <span class="option-title">部屋をつくる</span>
-            <span class="option-sub">区画名簿を開設</span>
+          <button type="button" class="btn option-row" onclick="appState.view='host'; showScreen('s03');">
+            <span class="diamond" aria-hidden="true"></span>
+            <span class="option-body">
+              <span class="option-title">部屋をつくる</span>
+              <span class="option-sub">区画名簿を開設する</span>
+            </span>
+            <span class="option-chevron" aria-hidden="true">▸</span>
           </button>
-          <button type="button" class="btn btn--secondary option-card" onclick="appState.view='player'; showScreen('s03');">
-            <span class="option-title">部屋に入る</span>
-            <span class="option-sub">名簿に加わる</span>
+          <button type="button" class="btn option-row" onclick="appState.view='player'; showScreen('s03');">
+            <span class="diamond diamond--outline" aria-hidden="true"></span>
+            <span class="option-body">
+              <span class="option-title">部屋に入る</span>
+              <span class="option-sub">合言葉かQRで名簿に加わる</span>
+            </span>
+            <span class="option-chevron" aria-hidden="true">▸</span>
           </button>
         </div>
       </section>
 
       <!-- s03: 参加(QR/コード) -->
       <section class="screen" id="s03">
-        <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);" id="s03Title">区画名簿</h2>
-        <div id="s03Body"></div>
-        <button type="button" class="btn btn--primary" onclick="showScreen('s04')">次へ</button>
+        <h2 class="screen-title" id="s03Title">区画名簿</h2>
+        <p class="screen-sub" id="s03Sub"></p>
+        <div id="s03Body" class="splash"></div>
+        <div class="stack" id="s03Footer">
+          <div id="s03CountLine"></div>
+          <button type="button" class="btn btn--primary" onclick="showScreen('s04')">次へ</button>
+        </div>
       </section>
 
       <!-- s04: 表示名入力 -->
-      <section class="screen" id="s04" style="padding-bottom: var(--sp-8);">
-        <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);">表示名の入力</h2>
+      <section class="screen" id="s04">
+        <h2 class="screen-title">表示名の入力</h2>
+        <p class="screen-sub">この名前が、他のプレイヤーに表示されます。</p>
         <div class="text-field">
-          <label for="displayNameInput">名簿に記す名前</label>
+          <label for="displayNameInput" class="screen-sub" style="margin:0;">名簿に記す名前</label>
           <input type="text" id="displayNameInput" placeholder="あかり" value="あかり" maxlength="12">
         </div>
-        <p class="center-note" style="text-align:left;">この名前が、他のプレイヤーに表示されます。</p>
-        <button type="button" class="btn btn--primary" onclick="showScreen('s05')">この名前で進む</button>
+        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="showScreen('s05')">この名前で進む</button>
       </section>
 
       <!-- s05: ロビー -->
       <section class="screen" id="s05">
-        <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);">ロビー</h2>
-        <div class="player-list" id="lobbyPlayerList"></div>
-        <hr class="engraved-rule">
+        <h2 class="screen-title">ロビー</h2>
+        <p class="screen-sub">全員の準備がそろうと開始できます。</p>
+        <div class="waiting-count" style="gap:var(--sp-2);">
+          <span>合言葉</span><span class="num" style="font-size:15px;letter-spacing:0.3em;" id="lobbyRoomCode"></span>
+        </div>
+        <hr class="engraved-rule" style="margin: var(--sp-1) 0;">
+        <div class="ledger-list player-list" id="lobbyPlayerList"></div>
         <div id="lobbyControls"></div>
       </section>
 
       <!-- s06: GM モード選択 -->
       <section class="screen" id="s06">
-        <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);">進行役の選択</h2>
-        <div class="seg-control" id="gmSeg">
-          <button type="button" data-gm="ai" class="is-selected">記録者(コンピューターGM)</button>
-          <button type="button" data-gm="human">人間GM</button>
+        <h2 class="screen-title">進行役の選択</h2>
+        <p class="screen-sub">誰が進行と判定を担うかを選びます。</p>
+        <div class="gm-panel" id="gmSeg">
+          <button type="button" data-gm="ai" class="gm-row is-selected">
+            <span class="gm-row-diamond" aria-hidden="true"></span>
+            <span class="gm-row-body">
+              <span class="gm-row-title">記録者<span class="gm-row-title-sub">(コンピューターGM)</span></span>
+              <span class="gm-row-desc">進行・判定・夜の記録をすべて担います。</span>
+            </span>
+          </button>
+          <button type="button" data-gm="human" class="gm-row">
+            <span class="gm-row-diamond" aria-hidden="true"></span>
+            <span class="gm-row-body">
+              <span class="gm-row-title">人間GM</span>
+              <span class="gm-row-desc">進行役の一人が実況・判定・記録を担当します。</span>
+            </span>
+          </button>
         </div>
-        <p class="center-note" id="gmDesc" style="text-align:left;"></p>
-        <button type="button" class="btn btn--primary" onclick="showScreen('s07')">次へ</button>
+        <p class="center-note u-hidden" id="gmDesc" style="text-align:left;"></p>
+        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="showScreen('s07')">次へ</button>
       </section>
 
       <!-- s07: 役職構成 -->
       <section class="screen" id="s07">
-        <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);">役職構成</h2>
-        <p class="center-note" style="text-align:left;">推奨構成(8人時): 人狼2 / 予言者1 / 騎士団1 / 市民4</p>
-        <div class="stack" id="compositionList"></div>
+        <h2 class="screen-title">役職構成</h2>
+        <p class="screen-sub">推奨構成(8人): 人狼2 / 予言者1 / 騎士団1 / 市民4</p>
+        <div class="ledger-list" id="compositionList"></div>
         <div class="composition-total" id="compositionTotal"></div>
         <button type="button" class="btn btn--primary" onclick="showScreen('s08')">この構成で進む</button>
       </section>
@@ -582,17 +795,20 @@
       <!-- s08: 準備確認 -->
       <section class="screen" id="s08">
         <div class="splash">
-          <p class="recorder-msg">記録者が、全員の準備を確かめています。</p>
+          <p class="recorder-msg">全員の準備を確かめています。</p>
           <div class="waiting-count waiting-dot" id="s08Waiting">
             <span>あと</span><span class="num">3</span><span>人の入力を待っています。</span>
           </div>
+          <div class="waiting-diamonds" aria-hidden="true"><span></span><span></span><span></span></div>
           <button type="button" class="btn btn--secondary" onclick="showScreen('s09')">役職を確認する</button>
         </div>
+        <p class="center-note">そろい次第、自動で役職確認へ進みます。</p>
       </section>
 
       <!-- s09: 役職確認 -->
       <section class="screen" id="s09">
-        <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);">役職確認</h2>
+        <h2 class="screen-title">役職確認</h2>
+        <p class="screen-sub">指を離すと、ただちに隠されます。</p>
         <div class="hold-to-reveal" id="roleHold">
           <div class="card-slot card-slot--hero" id="roleCardSlot"></div>
           <div class="role-secret-info" id="roleSecretInfo"></div>
@@ -603,8 +819,8 @@
             </div>
           </div>
         </div>
-        <p class="center-note" style="text-align:left;">指を離すと、ただちに元の状態に戻ります。</p>
         <button type="button" class="btn btn--primary" id="roleConfirmBtn" disabled onclick="confirmRoleSeen()">確認して閉じる</button>
+        <p class="center-note">画面を伏せると、記録は自動で隠されます。</p>
         <div class="inline-notice u-hidden" id="roleConfirmedNotice">確認しました。もう一度確認するには、上のカードを長押ししてください。</div>
         <button type="button" class="btn btn--secondary" onclick="showScreen('s10')">夜へ進む</button>
       </section>
@@ -612,54 +828,74 @@
       <!-- s10: 一斉暗転 -->
       <section class="screen" id="s10">
         <div class="splash">
-          <p class="recorder-msg">まもなく夜が訪れます。端末を伏せ、静かに目を閉じてください。</p>
+          <span class="diamond diamond--sm" style="opacity:0.7;" aria-hidden="true"></span>
+          <p class="recorder-msg" style="line-height:2.1;">まもなく夜が訪れます。<br>端末を伏せ、<br>静かに目を閉じてください。</p>
           <button type="button" class="btn btn--secondary" onclick="showScreen('s11')">夜の行動へ</button>
         </div>
+        <p class="center-note">記録者の合図で、自動で進みます。</p>
       </section>
 
       <!-- s11: 夜の行動 -->
       <section class="screen" id="s11">
-        <div class="night-panel" id="nightPanel"></div>
+        <div id="nightPanel"></div>
       </section>
 
       <!-- s12: 共通待機 -->
       <section class="screen" id="s12">
         <div class="splash">
-          <p class="recorder-msg">記録網が夜を記録しています。</p>
+          <p class="recorder-msg">記録者が夜を記録しています。</p>
           <div class="waiting-count waiting-dot" id="s12Waiting">
             <span>あと</span><span class="num">5</span><span>人の記録を待っています。</span>
           </div>
+          <div class="waiting-diamonds" aria-hidden="true"><span></span><span></span><span></span></div>
           <button type="button" class="btn btn--secondary" onclick="showScreen('s13')">朝を待つ</button>
         </div>
+        <p class="center-note">端末を伏せてお待ちください。</p>
       </section>
 
       <!-- s13: 朝の発表 -->
       <section class="screen" id="s13">
-        <div class="fullscreen-reveal" style="position:relative;inset:auto;background:transparent;padding:var(--sp-4);">
-          <p class="recorder-msg">夜が明けました。</p>
-          <p class="victory-banner" style="font-size:var(--fs-heading);" id="eliminatedName">健太 が、命を落としました。</p>
-          <button type="button" class="btn btn--primary" onclick="showScreen('s14')">議論へ</button>
+        <div class="fullscreen-reveal" style="position:relative;inset:auto;background:transparent;padding:var(--sp-4);flex:1;">
+          <div class="center-note" style="letter-spacing:0.3em;color:var(--sem-accent);">朝の記録</div>
+          <p class="victory-banner" style="font-size:26px;">夜が明けました。</p>
+          <hr class="engraved-rule" style="width:44px;margin:0;">
+          <p class="recorder-msg" style="color:var(--sem-accent);font-weight:700;" id="eliminatedName">健太 が、命を落としました。</p>
+          <p class="center-note">昨夜の記録は封じられています。<br>議論で真実に近づいてください。</p>
         </div>
+        <button type="button" class="btn btn--primary" onclick="showScreen('s14')">議論へ</button>
       </section>
 
       <!-- s14: 昼の議論 -->
       <section class="screen" id="s14">
+        <h2 class="screen-title">昼の議論</h2>
+        <p class="screen-sub">議論して、人狼を推理してください。</p>
         <div class="discussion-timer">
           <div class="countdown" id="discussionCountdown">03:00</div>
           <div class="track"><span id="discussionBar" style="width:100%;"></span></div>
+          <div class="center-note" style="letter-spacing:0.14em;">残り時間 / 3:00</div>
+          <div style="margin-top:var(--sp-3);padding:var(--sp-2) var(--sp-4);border-left:2px solid rgba(237,233,220,0.2);font-size:12px;line-height:1.9;color:rgba(237,233,220,0.55);text-align:left;">昨夜: 健太 が命を落とした。<br>生存 6 人 / 脱落 2 人</div>
         </div>
-        <p class="center-note" style="text-align:left;">議論して、人狼を推理してください。</p>
         <button type="button" class="btn btn--primary" onclick="showScreen('s15')">投票へ進む</button>
+        <p class="center-note">時間が来ると、自動で投票に移ります。</p>
       </section>
 
       <!-- s15: 投票 -->
       <section class="screen" id="s15">
-        <div class="inline-notice">一度確定すると、投票を変更できません。</div>
-        <div class="vote-ballot">
-          <div class="target-selector" id="voteTargetList"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+          <div>
+            <h2 class="screen-title" style="margin:0;">投票</h2>
+            <p class="screen-sub">処刑する対象に投票してください。</p>
+          </div>
+          <div class="countdown" style="font-size:18px;" aria-hidden="true">00:48</div>
+        </div>
+        <hr class="engraved-rule">
+        <div class="inline-notice" style="background:transparent;border:none;padding:0;">一度確定すると、投票を変更できません。</div>
+        <div class="vote-ballot" style="border:none;background:transparent;padding:0;">
+          <div class="target-selector ledger-list" id="voteTargetList"></div>
+          <div class="center-note" style="letter-spacing:0.1em;">投票済み <span style="font-family:var(--font-mono);color:var(--sem-text);">3</span> / 7</div>
           <button type="button" class="btn btn--primary" id="voteDecideBtn" disabled onclick="openVoteConfirm()">この人に投票する</button>
         </div>
-        <div class="status-badge u-hidden" id="voteCompletedBadge">投票しました</div>
+        <div class="status-badge u-hidden" id="voteCompletedBadge" style="justify-content:center;">投票しました</div>
         <div class="stack-row u-hidden" id="voteBranchButtons">
           <button type="button" class="btn btn--secondary" onclick="showScreen('s16')">同票の場合を見る</button>
           <button type="button" class="btn btn--secondary" onclick="showScreen('s17')">処刑結果を見る</button>
@@ -669,38 +905,48 @@
       <!-- s16: 同票 -->
       <section class="screen" id="s16">
         <div class="splash">
-          <p class="recorder-msg">得票数が同数のため、決選投票を行います。</p>
-          <p class="center-note">対象: 沙耶 / アキラ</p>
-          <button type="button" class="btn btn--primary" onclick="showScreen('s15')">決選投票へ</button>
+          <p class="recorder-msg">得票数が同数のため、<br>決選投票を行います。</p>
+          <div class="stack-row" style="justify-content:center;">
+            <span class="vote-pill">沙耶 <span class="vote-pill-count">3票</span></span>
+            <span class="vote-pill">アキラ <span class="vote-pill-count">3票</span></span>
+          </div>
+          <p class="center-note">決選投票では、この 2 人のみが対象です。</p>
         </div>
+        <button type="button" class="btn btn--primary" onclick="showScreen('s15')">決選投票へ</button>
       </section>
 
       <!-- s17: 処刑結果 -->
       <section class="screen" id="s17">
-        <div class="fullscreen-reveal" style="position:relative;inset:auto;background:transparent;padding:var(--sp-4);">
-          <p class="recorder-msg">評決が下されました。</p>
-          <p class="victory-banner" style="font-size:var(--fs-heading);" id="executedName">沙耶 が、処刑されました。</p>
-          <button type="button" class="btn btn--primary" onclick="showScreen('s18')">結果へ進む</button>
+        <div class="fullscreen-reveal" style="position:relative;inset:auto;background:transparent;padding:var(--sp-4);flex:1;">
+          <div class="center-note" style="letter-spacing:0.3em;color:var(--sem-accent);">評決の記録</div>
+          <p class="victory-banner" style="font-size:26px;">評決が下されました。</p>
+          <hr class="engraved-rule" style="width:44px;margin:0;">
+          <p class="recorder-msg" style="color:var(--sem-accent);font-weight:700;" id="executedName">沙耶 が、処刑されました。</p>
+          <p class="center-note">記録は封じられたまま、夜が近づきます。</p>
         </div>
+        <button type="button" class="btn btn--primary" onclick="showScreen('s18')">次へ</button>
       </section>
 
       <!-- s18: 勝敗+全役職公開 -->
       <section class="screen" id="s18">
-        <div class="fullscreen-reveal" style="position:relative;inset:auto;background:transparent;padding:var(--sp-4);">
+        <div class="fullscreen-reveal" style="position:relative;inset:auto;background:transparent;padding:var(--sp-3);text-align:center;">
+          <div class="center-note" style="letter-spacing:0.3em;color:var(--sem-accent);">終幕の記録</div>
           <p class="victory-banner">市民陣営の勝利</p>
           <p class="center-note">人狼をすべて追放しました。</p>
         </div>
         <hr class="engraved-rule">
-        <h3 class="center-note" style="text-align:left;">全役職公開</h3>
+        <div class="screen-sub" style="letter-spacing:0.14em;">全役職公開</div>
         <div class="roster-grid" id="rosterGrid"></div>
         <button type="button" class="btn btn--primary" onclick="showScreen('s19')">終幕へ</button>
       </section>
 
       <!-- s19: 再戦 -->
       <section class="screen" id="s19">
-        <div class="recovery-panel">
-          <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);margin:0;">再戦</h2>
-          <p class="center-note" style="text-align:left;">同じ顔ぶれで、もう一度記録を始めますか。</p>
+        <div class="splash">
+          <h2 class="screen-title">再戦</h2>
+          <p class="center-note">同じ顔ぶれで、<br>もう一度記録を始めますか。</p>
+        </div>
+        <div class="stack" style="width:100%;">
           <button type="button" class="btn btn--primary" onclick="showScreen('s05')">同じメンバーで再戦</button>
           <button type="button" class="btn btn--secondary" onclick="showScreen('s05')">ロビーに戻る</button>
         </div>
@@ -708,10 +954,18 @@
 
       <!-- s20: 再接続 -->
       <section class="screen" id="s20">
-        <div class="reconnect-overlay" style="position:relative;inset:auto;background:transparent;">
-          <p class="sync-indicator is-reconnecting">接続を復旧しています。</p>
-          <p class="center-note">最後に確認した状態: 昼の議論(残り 02:14)</p>
-          <button type="button" class="btn btn--secondary" onclick="showScreen('s14')">復旧して合流する</button>
+        <div class="reconnect-overlay" style="position:relative;inset:auto;background:transparent;flex:1;">
+          <div class="waiting-diamonds" aria-hidden="true"><span></span><span></span><span></span></div>
+          <p class="sync-indicator is-reconnecting" style="font-family:var(--font-heading);font-size:15px;color:var(--sem-text);">接続を復旧しています。</p>
+          <div class="recovery-panel" style="width:100%;">
+            <div class="screen-sub" style="letter-spacing:0.14em;">最後に確認した状態</div>
+            <div style="font-family:var(--font-heading);font-weight:700;font-size:14px;color:var(--sem-text);margin-top:6px;">昼の議論 <span style="font-family:var(--font-mono);font-size:13px;color:var(--sem-accent);">残り 02:14</span></div>
+            <p class="center-note" style="text-align:left;margin-top:4px;">再接続すると、評議へ戻れます。</p>
+          </div>
+        </div>
+        <div class="stack" style="width:100%;">
+          <button type="button" class="btn btn--primary" onclick="showScreen('s14')">復旧して合流する</button>
+          <p class="center-note">復旧できない場合は、自動で再試行します。</p>
         </div>
       </section>
 
@@ -722,7 +976,7 @@
 <!-- RulesDrawer -->
 <div class="rules-drawer" id="rulesDrawer">
   <div style="display:flex;justify-content:space-between;align-items:center;">
-    <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);margin:0;">ルール</h2>
+    <h2 class="screen-title" style="color:var(--sem-accent);margin:0;">ルール</h2>
     <button type="button" class="btn btn--quiet" id="rulesCloseBtn">閉じる</button>
   </div>
   <hr class="engraved-rule">
@@ -734,7 +988,7 @@
 <!-- dev drawer (BottomSheet) -->
 <div class="bottom-sheet" id="devDrawer">
   <div style="display:flex;justify-content:space-between;align-items:center;">
-    <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);margin:0;">開発者メニュー</h2>
+    <h2 class="screen-title" style="color:var(--sem-accent);margin:0;">開発者メニュー</h2>
     <button type="button" class="btn btn--quiet" id="devDrawerCloseBtn">閉じる</button>
   </div>
   <hr class="engraved-rule">
@@ -772,7 +1026,7 @@
 <!-- 退出確認ダイアログ -->
 <div class="dialog" id="exitDialog" hidden>
   <div class="dialog-panel">
-    <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);margin-top:0;">退出しますか</h2>
+    <h2 class="screen-title" style="color:var(--sem-accent);margin-top:0;">退出しますか</h2>
     <p class="center-note" style="text-align:left;">現在の記録は失われます。よろしいですか。</p>
     <div class="stack-row">
       <button type="button" class="btn btn--quiet" onclick="closeExitDialog()">キャンセル</button>
@@ -784,7 +1038,7 @@
 <!-- 投票確認ダイアログ -->
 <div class="dialog" id="voteConfirmDialog" hidden>
   <div class="dialog-panel">
-    <h2 class="phase-title" style="font-family:var(--font-display);color:var(--sem-accent);margin-top:0;" id="voteConfirmTitle">投票しますか</h2>
+    <h2 class="screen-title" style="color:var(--sem-accent);margin-top:0;" id="voteConfirmTitle">投票しますか</h2>
     <p class="center-note" style="text-align:left;">確定すると、あとから変更できません。</p>
     <div class="stack-row">
       <button type="button" class="btn btn--quiet" onclick="closeVoteConfirm()">やめる</button>
@@ -1233,7 +1487,7 @@
         }
       }
     }
-    return '<svg viewBox="0 0 ' + (size * cell) + ' ' + (size * cell) + '" xmlns="http://www.w3.org/2000/svg" fill="#0d0f12">' + rects + '</svg>';
+    return '<svg viewBox="0 0 ' + (size * cell) + ' ' + (size * cell) + '" xmlns="http://www.w3.org/2000/svg" fill="#171310">' + rects + '</svg>';
   }
 
   /* ===================================================================
@@ -1269,18 +1523,10 @@
   };
 
   function updatePhaseHeader(id) {
-    const header = document.getElementById('globalPhaseHeader');
-    const meta = SCREEN_META[id];
-    if (!meta) {
-      header.classList.add('u-hidden');
-      return;
-    }
-    header.classList.remove('u-hidden');
-    document.getElementById('phTitle').textContent = meta.title;
-    document.getElementById('phTask').textContent = meta.task;
-    document.getElementById('phSync').textContent = voteLocked && id === 's15' ? '記録済み' : '同期済み';
-    /* s14 は画面中央に大型タイマーを持つため、ヘッダー側は空にして二重表示を避ける */
-    document.getElementById('phCountdown').textContent = id === 's14' ? '' : '--:--';
+    // 4a「刻印の台帳」は各画面が自己完結ヘッダー(英字アイブロウ + 画面タイトル)を
+    // 持つため、グローバルの phase-header 帯は常時非表示にし、タイトルの二重表示を防ぐ。
+    // フェーズ/やること/時間/同期の情報は各画面内に表示される。
+    document.getElementById('globalPhaseHeader').classList.add('u-hidden');
   }
 
   function formatClock(totalSeconds) {
@@ -1294,16 +1540,22 @@
      =================================================================== */
   function renderS03() {
     const title = document.getElementById('s03Title');
+    const sub = document.getElementById('s03Sub');
     const body = document.getElementById('s03Body');
+    const countLine = document.getElementById('s03CountLine');
     if (appState.view === 'host') {
       title.textContent = '区画名簿の開設';
+      sub.textContent = 'QRか合言葉を、参加者に見せてください。';
       body.innerHTML =
         '<div class="qr-wrap">' +
           '<div class="qr-panel">' + buildFakeQrSvg(roomCode) + '</div>' +
-          '<div class="room-code">' + roomCode.split('').join(' ') + '</div>' +
-          '<button type="button" class="btn btn--secondary" id="shareLinkBtn">共有リンクをコピー</button>' +
-          '<div class="waiting-count" id="joinCountLine"><span>参加人数</span><span class="num" id="joinCountNum">1</span><span>/ ' + PLAYERS.length + '人</span></div>' +
+          '<div style="display:flex;align-items:baseline;gap:10px;">' +
+            '<span class="screen-sub" style="margin:0;">合言葉</span>' +
+            '<span class="room-code">' + roomCode.split('').join(' ') + '</span>' +
+          '</div>' +
+          '<button type="button" class="btn btn--secondary" id="shareLinkBtn" style="min-height:46px;">共有リンクをコピー</button>' +
         '</div>';
+      countLine.innerHTML = '<div class="center-note" id="joinCountLine">参加 <span class="num" id="joinCountNum" style="font-family:var(--font-mono);font-size:inherit;color:var(--sem-accent);">1</span> / ' + PLAYERS.length + ' 人</div>';
       const shareBtn = document.getElementById('shareLinkBtn');
       shareBtn.addEventListener('click', function () {
         try { navigator.clipboard && navigator.clipboard.writeText('https://example.invalid/join/' + roomCode); } catch (e) { /* file:// では失敗して良い */ }
@@ -1312,11 +1564,12 @@
       startJoinCountMock();
     } else {
       title.textContent = '名簿に加わる';
+      sub.textContent = '受け取った合言葉を入力してください。';
       body.innerHTML =
         '<div class="qr-wrap">' +
-          '<p class="center-note">受け取った合言葉を入力してください。</p>' +
           '<div class="code-input" id="roomCodeInput"></div>' +
         '</div>';
+      countLine.innerHTML = '';
       const codeInput = document.getElementById('roomCodeInput');
       roomCode.split('').forEach(function (ch) {
         const inp = document.createElement('input');
@@ -1344,24 +1597,36 @@
      s05: ロビー
      =================================================================== */
   function renderS05() {
+    const roomCodeEl = document.getElementById('lobbyRoomCode');
+    if (roomCodeEl) roomCodeEl.textContent = roomCode;
+
     const list = document.getElementById('lobbyPlayerList');
     list.innerHTML = '';
+    let readyCount = 0;
     PLAYERS.forEach(function (p, idx) {
+      const isReady = idx < 5;
+      if (isReady) readyCount += 1;
       const row = document.createElement('div');
-      row.className = 'player-row' + (idx < 5 ? ' is-completed' : '');
+      row.className = 'player-row' + (isReady ? ' is-completed' : '');
       row.innerHTML =
-        '<span style="flex:1;">' + p.name + (p.id === SELF_ID ? '(あなた)' : '') + '</span>' +
-        '<span class="status-badge' + (idx < 5 ? ' is-completed' : '') + '">' + (idx < 5 ? '準備完了' : '準備中') + '</span>';
+        '<span class="idx">' + String(idx + 1).padStart(2, '0') + '</span>' +
+        '<span class="name">' + p.name + (p.id === SELF_ID ? ' <span style="color:rgba(237,233,220,0.4);font-size:11px;">あなた</span>' : '') + '</span>' +
+        '<span class="diamond' + (isReady ? '' : ' diamond--outline') + '" aria-hidden="true"></span>' +
+        '<span class="status-badge' + (isReady ? ' is-completed' : '') + '">' + (isReady ? '準備完了' : '準備中') + '</span>';
       list.appendChild(row);
     });
 
     const controls = document.getElementById('lobbyControls');
+    const countLine = '<div class="center-note" style="letter-spacing:0.1em;margin-top:var(--sp-2);">参加 ' + PLAYERS.length + ' / ' + PLAYERS.length + ' ・ 準備 ' + readyCount + ' / ' + PLAYERS.length + '</div>';
     if (appState.view === 'host') {
       controls.innerHTML =
-        '<div class="ready-control is-selected"><span>あなたの準備</span><span>完了</span></div>' +
+        countLine +
+        '<div class="ready-control is-selected" style="margin-top:var(--sp-3);"><span>あなたの準備</span><span>完了</span></div>' +
         '<button type="button" class="btn btn--primary" style="margin-top:var(--sp-3);width:100%;" onclick="showScreen(\'s06\')">全員そろい次第、開始する</button>';
     } else {
-      controls.innerHTML = '<div class="ready-control" id="readyControl" onclick="toggleReady(this)"><span>準備完了にする</span><span id="readyMark">未完了</span></div>';
+      controls.innerHTML =
+        countLine +
+        '<div class="ready-control" id="readyControl" onclick="toggleReady(this)" style="margin-top:var(--sp-3);"><span>準備完了にする</span><span id="readyMark">未完了</span></div>';
     }
   }
 
@@ -1408,15 +1673,15 @@
       const row = document.createElement('div');
       row.className = 'composition-row';
       row.innerHTML =
-        '<span>' + c.label + '</span>' +
+        '<span class="role-label">' + c.label + '</span>' +
         '<div class="stepper">' +
-          '<button type="button" class="btn btn--secondary" data-role="' + c.id + '" data-delta="-1">-</button>' +
-          '<span>' + c.count + '</span>' +
+          '<button type="button" class="btn btn--secondary" data-role="' + c.id + '" data-delta="-1">−</button>' +
+          '<span class="count">' + c.count + '</span>' +
           '<button type="button" class="btn btn--secondary" data-role="' + c.id + '" data-delta="1">+</button>' +
         '</div>';
       list.appendChild(row);
     });
-    document.getElementById('compositionTotal').textContent = '合計 ' + total + '人';
+    document.getElementById('compositionTotal').innerHTML = '合計 <span class="num">' + total + '</span> 人 / 参加 ' + PLAYERS.length + ' 人';
     list.querySelectorAll('button').forEach(function (btn) {
       btn.addEventListener('click', function () {
         adjustComposition(btn.dataset.role, parseInt(btn.dataset.delta, 10));
@@ -1473,16 +1738,26 @@
         optionsHtml += '<div class="target-option" data-pid="' + p.id + '" onclick="selectNightTarget(this)"><span>' + p.name + '</span><span class="status-badge">生存</span></div>';
       });
       panel.innerHTML =
-        '<div class="inline-notice">確定すると、この夜の選択を変更できません。</div>' +
-        '<p style="margin-top:var(--sp-3);">' + action.question + '</p>' +
-        '<div class="target-selector">' + optionsHtml + '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-end;">' +
+          '<div><h2 class="screen-title" style="margin:0;">夜の行動</h2><p class="screen-sub">対象を 1 人選んでください。</p></div>' +
+          '<div class="countdown" style="font-size:18px;color:var(--p-moonlight);" aria-hidden="true">01:24</div>' +
+        '</div>' +
+        '<hr class="engraved-rule">' +
+        '<div style="padding:0 0 var(--sp-2);">' +
+          '<p class="recorder-msg" style="text-align:left;">' + action.question + '</p>' +
+          '<p class="center-note" style="text-align:left;margin-top:var(--sp-2);">確定すると、この夜の選択を変更できません。</p>' +
+        '</div>' +
+        '<div class="target-selector ledger-list">' + optionsHtml + '</div>' +
         '<button type="button" class="btn btn--primary" id="nightDecideBtn" disabled style="margin-top:var(--sp-3);width:100%;" onclick="confirmNightAction()">' + action.verb + '</button>' +
+        '<p class="center-note">選択は記録者にのみ伝わります。</p>' +
         '<div class="inline-notice u-hidden" id="nightRecordedNotice" style="margin-top:var(--sp-3);"></div>';
     } else {
       panel.innerHTML =
-        '<p class="recorder-msg">今夜、あなたが行うべき特別な行動はありません。</p>' +
-        '<div class="waiting-count waiting-dot" style="margin-top:var(--sp-3);"><span>記録者が夜を記録するまで</span></div>' +
-        '<div class="sync-indicator" style="margin-top:var(--sp-3);">同期済み</div>';
+        '<div class="splash">' +
+          '<p class="recorder-msg">今夜、あなたが行うべき特別な行動はありません。</p>' +
+          '<div class="waiting-count waiting-dot"><span>記録者が夜を記録するまで</span></div>' +
+          '<div class="sync-indicator">同期済み</div>' +
+        '</div>';
     }
   }
 

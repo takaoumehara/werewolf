@@ -2,49 +2,56 @@
    design-system.css
    対面人狼ゲーム(スマホ完結) — モバイル UI デザインシステム
 
-   世界観: ゴシック木版画 × 旧世界端末。装飾は控えめ(Restraint 原則)。
+   4a「刻印の台帳 / Quiet Ledger」— 静謐な台帳・刻印モチーフ。装飾は控えめ(Restraint 原則)。
    3層構成:
      1. Primitive  — 生の値。直接コンポーネントから参照しない。
      2. Semantic   — [data-phase] ごとに切り替わる意味づけトークン。
      3. Component  — 実際に見た目が成立する完全なスタイル。
    ========================================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700&family=Cinzel+Decorative:wght@900&family=IBM+Plex+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700;800&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Antique+Soft&display=swap');
 
 /* =========================================================================
    1. PRIMITIVE LAYER — 生の値
    ========================================================================= */
 :root {
   /* primitive: color */
-  --p-soot: #07080a;
-  --p-charcoal: #0d0f12;
-  --p-surface: #111317;
-  --p-ash: #94a3b8;
-  --p-paper: #e8e0cf;
-  --p-oxidized: #8a8f98;
-  --p-line: rgba(255, 255, 255, 0.08);
-  --p-text: #f1f5f9;
-  --p-moonlight: #9fb4c7;
-  --p-daylight: #b7c3d0;
-  --p-ember: #b97a3d;
-  --p-verdict-red: #7a2226;
+  --p-soot: #08070C;
+  --p-charcoal: #0E0C12;
+  --p-surface: #14121A;
+  --p-ash: #8F8C97;
+  --p-paper: #EFE7D3;
+  --p-oxidized: #6E6B76;
+  --p-line: rgba(237, 233, 220, 0.12);
+  --p-text: #EDE9DC;
+  --p-moonlight: #9FB4CE;
+  --p-daylight: #C9A84C;
+  --p-ember: #D9C7A0;
+  --p-verdict-red: #C25B5B;
 
   /* primitive: faction(秘密コンテキスト限定 — component 層でのみ参照すること) */
-  --p-citizen: #4a6a5f;
-  --p-werewolf: #8f1d22;
-  --p-third: #5f8f7a;
+  --p-citizen: #6E8B6A;
+  --p-werewolf: #C25B5B;
+  --p-third: #6F8E86;
 
   /* primitive: semantic-status */
-  --p-success: #4a7a5a;
-  --p-warning: #b08a3d;
-  --p-danger: #a03a30;
-  --p-info: #5a7a9a;
-  --p-offline: #6a6a72;
+  --p-success: #6E8B6A;
+  --p-warning: #C9A84C;
+  --p-danger: #C25B5B;
+  --p-info: #9FB4CE;
+  --p-offline: #6E6B76;
+
+  /* primitive: 4a 追加アクセント */
+  --p-gold: #C9A84C;
+  --p-gold-hi: #E0C87E;
+  --p-morning: #D9C7A0;
 
   /* type */
-  --font-body: 'LINE Seed JP', sans-serif;
+  --font-body: 'Zen Kaku Gothic New', sans-serif;
+  --font-heading: 'LINE Seed JP', sans-serif;
   --font-display: 'Cinzel Decorative', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
   --font-mono: 'IBM Plex Mono', monospace;
+  --font-eyebrow: 'Cinzel', serif;
   --fs-display: 28px;
   --fs-heading: 20px;
   --fs-body: 15px;
@@ -88,59 +95,59 @@
    2. SEMANTIC LAYER — [data-phase] ごとの意味づけ
    ========================================================================= */
 
-/* day: 城塞の公開評議会。石壁と昼光。 */
+/* day: 静かな公開評議。刻印の金(gold)アクセント。 */
 body[data-phase="day"] {
-  --sem-bg: var(--p-charcoal);
-  --sem-bg-elevated: var(--p-surface);
-  --sem-text: var(--p-text);
-  --sem-text-dim: var(--p-ash);
-  --sem-line: var(--p-line);
-  --sem-accent: var(--p-daylight);
-  --sem-glow: rgba(183, 195, 208, 0.25);
+  --sem-bg: #0E0C12;
+  --sem-bg-elevated: #14121A;
+  --sem-text: #EDE9DC;
+  --sem-text-dim: rgba(237, 233, 220, 0.5);
+  --sem-line: rgba(237, 233, 220, 0.12);
+  --sem-accent: var(--p-gold);
+  --sem-glow: rgba(201, 168, 76, 0.16);
 }
 
-/* night: 記録網による一斉消灯。煤(soot)と月光。 */
+/* night: 記録者による一斉消灯。煤(soot)と月光。 */
 body[data-phase="night"] {
-  --sem-bg: var(--p-soot);
-  --sem-bg-elevated: var(--p-charcoal);
-  --sem-text: var(--p-text);
-  --sem-text-dim: var(--p-oxidized);
-  --sem-line: var(--p-line);
+  --sem-bg: #0B0A10;
+  --sem-bg-elevated: #14121A;
+  --sem-text: #EDE9DC;
+  --sem-text-dim: rgba(237, 233, 220, 0.5);
+  --sem-line: rgba(237, 233, 220, 0.12);
   --sem-accent: var(--p-moonlight);
-  --sem-glow: rgba(159, 180, 199, 0.3);
+  --sem-glow: rgba(159, 180, 206, 0.15);
 }
 
-/* dawn: 夜明け。ランタンの鈍い橙色(ember)。 */
+/* dawn: 夜明け。淡い古紙金(morning)。 */
 body[data-phase="dawn"] {
-  --sem-bg: var(--p-charcoal);
-  --sem-bg-elevated: var(--p-surface);
-  --sem-text: var(--p-text);
-  --sem-text-dim: var(--p-ash);
-  --sem-line: var(--p-line);
-  --sem-accent: var(--p-ember);
-  --sem-glow: rgba(185, 122, 61, 0.28);
+  --sem-bg: #131009;
+  --sem-bg-elevated: #1C160D;
+  --sem-text: #EDE9DC;
+  --sem-text-dim: rgba(237, 233, 220, 0.5);
+  --sem-line: rgba(237, 233, 220, 0.12);
+  --sem-accent: var(--p-morning);
+  --sem-glow: rgba(217, 199, 160, 0.16);
 }
 
-/* verdict: 生存権を決める裁定。verdict-red アクセント。 */
+/* verdict: 生存権を決める裁定。鈍い金アクセント。 */
 body[data-phase="verdict"] {
-  --sem-bg: var(--p-soot);
-  --sem-bg-elevated: var(--p-charcoal);
-  --sem-text: var(--p-text);
-  --sem-text-dim: var(--p-ash);
-  --sem-line: var(--p-line);
-  --sem-accent: var(--p-verdict-red);
-  --sem-glow: rgba(122, 34, 38, 0.35);
+  --sem-bg: #110D0D;
+  --sem-bg-elevated: #1C1414;
+  --sem-text: #EDE9DC;
+  --sem-text-dim: rgba(237, 233, 220, 0.5);
+  --sem-line: rgba(237, 233, 220, 0.12);
+  --sem-accent: var(--p-gold);
+  --sem-glow: rgba(201, 168, 76, 0.2);
 }
 
-/* finished: 幕引き。古紙(paper)系の落ち着いたトーン。 */
+/* finished: 終幕の記録。落ち着いた金アクセント。 */
 body[data-phase="finished"] {
-  --sem-bg: var(--p-charcoal);
-  --sem-bg-elevated: var(--p-surface);
-  --sem-text: var(--p-paper);
-  --sem-text-dim: var(--p-oxidized);
-  --sem-line: var(--p-line);
-  --sem-accent: var(--p-paper);
-  --sem-glow: rgba(232, 224, 207, 0.18);
+  --sem-bg: #0E0C12;
+  --sem-bg-elevated: #14121A;
+  --sem-text: #EDE9DC;
+  --sem-text-dim: rgba(237, 233, 220, 0.5);
+  --sem-line: rgba(237, 233, 220, 0.12);
+  --sem-accent: var(--p-gold);
+  --sem-glow: rgba(201, 168, 76, 0.18);
 }
 
 /* =========================================================================
@@ -248,6 +255,72 @@ body {
 }
 
 /* -------------------------------------------------------------------------
+   4a: eyebrow header / screen title / diamond utility
+   ------------------------------------------------------------------------- */
+
+/* brand-eyebrow: 画面左上の英字ブランド表記 */
+.brand-eyebrow {
+  font-family: var(--font-eyebrow);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: rgba(237, 233, 220, 0.45);
+}
+
+.btn.rules-link {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 12px;
+  color: rgba(237, 233, 220, 0.5);
+  min-width: auto;
+  padding: 0 var(--sp-2);
+  border: none;
+  background: transparent;
+}
+
+/* screen-title / screen-sub: 各画面の大見出し */
+.screen-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--sem-text, var(--p-text));
+  margin: 0;
+}
+
+.screen-sub {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--sem-text-dim, var(--p-ash));
+  margin: var(--sp-1) 0 0;
+}
+
+/* diamond: 刻印モチーフの共通ユーティリティ */
+.diamond {
+  display: inline-block;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  transform: rotate(45deg);
+  background: var(--sem-accent, var(--p-gold));
+}
+
+.diamond--outline {
+  background: transparent;
+  border: 1px solid rgba(237, 233, 220, 0.5);
+  box-sizing: border-box;
+}
+
+.diamond--sm {
+  width: 6px;
+  height: 6px;
+}
+
+.diamond--xs {
+  width: 5px;
+  height: 5px;
+}
+
+/* -------------------------------------------------------------------------
    Buttons
    ------------------------------------------------------------------------- */
 
@@ -304,15 +377,27 @@ body {
 }
 
 .btn--primary {
-  background: var(--sem-accent, var(--p-moonlight));
-  border-color: var(--sem-accent, var(--p-moonlight));
-  color: var(--p-soot);
+  min-height: 54px;
+  background: var(--p-paper);
+  border-color: var(--p-paper);
+  color: #14100A;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  border-radius: var(--r-sheet);
 }
 
 .btn--secondary {
+  min-height: 54px;
   background: transparent;
-  border-color: var(--sem-accent, var(--p-moonlight));
-  color: var(--sem-accent, var(--p-moonlight));
+  border-color: rgba(237, 233, 220, 0.25);
+  color: var(--sem-text, var(--p-text));
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  border-radius: var(--r-sheet);
 }
 
 .btn--quiet {
@@ -501,26 +586,38 @@ body {
 .target-option {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
-  min-height: var(--tap-min);
-  padding: var(--sp-3) var(--sp-4);
-  border-radius: var(--r-control);
-  border: 1px solid var(--sem-line, var(--p-line));
-  background: var(--sem-bg-elevated, var(--p-surface));
+  gap: var(--sp-2);
+  min-height: 46px;
+  padding: 0 var(--sp-3);
+  border-radius: 10px;
+  border: none;
+  background: transparent;
   color: var(--sem-text, var(--p-text));
+  font-family: var(--font-heading);
+  font-size: 14px;
   cursor: pointer;
-  transition: border-color var(--t-micro) var(--ease-standard),
-    background-color var(--t-micro) var(--ease-standard);
+  transition: background-color var(--t-micro) var(--ease-standard),
+    box-shadow var(--t-micro) var(--ease-standard);
+}
+
+.target-option > span:first-child {
+  flex: 1;
 }
 
 .target-option--selected,
 .target-option.is-selected {
-  border-color: var(--sem-accent, var(--p-moonlight));
-  background: color-mix(in srgb, var(--sem-accent, var(--p-moonlight)) 12%, var(--sem-bg-elevated, var(--p-surface)));
+  background: color-mix(in srgb, var(--sem-accent, var(--p-gold)) 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sem-accent, var(--p-gold)) 55%, transparent);
+  font-weight: 700;
+}
+
+.target-option--selected > span:first-child,
+.target-option.is-selected > span:first-child {
+  color: #ffffff;
 }
 
 .target-option[disabled] {
-  opacity: 0.4;
+  opacity: 0.45;
   pointer-events: none;
 }
 
@@ -579,18 +676,18 @@ body {
 }
 
 .phase-header .phase-title {
-  font-family: var(--font-display);
-  font-weight: 900;
+  font-family: var(--font-heading);
+  font-weight: 800;
   font-size: var(--fs-heading);
-  letter-spacing: 0.04em;
-  color: var(--sem-accent, var(--p-moonlight));
+  letter-spacing: 0.02em;
+  color: var(--sem-accent, var(--p-gold));
 }
 
 .countdown {
   font-family: var(--font-mono);
-  font-weight: 600;
+  font-weight: 500;
   font-size: var(--fs-timer);
-  color: var(--sem-text, var(--p-text));
+  color: var(--sem-accent, var(--p-gold));
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
@@ -603,15 +700,21 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--sp-2);
+  gap: var(--sp-3);
   padding: var(--sp-4);
+}
+
+.discussion-timer .countdown {
+  font-size: 56px;
+  font-weight: 400;
+  color: var(--sem-accent, var(--p-gold));
 }
 
 .discussion-timer .track {
   width: 100%;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--sem-line, var(--p-line));
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(237, 233, 220, 0.1);
   overflow: hidden;
 }
 
@@ -622,25 +725,25 @@ body {
   transition: width var(--t-instant) linear;
 }
 
-/* recorder-msg: 記録者(GM AI)からの発話。旧世界端末のテレタイプ的な体裁 */
+/* recorder-msg: 記録者(GM AI)からの発話。刻印台帳のアイブロウ + 本文体裁 */
 .recorder-msg {
-  padding: var(--sp-4);
-  border-radius: var(--r-sheet);
-  border: 1px solid var(--sem-line, var(--p-line));
-  background: var(--p-soot);
+  padding: 0;
+  border: none;
+  background: transparent;
   color: var(--sem-text, var(--p-text));
-  font-family: var(--font-mono);
-  font-size: var(--fs-label);
-  line-height: 1.6;
+  font-family: var(--font-heading);
+  font-size: 15px;
+  line-height: 1.9;
+  text-align: center;
 }
 
 .recorder-msg::before {
   content: '記録者';
   display: block;
   margin-bottom: var(--sp-2);
-  font-size: var(--fs-caption);
-  color: var(--sem-text-dim, var(--p-ash));
-  letter-spacing: 0.08em;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--sem-accent, var(--p-gold));
 }
 
 .night-panel {
@@ -659,28 +762,26 @@ body {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-1);
-  padding: var(--sp-1) var(--sp-3);
-  border-radius: 999px;
-  font-size: var(--fs-caption);
-  font-weight: 700;
-  background: var(--sem-bg-elevated, var(--p-surface));
+  padding: 0;
+  border-radius: 0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 400;
+  background: transparent;
   color: var(--sem-text-dim, var(--p-ash));
-  border: 1px solid var(--sem-line, var(--p-line));
+  border: none;
 }
 
 .status-badge.is-completed {
-  color: var(--p-success);
-  border-color: var(--p-success);
+  color: var(--sem-accent, var(--p-gold));
 }
 
 .status-badge.is-error {
   color: var(--p-danger);
-  border-color: var(--p-danger);
 }
 
 .status-badge.is-offline {
   color: var(--p-offline);
-  border-color: var(--p-offline);
 }
 
 .conn-banner {
@@ -741,15 +842,16 @@ body {
 .waiting-count {
   display: inline-flex;
   align-items: baseline;
-  gap: var(--sp-1);
-  font-family: var(--font-mono);
-  font-size: var(--fs-label);
+  gap: var(--sp-2);
+  font-family: var(--font-body);
+  font-size: 12px;
   color: var(--sem-text-dim, var(--p-ash));
 }
 
 .waiting-count .num {
-  font-size: var(--fs-heading);
-  color: var(--sem-text, var(--p-text));
+  font-family: var(--font-mono);
+  font-size: 40px;
+  color: var(--sem-accent, var(--p-gold));
 }
 
 .inline-notice {
@@ -821,12 +923,12 @@ body {
    QR / room code
    ------------------------------------------------------------------------- */
 
-/* qr-panel: QR は必ず白地 + 最低 12px quiet zone を確保する */
+/* qr-panel: QR は必ず生成り地 + 最低 12px quiet zone を確保する */
 .qr-panel {
   display: inline-flex;
-  padding: 12px;
-  background: #ffffff;
-  border-radius: var(--r-control);
+  padding: 14px;
+  background: #F2EDE0;
+  border-radius: 10px;
   box-shadow: 0 0 0 1px var(--sem-line, var(--p-line));
 }
 
@@ -841,15 +943,15 @@ body {
 .room-code {
   display: inline-flex;
   gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-4);
-  border-radius: var(--r-control);
-  border: 1px dashed var(--sem-line, var(--p-line));
-  background: var(--sem-bg-elevated, var(--p-surface));
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  background: transparent;
   font-family: var(--font-mono);
-  font-size: var(--fs-heading);
+  font-size: 22px;
   font-weight: 600;
-  letter-spacing: 0.3em;
-  color: var(--sem-accent, var(--p-moonlight));
+  letter-spacing: 0.34em;
+  color: var(--sem-accent, var(--p-gold));
 }
 
 /* -------------------------------------------------------------------------
@@ -866,15 +968,35 @@ body {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  min-height: var(--tap-min);
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--r-control);
-  border: 1px solid var(--sem-line, var(--p-line));
-  background: var(--sem-bg-elevated, var(--p-surface));
+  min-height: 47px;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid rgba(237, 233, 220, 0.07);
+  background: transparent;
+}
+
+.player-row:last-child {
+  border-bottom: none;
+}
+
+.player-row .idx {
+  flex: none;
+  width: 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(237, 233, 220, 0.35);
+}
+
+.player-row .name {
+  flex: 1;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  color: var(--sem-text, var(--p-text));
 }
 
 .player-row.is-selected {
-  border-color: var(--sem-accent, var(--p-moonlight));
+  border-color: transparent;
 }
 
 .player-row.is-offline {
