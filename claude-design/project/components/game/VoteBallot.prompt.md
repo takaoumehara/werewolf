@@ -1,0 +1,1 @@
+投票用紙。確定は HoldToConfirm と組で使い、submitted で二重送信を防ぐ。\n\n<VoteBallot players={alive} value={v} onChange={setV} submitted={sent} deadlineNote="締切まで変更できます" />

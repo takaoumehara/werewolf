@@ -1,0 +1,48 @@
+<!-- @dsCard group="Components" viewport="700x380" subtitle="Button / HoldToConfirm / SegmentedControl / TextField / CodeInput" name="Actions" -->
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<style>body{margin:0;background:var(--surface-page);font-family:var(--font-ui);color:var(--ink-body)}#root{padding:16px 20px}</style>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="../../fallback.js"></script>
+<div id="root"></div>
+<script type="text/km-babel">
+function ns(){for(const k of Object.getOwnPropertyNames(window)){try{const v=window[k];if(v&&typeof v==="object"&&v.Button&&v.RoleCard)return v;}catch(e){}}return {};}
+function boot(DS){
+
+const {Button,IconButton,SegmentedControl,TextField,CodeInput,HoldToConfirm}=DS;
+function Demo(){
+  const [lang,setLang]=React.useState("jp");
+  const [code,setCode]=React.useState("8341");
+  const [name,setName]=React.useState("たかお");
+  return <div style={{display:"flex",flexDirection:"column",gap:16}}>
+    <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
+      <Button variant="primary">選択を記録する</Button>
+      <Button variant="secondary">ルールを見る</Button>
+      <Button variant="quiet">あとで</Button>
+      <Button variant="danger">退出する</Button>
+      <Button variant="primary" disabled>記録する</Button>
+      <Button variant="primary" loading>記録中</Button>
+      <IconButton name="BookOpen" label="ルールを開く" variant="secondary"/>
+    </div>
+    <div style={{display:"flex",gap:16,alignItems:"flex-start"}}>
+      <div style={{flex:1,display:"flex",flexDirection:"column",gap:10}}>
+        <SegmentedControl options={[{value:"jp",label:"日本語"},{value:"en",label:"English"}]} value={lang} onChange={setLang}/>
+        <HoldToConfirm label="この投票を確定する" onConfirm={()=>{}}/>
+      </div>
+      <div style={{flex:1,display:"flex",flexDirection:"column",gap:12}}>
+        <TextField label="名前" value={name} onChange={setName} hint="この場にいる全員に表示されます"/>
+        <CodeInput value={code} onChange={setCode} label="参加コード"/>
+      </div>
+    </div>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo/>);
+}
+const D0=ns();
+if(D0.Button&&D0.RoleCard)boot(D0);
+else if(window.__KM)boot(window.__KM);
+else window.addEventListener("km-ready",()=>boot(window.__KM));
+</script>

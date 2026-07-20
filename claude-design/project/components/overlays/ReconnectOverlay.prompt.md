@@ -1,0 +1,1 @@
+切断からの復旧オーバーレイ。「入力は保存されている」「ゲームは待つ」を必ず伝える (Recoverability)。\n\n<ReconnectOverlay state="reconnecting" attempt={2} />

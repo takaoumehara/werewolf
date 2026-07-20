@@ -1,0 +1,84 @@
+/* ============================================================
+   記録網 (Kirokumō) Design System — Color tokens
+   3層: primitive (--km-*) → semantic (--surface/--ink/--status/…)
+   → component (各コンポーネント内で semantic を参照)
+   注意: faction 色は常時表示禁止。公開UIは phase/semantic のみ。
+   ============================================================ */
+:root {
+  /* ---- Primitive: 煤・炭・灰・古紙・酸化銀 ---- */
+  --km-soot-950: #0B0A0E;
+  --km-soot-900: #121118;
+  --km-charcoal-850: #17161E;
+  --km-charcoal-800: #1C1B25;
+  --km-charcoal-700: #262532;
+  --km-ash-600: #373644;
+  --km-ash-500: #4E4D5C;
+  --km-ash-400: #6A6978;
+  --km-silver-300: #8E8D9C;   /* oxidized silver */
+  --km-silver-200: #ACABB8;
+  --km-paper-100: #EFE7D3;    /* old paper */
+  --km-paper-200: #E4D9BE;
+  --km-paper-300: #CDC0A1;
+  --km-paper-400: #A2946F;
+  --km-paper-500: #6E6248;
+
+  /* ---- Primitive: accents (低彩度・光源に理由のある色) ---- */
+  --km-lantern-500: #C98A3D;  /* ランタンの鈍い橙 */
+  --km-lantern-700: #8A5A22;
+  --km-moon-300: #A9BDD6;     /* 月光 */
+  --km-moon-500: #7E96B5;
+  --km-verdigris-500: #6E8B6A;/* 煤けた緑 */
+  --km-verdigris-300: #93AE8E;
+  --km-oxblood-500: #A03C3C;  /* 暗紅 */
+  --km-oxblood-300: #C25B5B;
+  --km-oxblood-700: #6E2222;
+  --km-gilt-400: #C9A84C;     /* 鈍い金 */
+  --km-gilt-600: #967930;
+  --km-relic-300: #8FD9AC;    /* 人工的な緑 (旧世界の光) */
+  --km-relic-500: #57A87E;
+  --km-rose-400: #B4788C;     /* 夜明けの霞 */
+
+  /* ---- Semantic: surface / ink (既定 = night。phase で上書き) ---- */
+  --surface-page: var(--km-soot-900);
+  --surface-raised: var(--km-charcoal-800);
+  --surface-sunken: var(--km-soot-950);
+  --surface-field: var(--km-charcoal-850);
+  --ink-strong: #EDE9DC;
+  --ink-body: #D6D2C4;
+  --ink-muted: #96949E;
+  --ink-faint: #63616E;
+  --ink-inverse: var(--km-soot-950);
+  --accent: var(--km-moon-300);
+  --accent-strong: #C4D4E8;
+  --accent-ink-on: var(--km-soot-950);
+  --rule: rgba(237, 233, 220, 0.14);
+  --rule-strong: rgba(237, 233, 220, 0.26);
+  --edge-highlight: rgba(255, 255, 255, 0.055);
+
+  /* ---- Semantic: status (色+ラベル+形を必ず併用) ---- */
+  --status-success: #7FA576;
+  --status-warning: #CFA652;
+  --status-danger: #C25B5B;
+  --status-info: #8FA8C8;
+  --status-offline: #75737F;
+  --status-reconnecting: #CFA652;
+  --status-disabled-ink: #5B5964;
+  --status-disabled-surface: rgba(255, 255, 255, 0.04);
+
+  /* ---- Semantic: faction (Private / Reveal コンテキスト限定) ---- */
+  --faction-citizen: #6E8B6A;
+  --faction-citizen-ink: #B7CBB2;
+  --faction-werewolf: #8E2F2F;
+  --faction-werewolf-ink: #D98A8A;
+  --faction-third: #57A87E;
+  --faction-third-ink: #9FDDBB;
+  /* role accent は拡張構造: --role-accent を RoleCard 側で注入する */
+  --role-accent: var(--km-silver-300);
+
+  /* ---- Semantic: overlays ---- */
+  --overlay-scrim: rgba(7, 6, 10, 0.72);
+  --overlay-modal: rgba(7, 6, 10, 0.55);
+  --overlay-privacy: #0B0A0E;            /* 完全不透明。秘密は透かさない */
+  --overlay-reveal: linear-gradient(180deg, rgba(7,6,10,0) 40%, rgba(7,6,10,0.85) 100%);
+  --texture-opacity: 0.12;               /* TextureOverlay の上限 */
+}

@@ -1,0 +1,1 @@
+中央ダイアログ。中断確認など「今すぐ答えが必要」な場面のみ。ボタンは縦積み・最初が主操作。\n\n<Dialog open tone="danger" title="ゲームから退出しますか？" body="進行中の記録は保持されます。再参加できます。" actions={[{label:"退出する",variant:"danger"},{label:"戻る"}]} />

@@ -1,0 +1,1 @@
+下からのシート。補助情報・確認に。RulesDrawer は maxHeight="85%" のスクロール変種。\n\n<BottomSheet open={o} title="投票の確認" onClose={close}>…</BottomSheet>

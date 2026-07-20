@@ -1,0 +1,1 @@
+テキスト入力 (プレイヤー名など)。フォントサイズ 16px (iOS ズーム防止)。日本語・絵文字・長い名前に耐える。\n\n<TextField label="名前" value={v} onChange={setV} hint="この場にいる全員に表示されます" />

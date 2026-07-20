@@ -1,0 +1,1 @@
+標準ボタン。1画面に primary は 1 つまで。破壊的・不可逆操作は Button ではなく HoldToConfirm を使う。\n\n<Button variant="primary" size="lg" full>選択を記録する</Button>\n\n- variants: primary / secondary / quiet / danger。states: default, pressed(scale .98), disabled, loading(スピナー+aria-busy)。\n- loading は必ず「何を待っているか」を近くのテキストで示す。

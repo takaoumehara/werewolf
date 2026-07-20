@@ -1,0 +1,1 @@
+不可逆操作の長押し確定ボタン (900ms 充填)。投票確定・非常権限の発動などに。\n\n<HoldToConfirm label="この投票を確定する" onConfirm={submit} />\n\n- 途中で離すと安全にリセット (Recoverability)。完了後は「記録しました」で固定。\n- prefers-reduced-motion では単押しで確定 (充填アニメに依存しない)。

@@ -1,0 +1,19 @@
+/* 記録網 Design System — Spacing / layout tokens (4px 基準) */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --touch-target: 44px;         /* 最低 44×44px */
+  --page-pad: 20px;             /* 画面左右余白 (360px 幅基準) */
+  --content-max: 430px;         /* portrait 最大幅。breakpoints: 360 / 390 / 430 */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}

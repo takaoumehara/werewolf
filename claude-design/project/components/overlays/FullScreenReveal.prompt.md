@@ -1,0 +1,1 @@
+儀式的全画面開示。EliminationReveal / VictoryReveal / RoleRosterReveal はこれで構成する。\n\n<FullScreenReveal open image="assets/backgrounds/bg-07.png" kicker="The Last Dawn" title="市民陣営の勝利">…</FullScreenReveal>\n\n- reveal motion (1400ms) を使ってよい唯一の場所。reduced-motion では即時表示。

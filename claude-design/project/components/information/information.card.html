@@ -1,0 +1,45 @@
+<!-- @dsCard group="Components" viewport="700x400" subtitle="PhaseHeader / Timer / RecorderMessage / Status / Waiting" name="Information" -->
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<style>body{margin:0;background:var(--surface-page);font-family:var(--font-ui);color:var(--ink-body)}#root{padding:16px 20px}</style>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="../../fallback.js"></script>
+<div id="root"></div>
+<script type="text/km-babel">
+function ns(){for(const k of Object.getOwnPropertyNames(window)){try{const v=window[k];if(v&&typeof v==="object"&&v.Button&&v.RoleCard)return v;}catch(e){}}return {};}
+function boot(DS){
+
+const {PhaseHeader,CountdownTimer,RecorderMessage,StatusBadge,ConnectionBanner,WaitingCount,InlineNotice}=DS;
+function Demo(){
+  return <div style={{display:"flex",gap:20}}>
+    <div style={{flex:1.2,display:"flex",flexDirection:"column",gap:12}}>
+      <PhaseHeader phase="day" dayCount={2} title="評議を開始します。" right={<CountdownTimer seconds={28} total={300}/>}/>
+      <RecorderMessage text="対象を 1 人選んでください。" sub="Choose one target."/>
+      <WaitingCount done={7} total={8}/>
+      <ConnectionBanner state="reconnecting" style={{borderRadius:8,border:"1px solid var(--rule)"}}/>
+    </div>
+    <div style={{flex:1,display:"flex",flexDirection:"column",gap:12}}>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+        <StatusBadge status="success" label="記録済"/>
+        <StatusBadge status="neutral" label="入力待ち"/>
+        <StatusBadge status="offline" label="切断"/>
+        <StatusBadge status="reconnecting" label="復旧中"/>
+        <StatusBadge status="danger" label="脱落"/>
+      </div>
+      <div style={{display:"flex",gap:20,alignItems:"flex-end"}}>
+        <CountdownTimer seconds={272} total={300} size="lg" label="評議 残り時間"/>
+      </div>
+      <InlineNotice tone="warning" title="投票がまだ記録されていません。" body="残り 30 秒以内に対象を選んでください。" actions={[{label:"投票へ戻る"}]}/>
+    </div>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo/>);
+}
+const D0=ns();
+if(D0.Button&&D0.RoleCard)boot(D0);
+else if(window.__KM)boot(window.__KM);
+else window.addEventListener("km-ready",()=>boot(window.__KM));
+</script>

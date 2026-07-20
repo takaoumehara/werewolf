@@ -1,0 +1,1 @@
+画面上部のフェーズ見出し。kicker (phase + 日数) + タイトル + 刻印罫線。\n\n<PhaseHeader phase="day" dayCount={2} title="評議を開始します。" right={<CountdownTimer seconds={272} />} />

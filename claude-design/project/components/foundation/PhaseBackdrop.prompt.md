@@ -1,0 +1,1 @@
+フェーズ転換・reveal などの儀式画面専用の背景イラスト + scrim。\n\n<PhaseBackdrop image="assets/backgrounds/bg-01.png" gradient>…</PhaseBackdrop>\n\n- 通常の操作画面では単色 surface を使う (Restraint)。texture opacity ≤ 0.12。

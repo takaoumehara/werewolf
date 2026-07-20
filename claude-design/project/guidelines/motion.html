@@ -1,0 +1,31 @@
+<!-- @dsCard group="Surface" viewport="700x200" subtitle="4段階 · reduced-motion で全て 0ms" name="Motion" -->
+<meta charset="utf-8"><link rel="stylesheet" href="../styles.css"><style>
+body{margin:0;font-family:var(--font-ui);background:var(--surface-page);color:var(--ink-body);-webkit-font-smoothing:antialiased}
+.row{display:flex;gap:12px;align-items:stretch}
+.pad{padding:16px 20px}
+.cap{font-size:12px;line-height:1.5;color:var(--ink-muted)}
+.mono{font-family:var(--font-code)}
+</style><style>
+.tick{animation:km-p 2.4s var(--ease-ritual) infinite}
+@keyframes km-p{0%,100%{opacity:.35}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){.tick{animation:none;opacity:1}}
+</style><div class="pad row">
+
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:12px">
+<div class="tick" style="width:14px;height:6px;border-radius:3px;background:var(--accent);animation-duration:0.6s"></div>
+<div style="font-weight:700;font-size:13px;color:var(--ink-strong);margin-top:10px">instant <span class="mono cap">80ms</span></div>
+<div class="cap">押下・focus</div></div>
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:12px">
+<div class="tick" style="width:24px;height:6px;border-radius:3px;background:var(--accent);animation-duration:0.9s"></div>
+<div style="font-weight:700;font-size:13px;color:var(--ink-strong);margin-top:10px">micro <span class="mono cap">180ms</span></div>
+<div class="cap">状態変化・toast</div></div>
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:12px">
+<div class="tick" style="width:34px;height:6px;border-radius:3px;background:var(--accent);animation-duration:1.6s"></div>
+<div style="font-weight:700;font-size:13px;color:var(--ink-strong);margin-top:10px">phase <span class="mono cap">640ms</span></div>
+<div class="cap">フェーズ転換</div></div>
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:12px">
+<div class="tick" style="width:44px;height:6px;border-radius:3px;background:var(--accent);animation-duration:2.8s"></div>
+<div style="font-weight:700;font-size:13px;color:var(--ink-strong);margin-top:10px">reveal <span class="mono cap">1400ms</span></div>
+<div class="cap">儀式的開示のみ</div></div>
+</div>
+<div class="cap" style="padding:0 20px 14px">loading は終わりの見える表現 (「あと N 人」)。人狼だけ異なる外向き motion を使わない。</div>

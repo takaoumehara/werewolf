@@ -1,0 +1,1 @@
+GM「記録者」の発話ブロック。脅さない・評価しない・短い。\n\n<RecorderMessage text="対象を 1 人選んでください。" sub="Choose one target." />

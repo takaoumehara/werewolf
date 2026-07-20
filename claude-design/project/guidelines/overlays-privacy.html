@@ -1,0 +1,24 @@
+<!-- @dsCard group="Surface" viewport="700x210" subtitle="秘密の上は完全不透明 — blur で秘匿しない" name="Overlays" -->
+<meta charset="utf-8"><link rel="stylesheet" href="../styles.css"><style>
+body{margin:0;font-family:var(--font-ui);background:var(--surface-page);color:var(--ink-body);-webkit-font-smoothing:antialiased}
+.row{display:flex;gap:12px;align-items:stretch}
+.pad{padding:16px 20px}
+.cap{font-size:12px;line-height:1.5;color:var(--ink-muted)}
+.mono{font-family:var(--font-code)}
+</style><div class="pad row">
+<div style="flex:1;position:relative;height:130px;border-radius:8px;overflow:hidden;border:1px solid var(--rule)">
+<img src="../assets/backgrounds/bg-05.png" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:var(--overlay-scrim)"></div>
+<div style="position:absolute;bottom:10px;left:12px;font-size:13px;font-weight:700;color:#EDE9DC">scrim .72</div>
+</div>
+<div style="flex:1;position:relative;height:130px;border-radius:8px;overflow:hidden;border:1px solid var(--rule)">
+<div style="position:absolute;inset:0;background:var(--overlay-privacy)"></div>
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
+<div style="width:26px;height:26px;border:1.5px solid var(--ink-muted);border-radius:50%;display:flex;align-items:center;justify-content:center"><div style="width:8px;height:10px;border:1.5px solid var(--ink-muted);border-radius:2px"></div></div>
+<div class="cap">privacy cover — 完全不透明</div></div>
+</div>
+<div style="flex:1;position:relative;height:130px;border-radius:8px;overflow:hidden;border:1px solid var(--rule)">
+<img src="../assets/backgrounds/bg-01.png" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+<div style="position:absolute;inset:0;background:var(--overlay-reveal)"></div>
+<div style="position:absolute;bottom:10px;left:12px;font-size:13px;font-weight:700;color:#EDE9DC">reveal gradient</div>
+</div></div>

@@ -1,0 +1,1 @@
+夜行動の対象選択。全役職で同じ外観・同じ操作数 — 画面から役職が推測できない。確定は別途 HoldToConfirm。\n\n<PlayerTargetSelector players={alive} value={target} onChange={setTarget} />

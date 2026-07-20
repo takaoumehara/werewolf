@@ -1,0 +1,1 @@
+2〜4択の排他切替。言語切替 (日本語/English) やフィルタに。\n\n<SegmentedControl options={[{value:"jp",label:"日本語"},{value:"en",label:"English"}]} value={lang} onChange={setLang} />

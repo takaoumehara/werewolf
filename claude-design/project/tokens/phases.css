@@ -1,0 +1,62 @@
+/* 記録網 Design System — Phase modes
+   既定 (:root) = night。フェーズは data-phase 属性 (または .phase-*) で切替。
+   Figma Variables の mode に対応: Day / Night / Dawn / Verdict / Finished。
+   夜の外観から役職が推測できないよう、night は全員同一のトーンを共有する。 */
+
+[data-phase="day"], .phase-day {
+  --surface-page: #E7DDC4;
+  --surface-raised: #EFE7D3;
+  --surface-sunken: #D9CDAF;
+  --surface-field: #F2ECDC;
+  --ink-strong: #201B12;
+  --ink-body: #37311F;
+  --ink-muted: #6E6248;
+  --ink-faint: #99906F;
+  --ink-inverse: #EFE7D3;
+  --accent: #8A5A22;                 /* lantern, AA on paper */
+  --accent-strong: #6E4517;
+  --accent-ink-on: #F5EFDF;
+  --rule: rgba(32, 27, 18, 0.18);
+  --rule-strong: rgba(32, 27, 18, 0.34);
+  --edge-highlight: rgba(255, 255, 255, 0.5);
+  --overlay-scrim: rgba(46, 38, 20, 0.55);
+  --status-success: #4F7047;
+  --status-warning: #8A6516;
+  --status-danger: #9A3030;
+  --status-info: #4A6789;
+  --status-offline: #7A7466;
+  --status-reconnecting: #8A6516;
+  --status-disabled-ink: #A39A82;
+  --status-disabled-surface: rgba(32, 27, 18, 0.05);
+}
+
+[data-phase="night"], .phase-night {
+  /* :root 既定と同一 — 明示クラスとしても使える */
+  --surface-page: #0D0C13;
+  --surface-raised: #191823;
+  --surface-sunken: #08070C;
+  --surface-field: #14131C;
+  --accent: #A9BDD6;
+  --accent-strong: #C4D4E8;
+}
+
+[data-phase="dawn"], .phase-dawn {
+  --surface-page: #17111A;
+  --surface-raised: #221925;
+  --accent: #B4788C;
+  --accent-strong: #CE9AAC;
+}
+
+[data-phase="verdict"], .phase-verdict {
+  --surface-page: #150D10;
+  --surface-raised: #201318;
+  --accent: #C25B5B;
+  --accent-strong: #D98A8A;
+}
+
+[data-phase="finished"], .phase-finished {
+  --surface-page: #14100A;
+  --surface-raised: #201A10;
+  --accent: #C9A84C;
+  --accent-strong: #DCC177;
+}

@@ -1,0 +1,1 @@
+アイコンのみのボタン (44×44 最低)。label (aria-label) 必須。\n\n<IconButton name="BookOpen" label="ルールを開く" />

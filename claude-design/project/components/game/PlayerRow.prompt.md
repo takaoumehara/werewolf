@@ -1,0 +1,1 @@
+公開プレイヤー行 (56px、役職情報なし)。長い日本語名・絵文字名は折返しで処理。\n\n<PlayerRow name="たかお" me alive connection="online" ready />

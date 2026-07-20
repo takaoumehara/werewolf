@@ -1,0 +1,40 @@
+<!-- @dsCard group="Colors" viewport="700x170" subtitle="色 + ラベル + 形を必ず併用する" name="Status Colors" -->
+<meta charset="utf-8"><link rel="stylesheet" href="../styles.css"><style>
+body{margin:0;font-family:var(--font-ui);background:var(--surface-page);color:var(--ink-body);-webkit-font-smoothing:antialiased}
+.row{display:flex;gap:12px;align-items:stretch}
+.pad{padding:16px 20px}
+.cap{font-size:12px;line-height:1.5;color:var(--ink-muted)}
+.mono{font-family:var(--font-code)}
+</style><div class="pad row" style="gap:8px">
+
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:12px 10px">
+<div style="display:flex;align-items:center;gap:6px"><span style="color:#7FA576;font-size:11px">●</span><span style="height:10px;flex:1;background:#7FA576;border-radius:3px"></span></div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-strong);margin-top:8px">記録済</div>
+<div class="cap mono">--status-success</div>
+</div>
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:12px 10px">
+<div style="display:flex;align-items:center;gap:6px"><span style="color:#CFA652;font-size:11px">▲</span><span style="height:10px;flex:1;background:#CFA652;border-radius:3px"></span></div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-strong);margin-top:8px">残り 30 秒</div>
+<div class="cap mono">--status-warning</div>
+</div>
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:12px 10px">
+<div style="display:flex;align-items:center;gap:6px"><span style="color:#C25B5B;font-size:11px">■</span><span style="height:10px;flex:1;background:#C25B5B;border-radius:3px"></span></div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-strong);margin-top:8px">取り消せません</div>
+<div class="cap mono">--status-danger</div>
+</div>
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:12px 10px">
+<div style="display:flex;align-items:center;gap:6px"><span style="color:#8FA8C8;font-size:11px">●</span><span style="height:10px;flex:1;background:#8FA8C8;border-radius:3px"></span></div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-strong);margin-top:8px">ルール</div>
+<div class="cap mono">--status-info</div>
+</div>
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:12px 10px">
+<div style="display:flex;align-items:center;gap:6px"><span style="color:#75737F;font-size:11px">◌</span><span style="height:10px;flex:1;background:#75737F;border-radius:3px"></span></div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-strong);margin-top:8px">切断</div>
+<div class="cap mono">--status-offline</div>
+</div>
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:12px 10px">
+<div style="display:flex;align-items:center;gap:6px"><span style="color:#CFA652;font-size:11px">◌</span><span style="height:10px;flex:1;background:#CFA652;border-radius:3px"></span></div>
+<div style="font-size:12px;font-weight:700;color:var(--ink-strong);margin-top:8px">復旧中</div>
+<div class="cap mono">--status-reconnecting</div>
+</div>
+</div>

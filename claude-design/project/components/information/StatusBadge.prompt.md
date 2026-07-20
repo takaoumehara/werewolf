@@ -1,0 +1,1 @@
+状態バッジ。status ごとに固有の形 (●▲■◌) を持ち、色覚に依存しない。\n\n<StatusBadge status="success" label="記録済" />

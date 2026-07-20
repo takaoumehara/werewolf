@@ -1,0 +1,41 @@
+<!-- @dsCard group="Components" viewport="700x420" subtitle="BottomSheet / Dialog / ReconnectOverlay / FullScreenReveal" name="Overlays" -->
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<style>body{margin:0;background:var(--surface-page);font-family:var(--font-ui);color:var(--ink-body)}#root{padding:16px 20px}</style>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="../../fallback.js"></script>
+<div id="root"></div>
+<script type="text/km-babel">
+function ns(){for(const k of Object.getOwnPropertyNames(window)){try{const v=window[k];if(v&&typeof v==="object"&&v.Button&&v.RoleCard)return v;}catch(e){}}return {};}
+function boot(DS){
+
+const {BottomSheet,Dialog,ReconnectOverlay,FullScreenReveal,Button}=DS;
+const frame={position:"relative",width:160,height:340,borderRadius:14,overflow:"hidden",border:"1px solid var(--rule-strong)",background:"var(--surface-page)",flex:"none"};
+function Demo(){
+  return <div style={{display:"flex",gap:14,justifyContent:"center"}}>
+    <div style={frame}>
+      <BottomSheet open title="投票の確認" onClose={()=>{}}>
+        <div style={{fontSize:13,lineHeight:1.7,color:"var(--ink-muted)"}}>追放する対象を確定すると、取り消せません。</div>
+      </BottomSheet>
+    </div>
+    <div style={frame}>
+      <Dialog open tone="danger" title="ゲームから退出しますか？" body="進行中の記録は保持されます。" actions={[{label:"退出する",variant:"danger"},{label:"戻る"}]}/>
+    </div>
+    <div style={frame}>
+      <ReconnectOverlay state="reconnecting" attempt={2}/>
+    </div>
+    <div style={frame}>
+      <FullScreenReveal open image="../../assets/backgrounds/bg-07.png" kicker="The Last Dawn" title="市民陣営の勝利" onContinue={()=>{}}/>
+    </div>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo/>);
+}
+const D0=ns();
+if(D0.Button&&D0.RoleCard)boot(D0);
+else if(window.__KM)boot(window.__KM);
+else window.addEventListener("km-ready",()=>boot(window.__KM));
+</script>

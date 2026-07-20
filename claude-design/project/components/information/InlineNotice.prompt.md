@@ -1,0 +1,1 @@
+インライン通知。actions を渡すと ErrorRecoveryPanel (復帰操作付きエラー) になる。\n\n<InlineNotice tone="warning" title="投票がまだ記録されていません。" body="残り 30 秒以内に対象を選んでください。" actions={[{label:"投票へ戻る"}]} />

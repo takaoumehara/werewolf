@@ -1,0 +1,54 @@
+<!-- @dsCard group="Mobile App" viewport="960x820" subtitle="Join / Role / Night / Day / Reconnect / Victory — JP/EN 切替つき" name="Reference Screens" -->
+<!-- @startingPoint section="Mobile App" subtitle="人狼ゲームの全リファレンス画面 (interactive)" viewport="960x820" -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>記録網 — Mobile Reference Screens</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+body{margin:0;background:var(--km-soot-950);font-family:var(--font-ui);color:var(--ink-body)}
+</style>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="../../fallback.js"></script>
+<div id="root"></div>
+<script type="text/km-babel">
+function ns(){for(const k of Object.getOwnPropertyNames(window)){try{const v=window[k];if(v&&typeof v==="object"&&v.JoinScreen&&v.DayScreen)return v;}catch(e){}}return null;}
+function boot(DS){
+const SCREENS=[
+  ["join","参加","Join"],["role","役職確認","Role"],["night","夜","Night"],
+  ["day","昼・投票","Day"],["reconnect","再接続","Reconnect"],["victory","終局","Victory"],
+];
+function App(){
+  const [screen,setScreen]=React.useState("day");
+  const [lang,setLang]=React.useState("jp");
+  const Cur={join:DS.JoinScreen,role:DS.RoleScreen,night:DS.NightScreen,day:DS.DayScreen,reconnect:DS.ReconnectScreen,victory:DS.VictoryScreen}[screen];
+  return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",gap:36,padding:24,boxSizing:"border-box"}}>
+    <div style={{width:200,display:"flex",flexDirection:"column",gap:6}}>
+      <div style={{fontFamily:"var(--font-display)",fontWeight:900,fontSize:19,letterSpacing:"0.05em",color:"var(--ink-strong)"}}>Kirokumō</div>
+      <div style={{fontSize:11,fontWeight:800,letterSpacing:"0.4em",color:"var(--ink-muted)",marginBottom:12}}>記録網 — 画面見本</div>
+      {SCREENS.map(([id,jp,en])=>
+        <button key={id} onClick={()=>setScreen(id)} style={{textAlign:"left",minHeight:44,padding:"0 14px",borderRadius:8,cursor:"pointer",fontFamily:"var(--font-ui)",fontSize:14,fontWeight:700,border:"1px solid "+(screen===id?"var(--accent)":"transparent"),background:screen===id?"var(--surface-raised)":"transparent",color:screen===id?"var(--ink-strong)":"var(--ink-muted)"}}>
+          {lang==="en"?en:jp}
+        </button>)}
+      <div style={{marginTop:16,display:"flex",border:"1px solid var(--rule-strong)",borderRadius:999,overflow:"hidden"}}>
+        {[["jp","日本語"],["en","English"]].map(([v,l])=>
+          <button key={v} onClick={()=>setLang(v)} style={{flex:1,minHeight:40,border:"none",cursor:"pointer",fontFamily:"var(--font-ui)",fontSize:13,fontWeight:700,background:lang===v?"var(--accent)":"transparent",color:lang===v?"var(--accent-ink-on)":"var(--ink-muted)"}}>{l}</button>)}
+      </div>
+      <p style={{fontSize:12,lineHeight:1.6,color:"var(--ink-faint)",marginTop:10}}>言語はゲーム中でも端末ごとに切替可能。ゲーム状態には影響しない。</p>
+    </div>
+    <div style={{width:376,height:768,borderRadius:32,padding:8,background:"#08070C",border:"1px solid var(--rule-strong)",boxShadow:"var(--shadow-modal)",flex:"none"}}>
+      <div style={{width:360,height:752,borderRadius:26,overflow:"hidden",position:"relative",background:"var(--surface-page)"}}>
+        <Cur lang={lang} onLangChange={setLang}/>
+      </div>
+    </div>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+}
+const D0=ns();
+if(D0)boot(D0);
+else if(window.__KM)boot(window.__KM);
+else window.addEventListener("km-ready",()=>boot(window.__KM));
+</script>

@@ -1,0 +1,1 @@
+参加パネル: QR (白地・quiet zone 付き) + 6桁コード。QR が読めない人の代替経路を常に併記。\n\n<QRJoinPanel url="https://…/join/834107" code="834107" />

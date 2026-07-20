@@ -1,0 +1,49 @@
+<!-- @dsCard group="Components" viewport="700x300" subtitle="AppShell / PhaseBackdrop / EngravedRule / Icon" name="Foundation" -->
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<style>body{margin:0;background:var(--surface-page);font-family:var(--font-ui);color:var(--ink-body)}#root{padding:16px 20px}</style>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="../../fallback.js"></script>
+<div id="root"></div>
+<script type="text/km-babel">
+function ns(){for(const k of Object.getOwnPropertyNames(window)){try{const v=window[k];if(v&&typeof v==="object"&&v.Button&&v.RoleCard)return v;}catch(e){}}return {};}
+function boot(DS){
+
+const {AppShell,PhaseBackdrop,EngravedRule,Icon}=DS;
+function Demo(){
+  return <div style={{display:"flex",gap:16}}>
+    <div style={{flex:1,display:"flex",flexDirection:"column",gap:10}}>
+      <div style={{fontSize:12,color:"var(--ink-muted)"}}>Icon (Lucide 1.5px stroke)</div>
+      <div style={{display:"flex",gap:14,color:"var(--ink-strong)"}}>
+        {["Sun","Moon","Sunrise","Scale","Flag","Eye","EyeOff","WifiOff","RefreshCw","Users","QrCode","BookOpen"].map(n=><Icon key={n} name={n} size={22}/>)}
+      </div>
+      <div style={{fontSize:12,color:"var(--ink-muted)",marginTop:8}}>EngravedRule</div>
+      <EngravedRule spacing="4px"/>
+      <div style={{fontSize:12,color:"var(--ink-muted)",marginTop:8}}>PhaseBackdrop (儀式画面のみ)</div>
+      <PhaseBackdrop image="../../assets/backgrounds/bg-06.png" gradient style={{height:90,borderRadius:10}}>
+        <div style={{marginTop:"auto",padding:"0 12px 10px",fontSize:13,fontWeight:700,color:"#F2EFE6"}}>image + reveal gradient</div>
+      </PhaseBackdrop>
+    </div>
+    <div style={{flex:1}}>
+      <div style={{fontSize:12,color:"var(--ink-muted)",marginBottom:10}}>AppShell — data-phase 切替</div>
+      <div style={{display:"flex",gap:8}}>
+        {["day","night","verdict"].map(p=>
+          <AppShell key={p} phase={p} style={{minHeight:170,borderRadius:10,border:"1px solid var(--rule)",overflow:"hidden",flex:1}}>
+            <div style={{fontSize:11,fontWeight:700,color:"var(--accent)"}}>{p}</div>
+            <div style={{fontSize:13,fontWeight:700,color:"var(--ink-strong)",marginTop:4}}>評議を開始します。</div>
+            <div style={{fontSize:11,color:"var(--ink-muted)",marginTop:2}}>surface / ink / accent が切替わる</div>
+          </AppShell>)}
+      </div>
+    </div>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo/>);
+}
+const D0=ns();
+if(D0.Button&&D0.RoleCard)boot(D0);
+else if(window.__KM)boot(window.__KM);
+else window.addEventListener("km-ready",()=>boot(window.__KM));
+</script>

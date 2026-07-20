@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700;800&amp;family=Shippori+Mincho+B1:wght@600;700;800&amp;family=Cinzel+Decorative:wght@700;900&amp;family=Cinzel:wght@600;700&amp;family=Zen+Old+Mincho:wght@700;900&amp;family=Cormorant+Garamond:ital,wght@0,500;1,500;1,600&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=DotGothic16&amp;family=Zen+Kaku+Gothic+New:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+html, body { margin: 0; background: #100E14; }
+a { color: #C9A84C; } a:hover { color: #E0C87E; }
+</style>
+</helmet>
+<section style="background: #100E14; padding: 56px 64px 72px; display: flex; flex-direction: column; gap: 44px; font-family: 'Zen Kaku Gothic New', sans-serif;">
+  <div style="max-width: 800px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="background: #C9A84C; color: #14100A; font-weight: 700; font-size: 12px; padding: 3px 10px; border-radius: 999px;">4</span>
+      <span style="font-size: 12px; letter-spacing: 0.28em; color: #C9A84C; font-weight: 700;">画面UI 3方向 — mobile_app.html の20画面を前提に</span>
+    </div>
+    <div style="font-size: 13px; line-height: 1.9; color: #96949E; margin-top: 8px;">いただいた mobile_app.html から画面一覧 (起動 / 部屋作成・参加 / 名前 / ロビー / GM選択 / 構成 / 役職確認 / 夜 / 朝 / 議論 / 投票 / 同票 / 処刑 / 結果 / 再戦 / 再接続 の20画面) を抽出しました。デザインは引き継がず、代表3画面 (ロビー・夜の行動・投票) に UI の方向を 3 案あてています。カード正本仕様と世界観は共通。番号 (<a href="#4a">4a</a> / <a href="#4b">4b</a> / <a href="#4c">4c</a>) を選んでいただければ、その方向で20画面すべてを作ります。</div>
+  </div>
+
+  <div id="4a" style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; align-items: baseline; gap: 10px;">
+      <span style="background: #EFE7D3; color: #14100A; font-weight: 700; font-size: 12px; padding: 3px 10px; border-radius: 999px;">4a</span>
+      <span style="color: #EDE9DC; font-weight: 700; font-size: 16px;">刻印の台帳 — Quiet Ledger</span>
+      <span style="font-size: 12px; color: #96949E;">無彩の炭色 + 罫線と数字の台帳。装飾ゼロ、静かな道具。</span>
+    </div>
+    <div style="display: flex; gap: 28px; flex-wrap: wrap;">
+
+      <div data-screen-label="4a ロビー" style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #060504; border: 1px solid rgba(237,233,220,0.14); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; background: #0E0C12; display: flex; flex-direction: column; box-sizing: border-box;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 22px 0;">
+            <span style="font-family: 'Cinzel', serif; font-weight: 600; font-size: 10px; letter-spacing: 0.4em; color: rgba(237,233,220,0.45);">Kirokumō</span>
+            <span style="font-size: 12px; color: rgba(237,233,220,0.5);">ルール</span>
+          </div>
+          <div style="padding: 20px 22px 14px;">
+            <div style="font-family: 'LINE Seed JP', sans-serif; font-weight: 800; font-size: 24px; color: #EDE9DC;">ロビー</div>
+            <div style="font-size: 12px; color: rgba(237,233,220,0.5); margin-top: 4px;">全員の準備がそろうと開始できます。</div>
+            <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 12px;">
+              <span style="font-size: 10px; letter-spacing: 0.14em; color: rgba(237,233,220,0.45);">合言葉</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; letter-spacing: 0.3em; color: #C9A84C;">K7QXRM</span>
+            </div>
+          </div>
+          <div style="height: 1px; background: rgba(237,233,220,0.12); margin: 0 22px;"></div>
+          <div style="flex: 1; padding: 4px 22px 0; display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center; gap: 12px; min-height: 47px; border-bottom: 1px solid rgba(237,233,220,0.07);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35); width: 18px;">01</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">あかり <span style="color: rgba(237,233,220,0.4); font-size: 11px;">あなた</span></span><span style="width: 6px; height: 6px; transform: rotate(45deg); background: #C9A84C; flex: none;"></span><span style="font-size: 11px; color: rgba(237,233,220,0.75);">準備完了</span></div>
+            <div style="display: flex; align-items: center; gap: 12px; min-height: 47px; border-bottom: 1px solid rgba(237,233,220,0.07);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35); width: 18px;">02</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">唯</span><span style="width: 6px; height: 6px; transform: rotate(45deg); background: #C9A84C; flex: none;"></span><span style="font-size: 11px; color: rgba(237,233,220,0.75);">準備完了</span></div>
+            <div style="display: flex; align-items: center; gap: 12px; min-height: 47px; border-bottom: 1px solid rgba(237,233,220,0.07);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35); width: 18px;">03</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">健太</span><span style="width: 6px; height: 6px; transform: rotate(45deg); background: #C9A84C; flex: none;"></span><span style="font-size: 11px; color: rgba(237,233,220,0.75);">準備完了</span></div>
+            <div style="display: flex; align-items: center; gap: 12px; min-height: 47px; border-bottom: 1px solid rgba(237,233,220,0.07);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35); width: 18px;">04</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">沙耶</span><span style="width: 6px; height: 6px; transform: rotate(45deg); background: #C9A84C; flex: none;"></span><span style="font-size: 11px; color: rgba(237,233,220,0.75);">準備完了</span></div>
+            <div style="display: flex; align-items: center; gap: 12px; min-height: 47px; border-bottom: 1px solid rgba(237,233,220,0.07);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35); width: 18px;">05</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">アキラ</span><span style="width: 6px; height: 6px; transform: rotate(45deg); background: #C9A84C; flex: none;"></span><span style="font-size: 11px; color: rgba(237,233,220,0.75);">準備完了</span></div>
+            <div style="display: flex; align-items: center; gap: 12px; min-height: 47px; border-bottom: 1px solid rgba(237,233,220,0.07);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35); width: 18px;">06</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: rgba(237,233,220,0.6); flex: 1;">美月</span><span style="width: 6px; height: 6px; transform: rotate(45deg); border: 1px solid rgba(237,233,220,0.4); box-sizing: border-box; flex: none;"></span><span style="font-size: 11px; color: rgba(237,233,220,0.4);">準備中</span></div>
+            <div style="display: flex; align-items: center; gap: 12px; min-height: 47px; border-bottom: 1px solid rgba(237,233,220,0.07);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35); width: 18px;">07</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: rgba(237,233,220,0.6); flex: 1;">蓮</span><span style="width: 6px; height: 6px; transform: rotate(45deg); border: 1px solid rgba(237,233,220,0.4); box-sizing: border-box; flex: none;"></span><span style="font-size: 11px; color: rgba(237,233,220,0.4);">準備中</span></div>
+            <div style="display: flex; align-items: center; gap: 12px; min-height: 47px;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35); width: 18px;">08</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: rgba(237,233,220,0.6); flex: 1;">小鳥遊 このは</span><span style="width: 6px; height: 6px; transform: rotate(45deg); border: 1px solid rgba(237,233,220,0.4); box-sizing: border-box; flex: none;"></span><span style="font-size: 11px; color: rgba(237,233,220,0.4);">準備中</span></div>
+          </div>
+          <div style="padding: 14px 22px 24px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="text-align: center; font-size: 11px; letter-spacing: 0.1em; color: rgba(237,233,220,0.45);">参加 8 / 8 ・ 準備 5 / 8</div>
+            <div style="height: 54px; border-radius: 12px; background: #EFE7D3; color: #14100A; display: flex; align-items: center; justify-content: center; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.12em;">全員そろい次第、開始する</div>
+          </div>
+        </div>
+      </div>
+
+      <div data-screen-label="4a 夜の行動" style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #060504; border: 1px solid rgba(237,233,220,0.14); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; background: #0B0A10; display: flex; flex-direction: column; box-sizing: border-box;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 22px 0;">
+            <span style="font-family: 'Cinzel', serif; font-weight: 600; font-size: 10px; letter-spacing: 0.4em; color: rgba(237,233,220,0.45);">Kirokumō</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(159,180,206,0.6);">第二夜</span>
+          </div>
+          <div style="padding: 20px 22px 12px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+              <div style="font-family: 'LINE Seed JP', sans-serif; font-weight: 800; font-size: 24px; color: #EDE9DC;">夜の行動</div>
+              <div style="font-size: 12px; color: rgba(237,233,220,0.5); margin-top: 4px;">対象を 1 人選んでください。</div>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; color: #9FB4CE;">01:24</div>
+          </div>
+          <div style="height: 1px; background: rgba(237,233,220,0.12); margin: 0 22px;"></div>
+          <div style="padding: 16px 22px 6px;">
+            <div style="font-size: 10px; letter-spacing: 0.3em; color: rgba(159,180,206,0.6); margin-bottom: 6px;">記録者</div>
+            <div style="font-family: 'LINE Seed JP', sans-serif; font-size: 15px; line-height: 1.75; color: #EDE9DC;">誰を占いますか。</div>
+            <div style="font-size: 11px; color: rgba(237,233,220,0.4); margin-top: 8px;">確定すると、この夜の選択を変更できません。</div>
+          </div>
+          <div style="flex: 1; padding: 8px 16px 0; display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">唯</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px; background: rgba(159,180,206,0.07); box-shadow: inset 0 0 0 1px rgba(159,180,206,0.55);"><span style="font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; color: #FFFFFF; flex: 1;">健太</span><span style="width: 6px; height: 6px; transform: rotate(45deg); background: #9FB4CE; margin-right: 8px;"></span><span style="font-size: 11px; color: #9FB4CE;">選択中</span></div>
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">沙耶</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">アキラ</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">美月</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">蓮</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">小鳥遊 このは</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+          </div>
+          <div style="padding: 14px 22px 24px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="height: 54px; border-radius: 12px; background: #EFE7D3; color: #14100A; display: flex; align-items: center; justify-content: center; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.18em;">健太 を占う</div>
+            <div style="text-align: center; font-size: 11px; color: rgba(237,233,220,0.4);">選択は記録者にのみ伝わります。</div>
+          </div>
+        </div>
+      </div>
+
+      <div data-screen-label="4a 投票" style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #060504; border: 1px solid rgba(237,233,220,0.14); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; background: #0E0C12; display: flex; flex-direction: column; box-sizing: border-box;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 22px 0;">
+            <span style="font-family: 'Cinzel', serif; font-weight: 600; font-size: 10px; letter-spacing: 0.4em; color: rgba(237,233,220,0.45);">Kirokumō</span>
+            <span style="font-size: 12px; color: rgba(237,233,220,0.5);">ルール</span>
+          </div>
+          <div style="padding: 20px 22px 12px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+              <div style="font-family: 'LINE Seed JP', sans-serif; font-weight: 800; font-size: 24px; color: #EDE9DC;">投票</div>
+              <div style="font-size: 12px; color: rgba(237,233,220,0.5); margin-top: 4px;">処刑する対象に投票してください。</div>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; color: #C9A84C;">00:48</div>
+          </div>
+          <div style="height: 1px; background: rgba(237,233,220,0.12); margin: 0 22px;"></div>
+          <div style="padding: 14px 22px 6px; font-size: 11px; color: rgba(237,233,220,0.4);">一度確定すると、投票を変更できません。</div>
+          <div style="flex: 1; padding: 4px 16px 0; display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px; opacity: 0.45;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">あかり <span style="font-size: 11px;">あなた</span></span><span style="font-size: 11px; color: rgba(237,233,220,0.5);">投票不可</span></div>
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">唯</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">健太</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px; background: rgba(201,168,76,0.07); box-shadow: inset 0 0 0 1px rgba(201,168,76,0.55);"><span style="font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; color: #FFFFFF; flex: 1;">沙耶</span><span style="width: 6px; height: 6px; transform: rotate(45deg); background: #C9A84C; margin-right: 8px;"></span><span style="font-size: 11px; color: #C9A84C;">選択中</span></div>
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">アキラ</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">美月</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+            <div style="display: flex; align-items: center; min-height: 46px; padding: 0 10px; border-radius: 10px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: rgba(237,233,220,0.5); flex: 1;">蓮</span><span style="font-size: 11px; color: rgba(237,233,220,0.3);">脱落</span></div>
+          </div>
+          <div style="padding: 14px 22px 24px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="text-align: center; font-size: 11px; color: rgba(237,233,220,0.45);">投票済み 3 / 7</div>
+            <div style="height: 54px; border-radius: 12px; background: #EFE7D3; color: #14100A; display: flex; align-items: center; justify-content: center; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.18em;">沙耶 に投票する</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="max-width: 800px; font-size: 12px; line-height: 1.9; color: #96949E;">台帳 (名簿) のメタファー。罫線 + 通し番号 + 菱形マークだけで状態を語り、色は phase accent (夜=月光 / 昼・評決=鈍い金) を最小限に。ボタンは古紙色一枚。もっとも Restraint に忠実な案。</div>
+  </div>
+
+  <div id="4b" style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; align-items: baseline; gap: 10px;">
+      <span style="background: #EFE7D3; color: #14100A; font-weight: 700; font-size: 12px; padding: 3px 10px; border-radius: 999px;">4b</span>
+      <span style="color: #EDE9DC; font-weight: 700; font-size: 16px;">記録網の信号 — Signal Terminal</span>
+      <span style="font-size: 12px; color: #96949E;">旧文明の通信端末。等幅の状態表示・点線罫・角ばった操作。</span>
+    </div>
+    <div style="display: flex; gap: 28px; flex-wrap: wrap;">
+
+      <div data-screen-label="4b ロビー" style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #060504; border: 1px solid rgba(237,233,220,0.14); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; background: #0A0910; display: flex; flex-direction: column; box-sizing: border-box;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 10px; border-bottom: 1px dotted rgba(201,168,76,0.35);">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.18em; color: rgba(201,168,76,0.85);">記録網 KIROKUMO-NET</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: rgba(237,233,220,0.45);">同期済 ▮▮▮▮</span>
+          </div>
+          <div style="padding: 18px 20px 12px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.24em; color: rgba(201,168,76,0.7);">REGISTRY</div>
+            <div style="font-family: 'LINE Seed JP', sans-serif; font-weight: 800; font-size: 25px; color: #EDE9DC; margin-top: 4px;">区画名簿</div>
+            <div style="margin-top: 12px; border: 1px dashed rgba(201,168,76,0.45); border-radius: 6px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 10px; letter-spacing: 0.14em; color: rgba(237,233,220,0.5);">合言葉</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; letter-spacing: 0.32em; color: #C9A84C;">K7QXRM</span>
+            </div>
+          </div>
+          <div style="flex: 1; padding: 0 20px; display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 45px; border-bottom: 1px dotted rgba(237,233,220,0.14);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: rgba(237,233,220,0.35);">01</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">あかり <span style="font-size: 11px; color: rgba(237,233,220,0.4);">あなた</span></span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #C9A84C;">[準備完了]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 45px; border-bottom: 1px dotted rgba(237,233,220,0.14);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: rgba(237,233,220,0.35);">02</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">唯</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #C9A84C;">[準備完了]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 45px; border-bottom: 1px dotted rgba(237,233,220,0.14);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: rgba(237,233,220,0.35);">03</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">健太</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #C9A84C;">[準備完了]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 45px; border-bottom: 1px dotted rgba(237,233,220,0.14);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: rgba(237,233,220,0.35);">04</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">沙耶</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #C9A84C;">[準備完了]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 45px; border-bottom: 1px dotted rgba(237,233,220,0.14);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: rgba(237,233,220,0.35);">05</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">アキラ</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #C9A84C;">[準備完了]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 45px; border-bottom: 1px dotted rgba(237,233,220,0.14);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: rgba(237,233,220,0.35);">06</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: rgba(237,233,220,0.55); flex: 1;">美月</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.4);">[待機中]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 45px; border-bottom: 1px dotted rgba(237,233,220,0.14);"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: rgba(237,233,220,0.35);">07</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: rgba(237,233,220,0.55); flex: 1;">蓮</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.4);">[待機中]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 45px;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: rgba(237,233,220,0.35);">08</span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: rgba(237,233,220,0.55); flex: 1;">小鳥遊 このは</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.4);">[待機中]</span></div>
+          </div>
+          <div style="padding: 12px 20px 24px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: rgba(237,233,220,0.55); text-align: center;">READY 5/8　▮▮▮▮▮▯▯▯</div>
+            <div style="height: 52px; border-radius: 6px; background: #C9A84C; color: #14100A; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.14em;">開始する<span style="font-family: 'IBM Plex Mono', monospace;">▸</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div data-screen-label="4b 夜の行動" style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #060504; border: 1px solid rgba(237,233,220,0.14); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; background: #080810; display: flex; flex-direction: column; box-sizing: border-box;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 10px; border-bottom: 1px dotted rgba(159,180,206,0.35);">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.18em; color: rgba(159,180,206,0.85);">記録網 KIROKUMO-NET</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: rgba(237,233,220,0.45);">NIGHT 02　01:24</span>
+          </div>
+          <div style="padding: 18px 20px 12px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.24em; color: rgba(159,180,206,0.7);">NIGHT ACTION</div>
+            <div style="font-family: 'LINE Seed JP', sans-serif; font-weight: 800; font-size: 25px; color: #EDE9DC; margin-top: 4px;">夜の行動</div>
+            <div style="margin-top: 12px; font-family: 'LINE Seed JP', sans-serif; font-size: 14px; line-height: 1.75; color: #EDE9DC;"><span style="font-family: 'IBM Plex Mono', monospace; color: rgba(159,180,206,0.8);">▸ 記録者:</span> 誰を占いますか。対象を 1 人選んでください。</div>
+            <div style="margin-top: 8px; font-size: 11px; color: rgba(237,233,220,0.4);">確定すると、この夜の選択を変更できません。</div>
+          </div>
+          <div style="flex: 1; padding: 0 20px; display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 46px; border-bottom: 1px dotted rgba(237,233,220,0.14); padding: 0 8px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">唯</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35);">[生存]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 46px; border: 1px solid rgba(159,180,206,0.7); border-radius: 6px; padding: 0 8px; background: rgba(159,180,206,0.09); margin: 2px 0;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9FB4CE;">▸</span><span style="font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; color: #FFFFFF; flex: 1;">健太</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #9FB4CE;">[選択]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 46px; border-bottom: 1px dotted rgba(237,233,220,0.14); padding: 0 8px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">沙耶</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35);">[生存]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 46px; border-bottom: 1px dotted rgba(237,233,220,0.14); padding: 0 8px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">アキラ</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35);">[生存]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 46px; border-bottom: 1px dotted rgba(237,233,220,0.14); padding: 0 8px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">美月</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35);">[生存]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 46px; border-bottom: 1px dotted rgba(237,233,220,0.14); padding: 0 8px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">蓮</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35);">[生存]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 8px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">小鳥遊 このは</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35);">[生存]</span></div>
+          </div>
+          <div style="padding: 12px 20px 24px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="height: 52px; border-radius: 6px; background: #9FB4CE; color: #10131A; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.14em;">健太 を占う<span style="font-family: 'IBM Plex Mono', monospace;">▸</span></div>
+            <div style="text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: rgba(237,233,220,0.4);">SECRET — 選択は記録者にのみ伝わります</div>
+          </div>
+        </div>
+      </div>
+
+      <div data-screen-label="4b 投票" style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #060504; border: 1px solid rgba(237,233,220,0.14); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; background: #0A0910; display: flex; flex-direction: column; box-sizing: border-box;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 10px; border-bottom: 1px dotted rgba(201,168,76,0.35);">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.18em; color: rgba(201,168,76,0.85);">記録網 KIROKUMO-NET</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: rgba(237,233,220,0.45);">DAY 02</span>
+          </div>
+          <div style="padding: 18px 20px 8px; text-align: center;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.24em; color: rgba(201,168,76,0.7);">VERDICT</div>
+            <div style="font-family: 'LINE Seed JP', sans-serif; font-weight: 800; font-size: 25px; color: #EDE9DC; margin-top: 4px;">投票</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 34px; color: #C9A84C; margin-top: 6px;">00:48</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: rgba(237,233,220,0.45); margin-top: 2px;">▮▮▮▮▮▮▮▮▮▮▯▯▯▯▯▯</div>
+            <div style="font-size: 11px; color: rgba(237,233,220,0.4); margin-top: 8px;">一度確定すると、投票を変更できません。</div>
+          </div>
+          <div style="flex: 1; padding: 0 20px; display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 44px; border-bottom: 1px dotted rgba(237,233,220,0.14); padding: 0 8px; opacity: 0.45;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">あかり あなた</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.5);">[投票不可]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 44px; border-bottom: 1px dotted rgba(237,233,220,0.14); padding: 0 8px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">唯</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35);">[生存]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 44px; border-bottom: 1px dotted rgba(237,233,220,0.14); padding: 0 8px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">健太</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35);">[生存]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 44px; border: 1px solid rgba(201,168,76,0.7); border-radius: 6px; padding: 0 8px; background: rgba(201,168,76,0.1); margin: 2px 0;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #C9A84C;">▸</span><span style="font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; color: #FFFFFF; flex: 1;">沙耶</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #C9A84C;">[選択]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 44px; border-bottom: 1px dotted rgba(237,233,220,0.14); padding: 0 8px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">アキラ</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35);">[生存]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 44px; border-bottom: 1px dotted rgba(237,233,220,0.14); padding: 0 8px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: #EDE9DC; flex: 1;">美月</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.35);">[生存]</span></div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 8px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 14px; color: rgba(237,233,220,0.5); flex: 1;">蓮</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(237,233,220,0.3);">[脱落]</span></div>
+          </div>
+          <div style="padding: 12px 20px 24px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: rgba(237,233,220,0.55); text-align: center;">VOTED 3/7　▮▮▮▯▯▯▯</div>
+            <div style="height: 52px; border-radius: 6px; background: #C9A84C; color: #14100A; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.14em;">沙耶 に投票する<span style="font-family: 'IBM Plex Mono', monospace;">▸</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="max-width: 800px; font-size: 12px; line-height: 1.9; color: #96949E;">「旧文明の通信端末」を強く出す案。等幅 (IBM Plex Mono) の状態表示・点線罫・ブロック進捗・角の小さいボタン。データの読み出し感が出る一方、装飾密度は 3 案中もっとも高い。</div>
+  </div>
+
+  <div id="4c" style="display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; align-items: baseline; gap: 10px;">
+      <span style="background: #EFE7D3; color: #14100A; font-weight: 700; font-size: 12px; padding: 3px 10px; border-radius: 999px;">4c</span>
+      <span style="color: #EDE9DC; font-weight: 700; font-size: 16px;">緞帳の儀式 — Ritual Curtain</span>
+      <span style="font-size: 12px; color: #96949E;">イラスト背景 + 緞帳スクリム。縦書き見出しで儀式感を最大化。</span>
+    </div>
+    <div style="display: flex; gap: 28px; flex-wrap: wrap;">
+
+      <div data-screen-label="4c ロビー" style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #060504; border: 1px solid rgba(237,233,220,0.14); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; position: relative; background: #0B0A0E; display: flex; flex-direction: column; box-sizing: border-box;">
+          <img src="assets/backgrounds/bg-01.png" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">
+          <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,8,14,0.55) 0%, rgba(10,8,14,0.72) 40%, rgba(10,8,14,0.94) 78%, rgba(10,8,14,0.97) 100%);"></div>
+          <div style="position: relative; display: flex; justify-content: space-between; align-items: center; padding: 20px 22px 0;">
+            <span style="font-family: 'Cinzel', serif; font-weight: 600; font-size: 10px; letter-spacing: 0.4em; color: rgba(237,233,220,0.6);">Kirokumō</span>
+            <span style="font-size: 12px; color: rgba(237,233,220,0.6);">ルール</span>
+          </div>
+          <div style="position: relative; padding: 26px 22px 0; writing-mode: vertical-rl; margin-left: auto; height: 190px;">
+            <span style="font-family: 'Shippori Mincho B1', serif; font-weight: 800; font-size: 34px; letter-spacing: 0.28em; color: #EDE9DC; text-shadow: 0 2px 14px rgba(0,0,0,0.6);">集会の間</span>
+          </div>
+          <div style="position: relative; margin-top: auto; padding: 0 22px 24px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between;">
+              <span style="font-size: 12px; color: rgba(237,233,220,0.65);">参加 8 / 8 ・ 準備 5 / 8</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.26em; color: #C9A84C;">K7QXRM</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <span style="display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 999px; border: 1px solid rgba(237,233,220,0.3); background: rgba(10,8,14,0.6); font-family: 'LINE Seed JP', sans-serif; font-size: 12px; color: #EDE9DC;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #C9A84C;"></span>あかり</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 999px; border: 1px solid rgba(237,233,220,0.3); background: rgba(10,8,14,0.6); font-family: 'LINE Seed JP', sans-serif; font-size: 12px; color: #EDE9DC;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #C9A84C;"></span>唯</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 999px; border: 1px solid rgba(237,233,220,0.3); background: rgba(10,8,14,0.6); font-family: 'LINE Seed JP', sans-serif; font-size: 12px; color: #EDE9DC;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #C9A84C;"></span>健太</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 999px; border: 1px solid rgba(237,233,220,0.3); background: rgba(10,8,14,0.6); font-family: 'LINE Seed JP', sans-serif; font-size: 12px; color: #EDE9DC;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #C9A84C;"></span>沙耶</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 999px; border: 1px solid rgba(237,233,220,0.3); background: rgba(10,8,14,0.6); font-family: 'LINE Seed JP', sans-serif; font-size: 12px; color: #EDE9DC;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #C9A84C;"></span>アキラ</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 999px; border: 1px solid rgba(237,233,220,0.18); background: rgba(10,8,14,0.6); font-family: 'LINE Seed JP', sans-serif; font-size: 12px; color: rgba(237,233,220,0.55);"><span style="width: 5px; height: 5px; border-radius: 50%; border: 1px solid rgba(237,233,220,0.45); box-sizing: border-box;"></span>美月</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 999px; border: 1px solid rgba(237,233,220,0.18); background: rgba(10,8,14,0.6); font-family: 'LINE Seed JP', sans-serif; font-size: 12px; color: rgba(237,233,220,0.55);"><span style="width: 5px; height: 5px; border-radius: 50%; border: 1px solid rgba(237,233,220,0.45); box-sizing: border-box;"></span>蓮</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 999px; border: 1px solid rgba(237,233,220,0.18); background: rgba(10,8,14,0.6); font-family: 'LINE Seed JP', sans-serif; font-size: 12px; color: rgba(237,233,220,0.55);"><span style="width: 5px; height: 5px; border-radius: 50%; border: 1px solid rgba(237,233,220,0.45); box-sizing: border-box;"></span>小鳥遊 このは</span>
+            </div>
+            <div style="height: 56px; border-radius: 999px; background: #EFE7D3; color: #14100A; display: flex; align-items: center; justify-content: center; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.16em;">全員そろい次第、開始する</div>
+          </div>
+        </div>
+      </div>
+
+      <div data-screen-label="4c 夜の行動" style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #060504; border: 1px solid rgba(237,233,220,0.14); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; position: relative; background: #0B0A0E; display: flex; flex-direction: column; box-sizing: border-box;">
+          <img src="assets/backgrounds/bg-03.png" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">
+          <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,8,16,0.6) 0%, rgba(8,8,16,0.8) 34%, rgba(8,8,16,0.95) 66%, rgba(8,8,16,0.98) 100%);"></div>
+          <div style="position: relative; display: flex; justify-content: space-between; align-items: center; padding: 20px 22px 0;">
+            <span style="font-family: 'Cinzel', serif; font-weight: 600; font-size: 10px; letter-spacing: 0.4em; color: rgba(237,233,220,0.6);">Kirokumō</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(159,180,206,0.75);">第二夜　01:24</span>
+          </div>
+          <div style="position: relative; padding: 22px 22px 0; writing-mode: vertical-rl; margin-left: auto; height: 160px;">
+            <span style="font-family: 'Shippori Mincho B1', serif; font-weight: 800; font-size: 32px; letter-spacing: 0.28em; color: #EDE9DC; text-shadow: 0 2px 14px rgba(0,0,0,0.6);">夜の勤め</span>
+          </div>
+          <div style="position: relative; margin-top: auto; padding: 0 22px 24px; display: flex; flex-direction: column; gap: 12px;">
+            <div style="font-family: 'LINE Seed JP', sans-serif; font-size: 15px; line-height: 1.8; color: #EDE9DC;">誰を占いますか。<br><span style="font-size: 11px; color: rgba(237,233,220,0.5);">確定すると、この夜の選択を変更できません。</span></div>
+            <div style="border-radius: 16px; background: rgba(10,8,14,0.72); border: 1px solid rgba(237,233,220,0.14); padding: 4px 6px; display: flex; flex-direction: column;">
+              <div style="display: flex; align-items: center; min-height: 43px; padding: 0 12px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 13.5px; color: #EDE9DC; flex: 1;">唯</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+              <div style="display: flex; align-items: center; min-height: 43px; padding: 0 12px; border-radius: 10px; box-shadow: inset 0 0 0 1.5px rgba(159,180,206,0.75); background: rgba(159,180,206,0.1);"><span style="font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 13.5px; color: #FFFFFF; flex: 1;">健太</span><span style="font-size: 11px; color: #9FB4CE;">選択中</span></div>
+              <div style="display: flex; align-items: center; min-height: 43px; padding: 0 12px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 13.5px; color: #EDE9DC; flex: 1;">沙耶</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+              <div style="display: flex; align-items: center; min-height: 43px; padding: 0 12px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 13.5px; color: #EDE9DC; flex: 1;">アキラ</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+              <div style="display: flex; align-items: center; min-height: 43px; padding: 0 12px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 13.5px; color: #EDE9DC; flex: 1;">美月</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+              <div style="display: flex; align-items: center; min-height: 43px; padding: 0 12px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 13.5px; color: #EDE9DC; flex: 1;">蓮</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+              <div style="display: flex; align-items: center; min-height: 43px; padding: 0 12px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 13.5px; color: #EDE9DC; flex: 1;">小鳥遊 このは</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+            </div>
+            <div style="height: 56px; border-radius: 999px; background: #EFE7D3; color: #14100A; display: flex; align-items: center; justify-content: center; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.2em;">健太 を占う</div>
+          </div>
+        </div>
+      </div>
+
+      <div data-screen-label="4c 投票" style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #060504; border: 1px solid rgba(237,233,220,0.14); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; position: relative; background: #0B0A0E; display: flex; flex-direction: column; box-sizing: border-box;">
+          <img src="assets/backgrounds/bg-05.png" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">
+          <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,9,8,0.6) 0%, rgba(12,9,8,0.8) 34%, rgba(12,9,8,0.95) 66%, rgba(12,9,8,0.98) 100%);"></div>
+          <div style="position: relative; display: flex; justify-content: space-between; align-items: center; padding: 20px 22px 0;">
+            <span style="font-family: 'Cinzel', serif; font-weight: 600; font-size: 10px; letter-spacing: 0.4em; color: rgba(237,233,220,0.6);">Kirokumō</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #C9A84C;">00:48</span>
+          </div>
+          <div style="position: relative; padding: 22px 22px 0; writing-mode: vertical-rl; margin-left: auto; height: 130px;">
+            <span style="font-family: 'Shippori Mincho B1', serif; font-weight: 800; font-size: 32px; letter-spacing: 0.28em; color: #EDE9DC; text-shadow: 0 2px 14px rgba(0,0,0,0.6);">評決</span>
+          </div>
+          <div style="position: relative; margin-top: auto; padding: 0 22px 24px; display: flex; flex-direction: column; gap: 12px;">
+            <div style="font-family: 'LINE Seed JP', sans-serif; font-size: 15px; line-height: 1.8; color: #EDE9DC;">処刑する対象に投票してください。<br><span style="font-size: 11px; color: rgba(237,233,220,0.5);">一度確定すると、投票を変更できません。</span></div>
+            <div style="border-radius: 16px; background: rgba(10,8,14,0.72); border: 1px solid rgba(237,233,220,0.14); padding: 4px 6px; display: flex; flex-direction: column;">
+              <div style="display: flex; align-items: center; min-height: 42px; padding: 0 12px; opacity: 0.45;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 13.5px; color: #EDE9DC; flex: 1;">あかり あなた</span><span style="font-size: 11px; color: rgba(237,233,220,0.5);">投票不可</span></div>
+              <div style="display: flex; align-items: center; min-height: 42px; padding: 0 12px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 13.5px; color: #EDE9DC; flex: 1;">唯</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+              <div style="display: flex; align-items: center; min-height: 42px; padding: 0 12px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 13.5px; color: #EDE9DC; flex: 1;">健太</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+              <div style="display: flex; align-items: center; min-height: 42px; padding: 0 12px; border-radius: 10px; box-shadow: inset 0 0 0 1.5px rgba(201,168,76,0.75); background: rgba(201,168,76,0.1);"><span style="font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 13.5px; color: #FFFFFF; flex: 1;">沙耶</span><span style="font-size: 11px; color: #C9A84C;">選択中</span></div>
+              <div style="display: flex; align-items: center; min-height: 42px; padding: 0 12px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 13.5px; color: #EDE9DC; flex: 1;">アキラ</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+              <div style="display: flex; align-items: center; min-height: 42px; padding: 0 12px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 13.5px; color: #EDE9DC; flex: 1;">美月</span><span style="font-size: 11px; color: rgba(237,233,220,0.35);">生存</span></div>
+              <div style="display: flex; align-items: center; min-height: 42px; padding: 0 12px;"><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 13.5px; color: rgba(237,233,220,0.5); flex: 1;">蓮</span><span style="font-size: 11px; color: rgba(237,233,220,0.3);">脱落</span></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 11px; color: rgba(237,233,220,0.5); flex: none;">投票済み 3 / 7</span>
+              <div style="height: 56px; border-radius: 999px; background: #EFE7D3; color: #14100A; display: flex; align-items: center; justify-content: center; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.16em; flex: 1;">沙耶 に投票する</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="max-width: 800px; font-size: 12px; line-height: 1.9; color: #96949E;">儀式感を最大化する案。イラスト背景 (お持ちの backgrounds) の上に緞帳スクリムを敷き、縦書き明朝の大見出し (集会の間 / 夜の勤め / 評決) で各画面を「幕」として扱う。操作部は下部の半透明パネルに集約。読みやすさはスクリム濃度で担保。</div>
+  </div>
+</section>
+
+<section style="background: #100E14; padding: 56px 64px 72px; display: flex; flex-direction: column; gap: 28px; font-family: 'Zen Kaku Gothic New', sans-serif;">
+  <div style="max-width: 760px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="background: #C9A84C; color: #14100A; font-weight: 700; font-size: 12px; padding: 3px 10px; border-radius: 999px;">3a</span>
+      <span style="font-size: 12px; letter-spacing: 0.28em; color: #C9A84C; font-weight: 700;">実素材の合成 — 背景 + 透過人物 + タイトル (正本 360×640)</span>
+    </div>
+    <div style="font-size: 13px; line-height: 1.9; color: #96949E; margin-top: 8px;">いただいた実データ (市民・騎士団・人狼) を正本仕様どおりレイヤー合成しました。背景レイヤー＋透過人物レイヤー＋縦書き LINE Seed JP Bold のタイトル＋右上 Cinzel Decorative Black。これが最終カードの見え方です。</div>
+  </div>
+  <div style="display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 8px;">
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; gap: 22px;">
+        <div style="width: 300px; aspect-ratio: 360/640; position: relative; border-radius: 13px; overflow: hidden; background: #0B0A0E; box-shadow: 0 18px 50px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.14);">
+          <img src="assets/cards/citizen_bg.png" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">
+          <img src="assets/cards/citizen_ver_a.png" alt="市民" style="position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); height: 102%; width: auto;">
+          <div style="position: absolute; left: 13px; top: 12px; writing-mode: vertical-rl; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 4px; line-height: 1; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.55);"><ruby>市民<rt style="font-size: 8px; letter-spacing: 1px; font-weight: 700; opacity: 0.85;">しみん</rt></ruby></div>
+          <div style="position: absolute; right: 13px; top: 13px; font-family: 'Cinzel Decorative', serif; font-weight: 900; font-size: 27px; letter-spacing: 0.04em; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.55); text-align: right;">Citizen</div>
+          <div style="position: absolute; left: 0; bottom: 0; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 0 8px 0 0; background: rgba(10,9,14,0.72);"><span style="width: 7px; height: 7px; transform: rotate(45deg); background: #6E8B6A;"></span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 11px; font-weight: 700; color: #6E8B6A;">市民陣営</span></div>
+        </div>
+        <div style="width: 300px; aspect-ratio: 360/640; position: relative; border-radius: 13px; overflow: hidden; background: #0B0A0E; box-shadow: 0 18px 50px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.14);">
+          <img src="assets/cards/knights_bg.png" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">
+          <img src="assets/cards/knights_ver_a.png" alt="騎士団" style="position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); height: 116%; width: auto;">
+          <div style="position: absolute; left: 13px; top: 12px; writing-mode: vertical-rl; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 4px; line-height: 1; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.55);"><ruby>騎士団<rt style="font-size: 8px; letter-spacing: 1px; font-weight: 700; opacity: 0.85;">きしだん</rt></ruby></div>
+          <div style="position: absolute; right: 13px; top: 13px; font-family: 'Cinzel Decorative', serif; font-weight: 900; font-size: 27px; letter-spacing: 0.04em; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.55); text-align: right;">Knights</div>
+          <div style="position: absolute; left: 0; bottom: 0; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 0 8px 0 0; background: rgba(10,9,14,0.72);"><span style="width: 7px; height: 7px; transform: rotate(45deg); background: #8FA8C8;"></span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 11px; font-weight: 700; color: #8FA8C8;">市民陣営</span></div>
+        </div>
+        <div style="width: 300px; aspect-ratio: 360/640; position: relative; border-radius: 13px; overflow: hidden; background: #0B0A0E; box-shadow: 0 18px 50px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.14);">
+          <img src="assets/cards/werewolf_child_bg.png" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">
+          <img src="assets/cards/werewolf_ver_a.png" alt="人狼" style="position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); height: 100%; width: auto;">
+          <div style="position: absolute; left: 13px; top: 12px; writing-mode: vertical-rl; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 4px; line-height: 1; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.55);"><ruby>人狼<rt style="font-size: 8px; letter-spacing: 1px; font-weight: 700; opacity: 0.85;">じんろう</rt></ruby></div>
+          <div style="position: absolute; right: 13px; top: 13px; font-family: 'Cinzel Decorative', serif; font-weight: 900; font-size: 27px; letter-spacing: 0.04em; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.55); text-align: right;">Werewolf</div>
+          <div style="position: absolute; left: 0; bottom: 0; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 0 8px 0 0; background: rgba(10,9,14,0.72);"><span style="width: 7px; height: 7px; transform: rotate(45deg); background: #C25B5B;"></span><span style="font-family: 'LINE Seed JP', sans-serif; font-size: 11px; font-weight: 700; color: #C25B5B;">人狼陣営</span></div>
+        </div>
+      </div>
+      <div style="max-width: 760px; font-size: 12px; line-height: 1.9; color: #96949E;">※ 人狼の背景は暫定で werewolf_child_bg (森) を使用。正規の werewolf_bg をいただければ差し替えます。人物の位置・倍率は refined-position-calibration.json をいただければ完全一致にできます。</div>
+    </div>
+  </div>
+
+  <div style="max-width: 760px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="background: #EFE7D3; color: #14100A; font-weight: 700; font-size: 12px; padding: 3px 10px; border-radius: 999px;">2a</span>
+      <span style="font-size: 12px; letter-spacing: 0.28em; color: #C9A84C; font-weight: 700;">採用方向 — 既存カード仕様を役職確認画面へ適用</span>
+    </div>
+    <div style="font-size: 13px; line-height: 1.9; color: #96949E; margin-top: 8px;">いただいたカード (役職色の全面背景・縦書き明朝の役職名・右上ラテン名・下部の陣営バー) をシステムの基軸に採用します。タイトルは正本仕様 (縦書き LINE Seed JP Bold + ルビ / 右上 Cinzel Decorative Black) に統一。役職確認画面に落とし込んだのが下です。この方向でトークンと全画面を作り直します。下段 <a href="#1a">1a</a> / <a href="#1b">1b</a> / <a href="#1c">1c</a> は先の探索案 (参考)。</div>
+  </div>
+  <div style="display: flex; gap: 56px; align-items: flex-start; flex-wrap: wrap;">
+
+    <div id="2a" data-screen-label="2a 採用: 影武者カード" style="display: flex; flex-direction: column; gap: 18px;">
+      <div style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #060504; border: 1px solid rgba(237,233,220,0.14); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; position: relative; background: #0B0A0E; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 22px 14px;">
+            <div style="font-family: 'Cinzel', serif; font-weight: 600; font-size: 11px; letter-spacing: 0.36em; color: rgba(237,233,220,0.55);">Sealed Record</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: rgba(237,233,220,0.4);">第二夜</div>
+          </div>
+          <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 22px 8px;">
+            <div style="width: 100%; border-radius: 22px; overflow: hidden; position: relative; background: linear-gradient(180deg, #6E5A78 0%, #4A3B52 46%, #241C29 100%); box-shadow: 0 18px 50px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(237,233,220,0.16);">
+              <div style="position: relative; aspect-ratio: 164 / 232; overflow: hidden;">
+                <img src="assets/roles/role-18.png" alt="影武者" style="position: absolute; left: 50%; top: 0; transform: translateX(-50%); height: 100%; width: auto;">
+                <div style="position: absolute; left: 16px; top: 14px; writing-mode: vertical-rl; font-family: 'LINE Seed JP', sans-serif; font-weight: 700; font-size: 34px; letter-spacing: 5px; line-height: 1; color: #FFFFFF; text-shadow: 0 2px 10px rgba(0,0,0,0.55);"><ruby>影武者<rt style="font-size: 10px; letter-spacing: 2px; font-weight: 700; opacity: 0.85;">かげむしゃ</rt></ruby></div>
+                <div style="position: absolute; right: 16px; top: 16px; font-family: 'Cinzel Decorative', serif; font-weight: 900; font-size: 28px; letter-spacing: 0.04em; color: #FFFFFF; text-shadow: 0 2px 8px rgba(0,0,0,0.55);">Double</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 14px; padding: 14px 16px 16px; background: #14121A;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; flex: none; width: 52px;">
+                  <div style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                    <div style="position: relative; width: 26px; height: 18px;">
+                      <div style="position: absolute; left: 3px; top: 0; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid rgba(237,233,220,0.75);"></div>
+                      <div style="position: absolute; right: 3px; top: 0; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid rgba(237,233,220,0.75);"></div>
+                      <div style="position: absolute; left: 0; bottom: 0; width: 12px; height: 8px; border-radius: 8px 8px 0 0; border: 1.5px solid rgba(237,233,220,0.75); border-bottom: none;"></div>
+                      <div style="position: absolute; right: 0; bottom: 0; width: 12px; height: 8px; border-radius: 8px 8px 0 0; border: 1.5px solid rgba(237,233,220,0.75); border-bottom: none;"></div>
+                    </div>
+                  </div>
+                  <div style="font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: rgba(237,233,220,0.8);">市民陣営</div>
+                </div>
+                <div style="width: 1px; align-self: stretch; background: rgba(237,233,220,0.14);"></div>
+                <div style="font-family: 'LINE Seed JP', sans-serif; font-size: 12.5px; line-height: 1.85; letter-spacing: 0.02em; color: rgba(237,233,220,0.9);">最初に指定した市民と同じ役職になり、その身代わりとして人狼の前に立ち塞がる。</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding: 10px 22px calc(22px);">
+            <div style="height: 56px; border-radius: 14px; background: #EFE7D3; color: #14100A; display: flex; align-items: center; justify-content: center; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.18em; cursor: pointer;">確認しました</div>
+            <div style="margin-top: 10px; text-align: center; font-size: 11px; letter-spacing: 0.14em; color: rgba(237,233,220,0.42);">画面を伏せると記録は隠されます</div>
+          </div>
+        </div>
+      </div>
+      <div style="width: 372px; font-size: 12px; line-height: 1.9; color: #96949E;">カードは役職色の全面背景＋全身イラスト。正本仕様どおり縦書き LINE Seed JP Bold の役職名＋ルビ、右上に Cinzel Decorative Black のラテン名、下部に陣営アイコン＋説明バー。端末側は無彩の炭色に留め、カードだけを主役にします。</div>
+    </div>
+
+  </div>
+  <div style="max-width: 720px; margin-top: 8px;">
+    <div style="font-size: 12px; letter-spacing: 0.28em; color: #63616E; font-weight: 700;">— 以下は先の探索案 (参考・未採用) —</div>
+    <div style="font-size: 13px; line-height: 1.9; color: #96949E; margin-top: 8px;">同じ世界観 (旧文明の記録網に接続する個人端末) のまま、洗練の方向を 3 案。気に入った番号 (<a href="#1a">1a</a> / <a href="#1b">1b</a> / <a href="#1c">1c</a>) を教えてください。その方向でシステム全体を作り直します。</div>
+  </div>
+  <div style="display: flex; gap: 56px; align-items: flex-start; flex-wrap: wrap;">
+
+    <div id="1a" data-screen-label="1a 黒金の聖典" style="display: flex; flex-direction: column; gap: 18px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="background: #C9A84C; color: #14100A; font-weight: 700; font-size: 12px; padding: 3px 10px; border-radius: 999px;">1a</span>
+        <span style="color: #EDE9DC; font-weight: 700; font-size: 15px;">黒金の聖典 — Engraved Codex</span>
+      </div>
+      <div style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #060504; border: 1px solid rgba(201,168,76,0.28); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; position: relative; background: radial-gradient(120% 80% at 50% 0%, #17130C 0%, #0C0A07 55%, #080605 100%);">
+          <div style="position: absolute; left: 14px; top: 96px; writing-mode: vertical-rl; font-family: 'Shippori Mincho B1', serif; font-size: 11px; letter-spacing: 0.5em; color: rgba(201,168,76,0.45);">第二夜　機密記録</div>
+          <div style="position: absolute; right: 14px; bottom: 200px; writing-mode: vertical-rl; font-family: 'Shippori Mincho B1', serif; font-size: 11px; letter-spacing: 0.5em; color: rgba(201,168,76,0.3);">閲覧者一名限リ</div>
+          <div style="display: flex; flex-direction: column; align-items: center; height: 100%; box-sizing: border-box; padding: 34px 44px 26px;">
+            <div style="width: 7px; height: 7px; transform: rotate(45deg); background: #C9A84C;"></div>
+            <div style="margin-top: 14px; font-family: 'Cinzel Decorative', serif; font-weight: 700; font-size: 12px; letter-spacing: 0.42em; color: #C9A84C;">Sealed Record</div>
+            <div style="margin-top: 8px; font-family: 'Shippori Mincho B1', serif; font-weight: 800; font-size: 23px; letter-spacing: 0.14em; color: #EFE7D3;">機密記録</div>
+            <div style="margin-top: 10px; width: 180px; border-top: 1px solid rgba(201,168,76,0.55);"></div>
+            <div style="margin-top: 3px; width: 130px; border-top: 1px solid rgba(201,168,76,0.25);"></div>
+            <div style="margin-top: 22px; position: relative; padding: 12px;">
+              <div style="position: absolute; inset: 0; border: 1px solid rgba(201,168,76,0.5);"></div>
+              <div style="position: absolute; inset: 5px; border: 1px solid rgba(201,168,76,0.2);"></div>
+              <div style="position: absolute; left: -4px; top: -4px; width: 7px; height: 7px; transform: rotate(45deg); background: #C9A84C;"></div>
+              <div style="position: absolute; right: -4px; top: -4px; width: 7px; height: 7px; transform: rotate(45deg); background: #C9A84C;"></div>
+              <div style="position: absolute; left: -4px; bottom: -4px; width: 7px; height: 7px; transform: rotate(45deg); background: #C9A84C;"></div>
+              <div style="position: absolute; right: -4px; bottom: -4px; width: 7px; height: 7px; transform: rotate(45deg); background: #C9A84C;"></div>
+              <img src="assets/roles/role-01.png" alt="人狼" style="display: block; width: 208px; border-radius: 2px;">
+            </div>
+            <div style="margin-top: 20px; display: flex; align-items: baseline; gap: 12px;">
+              <span style="font-family: 'Shippori Mincho B1', serif; font-weight: 800; font-size: 30px; letter-spacing: 0.18em; color: #EFE7D3;">人狼</span>
+              <span style="font-family: 'Cinzel', serif; font-weight: 600; font-size: 13px; letter-spacing: 0.14em; color: #C9A84C;">The Werewolf</span>
+            </div>
+            <div style="margin-top: 8px; font-family: 'Shippori Mincho B1', serif; font-size: 12.5px; line-height: 2; letter-spacing: 0.06em; color: #9B9484; text-align: center;">人の姿と獣性を併せ持つ、旧世界の遺産。<br>夜、対象を一人選び襲撃する。</div>
+            <div style="margin-top: auto; width: 100%; display: flex; flex-direction: column; gap: 10px; align-items: center;">
+              <div style="width: 100%; height: 54px; border: 1px solid #C9A84C; background: linear-gradient(180deg, rgba(201,168,76,0.16), rgba(201,168,76,0.04)); display: flex; align-items: center; justify-content: center; font-family: 'Shippori Mincho B1', serif; font-weight: 700; font-size: 15px; letter-spacing: 0.32em; color: #E0C87E; cursor: pointer;">確認の印を刻む</div>
+              <div style="font-size: 11px; letter-spacing: 0.18em; color: rgba(155,148,132,0.7);">手を離すと記録は再び封印されます</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="width: 372px; font-size: 12px; line-height: 1.9; color: #96949E;">祈祷書・銅版画の額装。黒地に鈍い金の細線と菱形の刻印、縦書きの帯。書体は Shippori Mincho B1 × Cinzel。UI が「儀式の道具」になる、静かで格の高い方向。</div>
+    </div>
+
+    <div id="1b" data-screen-label="1b 記録網端末" style="display: flex; flex-direction: column; gap: 18px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="background: #57A87E; color: #04170D; font-weight: 700; font-size: 12px; padding: 3px 10px; border-radius: 999px;">1b</span>
+        <span style="color: #EDE9DC; font-weight: 700; font-size: 15px;">記録網端末 — Relic Terminal</span>
+      </div>
+      <div style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #030507; border: 1px solid rgba(87,168,126,0.25); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; position: relative; background: #04070A; background-image: linear-gradient(rgba(87,168,126,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(87,168,126,0.05) 1px, transparent 1px); background-size: 28px 28px;">
+          <div style="position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 30%, rgba(87,168,126,0.07), transparent 70%); pointer-events: none;"></div>
+          <div style="display: flex; flex-direction: column; height: 100%; box-sizing: border-box; padding: 26px 28px 24px; position: relative;">
+            <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: rgba(159,232,172,0.55);">
+              <span>KIROKU-NET // v3.1</span><span>認証OK</span><span>22:47:03</span>
+            </div>
+            <div style="margin-top: 4px; border-top: 1px solid rgba(87,168,126,0.3);"></div>
+            <div style="margin-top: 26px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.4em; color: #57A87E;">SEALED RECORD 07</div>
+            <div style="margin-top: 8px; font-family: 'DotGothic16', monospace; font-size: 22px; letter-spacing: 0.12em; color: #9FE8C0; text-shadow: 0 0 18px rgba(87,168,126,0.5);">機密記録の閲覧</div>
+            <div style="margin-top: 6px; font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 12px; line-height: 1.8; color: rgba(159,232,172,0.5);">この記録はあなたの端末にのみ復号されます。</div>
+            <div style="margin-top: 22px; align-self: center; position: relative; padding: 14px;">
+              <div style="position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-left: 2px solid #57A87E; border-top: 2px solid #57A87E;"></div>
+              <div style="position: absolute; right: 0; top: 0; width: 26px; height: 26px; border-right: 2px solid #57A87E; border-top: 2px solid #57A87E;"></div>
+              <div style="position: absolute; left: 0; bottom: 0; width: 26px; height: 26px; border-left: 2px solid #57A87E; border-bottom: 2px solid #57A87E;"></div>
+              <div style="position: absolute; right: 0; bottom: 0; width: 26px; height: 26px; border-right: 2px solid #57A87E; border-bottom: 2px solid #57A87E;"></div>
+              <div style="position: relative;">
+                <img src="assets/roles/role-01.png" alt="人狼" style="display: block; width: 196px;">
+                <div style="position: absolute; inset: 0; background: repeating-linear-gradient(180deg, rgba(4,7,10,0) 0px, rgba(4,7,10,0) 3px, rgba(4,7,10,0.22) 4px); pointer-events: none;"></div>
+                <div style="position: absolute; inset: 0; box-shadow: inset 0 0 40px rgba(87,168,126,0.18); pointer-events: none;"></div>
+              </div>
+            </div>
+            <div style="margin-top: 18px; display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em;">
+              <span style="color: rgba(159,232,172,0.5);">役職 <span style="color: #9FE8C0;">人狼</span></span>
+              <span style="color: rgba(159,232,172,0.5);">照合 <span style="color: #9FE8C0;">100%</span></span>
+              <span style="color: rgba(159,232,172,0.5);">開示 <span style="color: #9FE8C0;">許可</span></span>
+            </div>
+            <div style="margin-top: 6px; border-top: 1px dashed rgba(87,168,126,0.3);"></div>
+            <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px;">
+              <div style="height: 54px; background: #57A87E; color: #04170D; display: flex; align-items: center; justify-content: center; font-family: 'DotGothic16', monospace; font-size: 16px; letter-spacing: 0.24em; box-shadow: 0 0 28px rgba(87,168,126,0.35); cursor: pointer;">確認を記録する</div>
+              <div style="text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.16em; color: rgba(159,232,172,0.45);">SYNC 7/8 — 残り 1 名の確認を待機</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="width: 372px; font-size: 12px; line-height: 1.9; color: #96949E;">旧世界の観測端末に直接触れている感覚。燐光グリーン、罫線グリッド、走査線、DotGothic16 × IBM Plex Mono。レトロフューチャー側へ振った、ギーク心のある方向。</div>
+    </div>
+
+    <div id="1c" data-screen-label="1c 月下の裁定" style="display: flex; flex-direction: column; gap: 18px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="background: #C25B5B; color: #1A0D0D; font-weight: 700; font-size: 12px; padding: 3px 10px; border-radius: 999px;">1c</span>
+        <span style="color: #EDE9DC; font-weight: 700; font-size: 15px;">月下の裁定 — Cinematic Editorial</span>
+      </div>
+      <div style="width: 372px; height: 772px; border-radius: 34px; padding: 6px; background: #060404; border: 1px solid rgba(194,91,91,0.25); box-shadow: 0 24px 80px rgba(0,0,0,0.6); flex: none;">
+        <div style="width: 360px; height: 760px; border-radius: 28px; overflow: hidden; position: relative; background: #0A0607;">
+          <img src="assets/roles/role-01.png" alt="人狼" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; filter: saturate(0.82) contrast(1.05);">
+          <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,6,7,0.82) 0%, rgba(10,6,7,0.1) 26%, rgba(10,6,7,0.05) 45%, rgba(10,6,7,0.88) 74%, #0A0607 100%);"></div>
+          <div style="position: absolute; inset: 0; box-shadow: inset 0 0 120px rgba(0,0,0,0.55); pointer-events: none;"></div>
+          <div style="position: relative; display: flex; flex-direction: column; height: 100%; box-sizing: border-box; padding: 30px 30px 26px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="flex: 1; border-top: 1px solid rgba(237,233,220,0.35);"></div>
+              <div style="font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 14px; letter-spacing: 0.18em; color: rgba(237,233,220,0.85);">The Sealed Record</div>
+              <div style="flex: 1; border-top: 1px solid rgba(237,233,220,0.35);"></div>
+            </div>
+            <div style="margin-top: auto;">
+              <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.4em; color: #D98A8A;">第二夜　機密記録</div>
+              <div style="margin-top: 10px; font-family: 'Zen Old Mincho', serif; font-weight: 900; font-size: 58px; line-height: 1.1; letter-spacing: 0.06em; color: #F2EFE6; text-shadow: 0 2px 24px rgba(0,0,0,0.6);">人狼</div>
+              <div style="margin-top: 2px; font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 500; font-size: 21px; letter-spacing: 0.08em; color: rgba(242,239,230,0.78);">The Werewolf</div>
+              <div style="margin-top: 14px; max-width: 250px; font-size: 12.5px; line-height: 2; color: rgba(242,239,230,0.82);">人の姿と獣性を併せ持つ、旧世界の遺産。夜、対象を一人選び襲撃する。</div>
+              <div style="margin-top: 18px; border-top: 1px solid rgba(242,239,230,0.22);"></div>
+              <div style="margin-top: 18px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="height: 54px; background: rgba(242,239,230,0.94); color: #1A0D0D; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; letter-spacing: 0.22em; border-radius: 2px; cursor: pointer;">確認しました</div>
+                <div style="text-align: center; font-size: 11px; letter-spacing: 0.14em; color: rgba(242,239,230,0.55);">画面を伏せると記録は隠されます</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="width: 372px; font-size: 12px; line-height: 1.9; color: #96949E;">映画のタイトルカードのような全面イラスト × 大きな明朝。UI をほぼ消してカードを完全な主役にする。書体は Zen Old Mincho 900 × Cormorant Garamond Italic。最も没入的な方向。</div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+</body>
+</html>

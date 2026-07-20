@@ -1,0 +1,1 @@
+画面全体のシェル。data-phase を設定し、safe area と最大幅 430px を管理する (SafeAreaFrame を兼ねる)。\n\n<AppShell phase="night">…</AppShell>\n\n- phase 転換は 640ms の背景トランジション。desktop レイアウトは対象外。

@@ -1,0 +1,28 @@
+<!-- @dsCard group="Colors" viewport="700x190" subtitle="Private / Reveal コンテキスト限定 — 公開UIでは使用禁止" name="Faction Colors" -->
+<meta charset="utf-8"><link rel="stylesheet" href="../styles.css"><style>
+body{margin:0;font-family:var(--font-ui);background:var(--surface-page);color:var(--ink-body);-webkit-font-smoothing:antialiased}
+.row{display:flex;gap:12px;align-items:stretch}
+.pad{padding:16px 20px}
+.cap{font-size:12px;line-height:1.5;color:var(--ink-muted)}
+.mono{font-family:var(--font-code)}
+</style><div class="pad row">
+
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:14px 12px">
+<div style="display:flex;gap:8px;align-items:center"><span style="width:22px;height:22px;border-radius:4px;background:#6E8B6A;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)"></span>
+<span style="font-weight:700;font-size:14px;color:#B7CBB2">市民陣営</span></div>
+<div class="cap mono" style="margin-top:8px">--faction-citizen</div>
+</div>
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:14px 12px">
+<div style="display:flex;gap:8px;align-items:center"><span style="width:22px;height:22px;border-radius:4px;background:#8E2F2F;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)"></span>
+<span style="font-weight:700;font-size:14px;color:#D98A8A">人狼陣営</span></div>
+<div class="cap mono" style="margin-top:8px">--faction-werewolf</div>
+</div>
+<div style="flex:1;background:var(--surface-raised);border:1px solid var(--rule);border-radius:8px;padding:14px 12px">
+<div style="display:flex;gap:8px;align-items:center"><span style="width:22px;height:22px;border-radius:4px;background:#57A87E;box-shadow:inset 0 1px 0 rgba(255,255,255,.15)"></span>
+<span style="font-weight:700;font-size:14px;color:#9FDDBB">第三陣営</span></div>
+<div class="cap mono" style="margin-top:8px">--faction-third</div>
+</div>
+<div style="flex:1.3;border:1px dashed var(--rule-strong);border-radius:8px;padding:14px 12px">
+<div style="font-size:13px;font-weight:700;color:var(--status-danger)">常時表示禁止</div>
+<div class="cap" style="margin-top:6px">夜の画面は役職に関わらず同一トーン。陣営は色だけでなく紋章・ラベルで示す。role accent は <span class="mono">--role-accent</span> として RoleCard 側で注入。</div>
+</div></div>

@@ -1,0 +1,21 @@
+/* 記録網 Design System — Motion tokens
+   4段階: instant (押下) / micro (状態変化) / phase (フェーズ転換) / reveal (儀式的開示)
+   通常操作は短く。長い motion はフェーズ演出のみ。
+   人狼だけ異なる外向き motion を使わない。 */
+:root {
+  --t-instant: 80ms;
+  --t-micro: 180ms;
+  --t-phase: 640ms;
+  --t-reveal: 1400ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-inout: cubic-bezier(0.55, 0, 0.2, 1);
+  --ease-ritual: cubic-bezier(0.7, 0, 0.16, 1);  /* phase / reveal 専用 */
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-instant: 0ms;
+    --t-micro: 0ms;
+    --t-phase: 0ms;
+    --t-reveal: 0ms;
+  }
+}

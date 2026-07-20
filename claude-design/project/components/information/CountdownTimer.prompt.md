@@ -1,0 +1,1 @@
+評議・夜行動のカウントダウン。tabular numerals、残 30s で warning / 10s で danger (色 + aria-live 併用)。\n\n<CountdownTimer seconds={272} total={300} size="lg" label="評議 残り時間" />\n\n- DiscussionTimer は size="lg" + label がその仕様。

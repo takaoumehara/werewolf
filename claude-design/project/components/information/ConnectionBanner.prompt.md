@@ -1,0 +1,1 @@
+接続状態バナー。画面上部に。compact は行内 SyncIndicator。\n\n<ConnectionBanner state="reconnecting" />\n\n- 文は必ず「何が起きたか + 入力は保存されている」— 不安を煽らない。

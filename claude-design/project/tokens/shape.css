@@ -1,0 +1,19 @@
+/* 記録網 Design System — Shape / surface tokens
+   刻印 (engraved) = 暗い線 + 直下の内側ハイライトの2重線。
+   texture は overlay として独立させ、本文の背後へ強く敷かない。 */
+:root {
+  --radius-1: 4px;    /* 入力欄内部, badge */
+  --radius-2: 8px;    /* button, field */
+  --radius-3: 12px;   /* card, sheet 上辺 */
+  --radius-card: 14px;/* RoleCard */
+  --radius-full: 999px;
+
+  --border-thin: 1px;
+  --border-thick: 2px;
+
+  --engraved-rule: inset 0 1px 0 rgba(0,0,0,0.55), inset 0 2px 0 var(--edge-highlight);
+  --shadow-raised: 0 1px 0 var(--edge-highlight) inset, 0 2px 8px rgba(0,0,0,0.35);
+  --shadow-modal: 0 1px 0 var(--edge-highlight) inset, 0 12px 40px rgba(0,0,0,0.55);
+  --shadow-card: 0 6px 24px rgba(0,0,0,0.45);
+  --focus-ring: 0 0 0 2px var(--surface-page), 0 0 0 4px var(--accent);
+}

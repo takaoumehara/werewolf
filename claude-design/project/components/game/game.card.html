@@ -1,0 +1,42 @@
+<!-- @dsCard group="Components" viewport="700x480" subtitle="RoleCard / PrivacyCover / PlayerList / VoteBallot / RoomCode / QR" name="Game" -->
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<style>body{margin:0;background:var(--surface-page);font-family:var(--font-ui);color:var(--ink-body)}#root{padding:16px 20px}</style>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="../../fallback.js"></script>
+<div id="root"></div>
+<script type="text/km-babel">
+function ns(){for(const k of Object.getOwnPropertyNames(window)){try{const v=window[k];if(v&&typeof v==="object"&&v.Button&&v.RoleCard)return v;}catch(e){}}return {};}
+function boot(DS){
+
+const {RoleCard,PrivacyCover,PlayerList,VoteBallot,RoomCode,QRJoinPanel}=DS;
+function Demo(){
+  const [v,setV]=React.useState(null);
+  const players=[{id:1,name:"たかお",me:true,ready:true},{id:2,name:"ゆき",ready:false},{id:3,name:"けんじ",connection:"reconnecting"},{id:4,name:"あおい",alive:false}];
+  return <div style={{display:"flex",gap:16}}>
+    <RoleCard image="../../assets/roles/role-01.png" roleName="人狼" ruby="じんろう" roleNameEn="Werewolf" faction="werewolf" summary="夜、対象を 1 人選んで襲撃する。" width={210}/>
+    <div style={{width:220,display:"flex",flexDirection:"column",gap:12}}>
+      <PrivacyCover minHeight={200} style={{border:"1px solid var(--rule)"}}>
+        <RoleCard image="../../assets/roles/role-15.png" roleName="騎士団" ruby="きしだん" roleNameEn="Knights" faction="citizen" width="100%"/>
+      </PrivacyCover>
+      <RoomCode code="834107" size="md"/>
+    </div>
+    <div style={{flex:1,display:"flex",flexDirection:"column",gap:10}}>
+      <div style={{fontSize:12,color:"var(--ink-muted)"}}>PlayerList (公開 — 役職情報なし)</div>
+      <div style={{border:"1px solid var(--rule)",borderRadius:12,padding:4}}>
+        <PlayerList players={players}/>
+      </div>
+      <VoteBallot players={players.filter(p=>p.alive!==false)} value={v} onChange={setV} deadlineNote="締切まで変更できます"/>
+    </div>
+  </div>;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo/>);
+}
+const D0=ns();
+if(D0.Button&&D0.RoleCard)boot(D0);
+else if(window.__KM)boot(window.__KM);
+else window.addEventListener("km-ready",()=>boot(window.__KM));
+</script>

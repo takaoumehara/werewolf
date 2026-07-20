@@ -1,0 +1,1 @@
+6桁参加コード入力。数字キーパッド・one-time-code 自動入力対応、tabular numerals。\n\n<CodeInput value={code} onChange={setCode} label="参加コード" error={err} />\n\n- エラー例: 「コードが見つかりません。数字を確認するか、QR を読み取ってください。」

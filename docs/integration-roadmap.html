@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人狼ゲーム — エンジン × UI 繋ぎ込みロードマップ</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=LINE+Seed+JP:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --soot:#07080a; --charcoal:#0d0f12; --surface:#14171c; --surface2:#1b1f26;
+    --line:rgba(255,255,255,0.09); --text:#eef2f7; --dim:#9aa6b5; --faint:#5f6b7a;
+    --moon:#9fb4c7; --ember:#b97a3d; --paper:#e8e0cf;
+    --done:#5aa17a; --design:#b08a3d; --todo:#6a6a72; --red:#a03a30; --accent:#8fb0c9;
+    --mono:'IBM Plex Mono',monospace; --body:'LINE Seed JP',sans-serif; --disp:'Cinzel Decorative',serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+      radial-gradient(ellipse at 50% -10%, rgba(159,180,199,.10), transparent 55%),
+      var(--charcoal);
+    color:var(--text);font-family:var(--body);font-size:15px;line-height:1.75;
+    -webkit-font-smoothing:antialiased;padding:0 0 120px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  header.hero{padding:64px 0 40px;text-align:center;border-bottom:1px solid var(--line)}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.28em;color:var(--dim);text-transform:uppercase}
+  h1{font-family:var(--disp);font-weight:900;font-size:34px;letter-spacing:.02em;margin:14px 0 10px;color:var(--paper)}
+  .thesis{max-width:680px;margin:0 auto;color:var(--dim);font-size:15px}
+  .thesis b{color:var(--moon);font-weight:700}
+  section{padding:52px 0 8px;border-bottom:1px solid var(--line)}
+  h2{font-family:var(--disp);font-weight:900;font-size:22px;color:var(--moon);margin:0 0 6px;letter-spacing:.03em}
+  h2 .no{font-family:var(--mono);font-size:14px;color:var(--faint);margin-right:12px}
+  .lead{color:var(--dim);margin:0 0 26px;max-width:760px}
+  h3{font-size:16px;margin:30px 0 12px;color:var(--paper)}
+  code,.k{font-family:var(--mono);font-size:.88em;background:var(--soot);border:1px solid var(--line);
+    border-radius:5px;padding:1px 6px;color:var(--moon)}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:600;
+    padding:3px 10px;border-radius:999px;letter-spacing:.04em;white-space:nowrap}
+  .b-done{background:rgba(90,161,122,.14);color:#8fd3ab;border:1px solid rgba(90,161,122,.4)}
+  .b-design{background:rgba(176,138,61,.14);color:#e0bd72;border:1px solid rgba(176,138,61,.4)}
+  .b-todo{background:rgba(120,120,130,.14);color:#aab2bd;border:1px solid rgba(120,120,130,.4)}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+  .dot-done{background:#5aa17a}.dot-design{background:#b08a3d}.dot-todo{background:#6a6a72}
+
+  /* stack diagram */
+  .stack{display:flex;flex-direction:column;gap:10px;margin:8px 0 4px}
+  .layer{display:grid;grid-template-columns:150px 1fr auto;align-items:center;gap:18px;
+    background:linear-gradient(90deg,var(--surface),var(--surface2));
+    border:1px solid var(--line);border-radius:12px;padding:16px 20px}
+  .layer.done{border-left:3px solid var(--done)}
+  .layer.design{border-left:3px solid var(--design)}
+  .layer.todo{border-left:3px solid var(--todo)}
+  .layer .ttl{font-weight:700;font-size:15px}
+  .layer .sub{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:2px}
+  .layer .desc{color:var(--dim);font-size:13.5px}
+  .flowdown{text-align:center;color:var(--faint);font-family:var(--mono);font-size:15px;line-height:1;margin:-3px 0}
+
+  /* seam diagram */
+  .seam{display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;margin:26px 0 10px}
+  .seam .box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .seam .mid{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 18px;min-width:180px}
+  .seam .iface{background:var(--soot);border:1px dashed var(--moon);border-radius:10px;padding:14px 16px;text-align:center;width:100%}
+  .seam .iface .name{font-family:var(--mono);font-size:12px;color:var(--moon);font-weight:600}
+  .impl{margin-top:12px;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface2)}
+  .impl h4{margin:0 0 4px;font-size:13.5px}
+  .impl p{margin:0;color:var(--dim);font-size:12.5px}
+  .arrow{color:var(--faint);text-align:center;font-family:var(--mono);font-size:20px;margin:6px 0}
+
+  table{width:100%;border-collapse:collapse;margin:10px 0 6px;font-size:13.5px}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--dim);text-transform:uppercase;font-weight:600}
+  tbody tr:hover{background:rgba(255,255,255,.02)}
+  td .k{white-space:nowrap}
+
+  /* phases */
+  .phase{display:grid;grid-template-columns:56px 1fr;gap:20px;margin:0 0 4px;padding:20px 0;border-bottom:1px dashed var(--line)}
+  .phase:last-child{border-bottom:none}
+  .pnum{font-family:var(--disp);font-weight:900;font-size:30px;color:var(--faint);line-height:1}
+  .phase h3{margin:0 0 6px}
+  .phase .goal{color:var(--dim);font-size:13.5px;margin:0 0 12px}
+  .checklist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:7px}
+  .checklist li{position:relative;padding-left:24px;font-size:13.5px;color:var(--text)}
+  .checklist li::before{content:'▢';position:absolute;left:0;color:var(--faint);font-family:var(--mono)}
+  .checklist li.d::before{content:'✓';color:var(--done)}
+  .meta{margin-top:10px;font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+  .meta b{color:var(--dim);font-weight:600}
+
+  /* lanes */
+  .lanes{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:8px 0}
+  @media(max-width:760px){.lanes{grid-template-columns:1fr}.seam{grid-template-columns:1fr}.layer{grid-template-columns:1fr auto}}
+  .lane{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;position:relative;overflow:hidden}
+  .lane::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+  .lane.a::before{background:#5aa17a}.lane.b::before{background:#8fb0c9}
+  .lane.c::before{background:#b08a3d}.lane.d::before{background:#b06a9a}
+  .lane .tag{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--faint)}
+  .lane h3{margin:4px 0 2px;font-size:16px}
+  .lane .who{font-size:12.5px;color:var(--dim);margin:0 0 12px}
+  .lane ul{margin:0;padding-left:18px;font-size:13px;color:var(--text)}
+  .lane ul li{margin-bottom:5px}
+  .lane .dep{margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--faint);border-top:1px solid var(--line);padding-top:10px}
+  .lane .dep b{color:var(--accent)}
+
+  .callout{background:linear-gradient(135deg,rgba(143,176,201,.08),rgba(143,176,201,.02));
+    border:1px solid rgba(143,176,201,.3);border-left:3px solid var(--moon);border-radius:12px;padding:18px 22px;margin:22px 0}
+  .callout.warn{background:linear-gradient(135deg,rgba(176,138,61,.08),transparent);border-color:rgba(176,138,61,.35);border-left-color:var(--ember)}
+  .callout .h{font-weight:700;color:var(--moon);margin-bottom:4px}
+  .callout.warn .h{color:var(--ember)}
+
+  .fork{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+  @media(max-width:760px){.fork{grid-template-columns:1fr}}
+  .opt{border:1px solid var(--line);border-radius:12px;padding:18px 20px;background:var(--surface)}
+  .opt.rec{border-color:rgba(90,161,122,.5);background:linear-gradient(135deg,rgba(90,161,122,.06),transparent)}
+  .opt .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--faint);margin-bottom:4px}
+  .opt.rec .lbl{color:#8fd3ab}
+  .opt h4{margin:0 0 8px;font-size:15px}
+  .opt .pro,.opt .con{font-size:12.5px;margin:3px 0;padding-left:20px;position:relative}
+  .opt .pro::before{content:'+';position:absolute;left:4px;color:var(--done);font-weight:700}
+  .opt .con::before{content:'−';position:absolute;left:4px;color:var(--red);font-weight:700}
+
+  /* gantt */
+  .gantt{margin:18px 0 6px;font-size:12px}
+  .grow{display:grid;grid-template-columns:130px 1fr;align-items:center;gap:12px;margin-bottom:8px}
+  .glabel{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:right}
+  .gtrack{position:relative;height:26px;background:var(--soot);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .gbar{position:absolute;top:3px;bottom:3px;border-radius:4px;display:flex;align-items:center;padding-left:9px;
+    font-family:var(--mono);font-size:10px;color:#0d0f12;font-weight:600;white-space:nowrap}
+  .gscale{display:grid;grid-template-columns:130px 1fr;gap:12px;margin-top:4px;color:var(--faint);font-family:var(--mono);font-size:10px}
+  .gscale div:last-child{display:flex;justify-content:space-between}
+
+  footer{padding:40px 0 0;color:var(--faint);font-size:12.5px;font-family:var(--mono)}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin:20px 0 0;font-size:12px;color:var(--dim)}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">Engine × UI · Integration Roadmap</div>
+    <h1>ゲームエンジンと UI を繋ぐ</h1>
+    <p class="thesis">エンジンは<b>純粋なESM</b>で、ブラウザでもサーバーでも<b>同じ <code style="color:var(--moon)">dispatch</code></b> で動く。役職IDはカード資産IDと<b>1:1で一致</b>。だから繋ぎ込みの本質は「1つの <b>GameClient インターフェイス</b>を決め、ローカル版→Firebase版と差し替える」こと。以下がその工程と、複数AIセッションでの並行の切り方。</p>
+    <div class="legend">
+      <span><span class="dot dot-done"></span> 実装済み・テスト green</span>
+      <span><span class="dot dot-design"></span> 設計のみ(コード無し)</span>
+      <span><span class="dot dot-todo"></span> 未着手</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ============ 0 現在地 ============ -->
+<section>
+  <h2><span class="no">00</span>現在地 — 5層のどこが出来ているか</h2>
+  <p class="lead">全体は5層。両端(エンジンとUI)は完成、真ん中のFirebaseは<b style="color:var(--ember)">設計だけあって実装ゼロ</b>。ここが今回埋める空白。</p>
+  <div class="stack">
+    <div class="layer done">
+      <div><div class="ttl">① ドメインエンジン</div><div class="sub">game-engine/src/engine.mjs</div></div>
+      <div class="desc"><code>createGame</code> / <code>dispatch</code> / <code>toPublicView</code> / <code>toPlayerView</code>。10種のコマンド、25役職、決定論シード。<b>30テスト green</b>。</div>
+      <span class="badge b-done"><span class="dot dot-done"></span>済</span>
+    </div>
+    <div class="flowdown">▲ コマンド ／ ▼ ビュー</div>
+    <div class="layer done">
+      <div><div class="ttl">② アダプタ契約</div><div class="sub">firebase-adapter-contract.mjs</div></div>
+      <div class="desc"><code>createCommandEnvelope</code>(検証)・<code>applyCommandOnce</code>(冪等)・<code>buildPersistencePatch</code>(公開/秘密/完全の分離)。Firebase SDK非依存。<b>6テスト green</b>。</div>
+      <span class="badge b-done"><span class="dot dot-done"></span>済</span>
+    </div>
+    <div class="flowdown">▲ ▼</div>
+    <div class="layer design">
+      <div><div class="ttl">③ Firebase バックエンド</div><div class="sub">firebase-backend/ (未作成)</div></div>
+      <div class="desc">Callable Functions 4本 / RTDB / セキュリティルール。設計書とプランは完備、<b style="color:var(--ember)">コード・プロジェクト・鍵は一切無し</b>。</div>
+      <span class="badge b-design"><span class="dot dot-design"></span>設計のみ</span>
+    </div>
+    <div class="flowdown">▲ ▼</div>
+    <div class="layer todo">
+      <div><div class="ttl">④ クライアントSDK層</div><div class="sub">game-client/ (未作成)</div></div>
+      <div class="desc">認証・callable呼び出し・public/private購読をまとめる薄い層。<b>GameClient インターフェイスの実体</b>。未着手。</div>
+      <span class="badge b-todo"><span class="dot dot-todo"></span>未</span>
+    </div>
+    <div class="flowdown">▲ ▼</div>
+    <div class="layer design">
+      <div><div class="ttl">⑤ モバイルUI</div><div class="sub">mobile_app.html</div></div>
+      <div class="desc">20画面のプロトタイプは完成。ただし <code>PLAYERS</code> 等の<b>モックデータで駆動</b>。ここを④のビュー購読に差し替える。</div>
+      <span class="badge b-design"><span class="dot dot-done" style="background:#5aa17a"></span>UIは済/配線は未</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 1 繋ぎ目 ============ -->
+<section>
+  <h2><span class="no">01</span>繋ぎ目の正体 — 1つのインターフェイス、2つの実装</h2>
+  <p class="lead">UIから見れば「部屋・プレイヤー・自分の役職・フェーズを購読し、コマンドを送る」だけ。この契約を <code>GameClient</code> として固定すれば、中身をローカルエンジン→Firebaseへ<b>差し替え可能</b>になる。しかも契約の中身(コマンド10種・ビュー2種・役職ID)は<b>エンジン側で既に確定済み</b>。</p>
+
+  <div class="seam">
+    <div class="box">
+      <h4 style="margin:0 0 6px;font-size:14px">⑤ UI (mobile_app.html)</h4>
+      <p style="margin:0;color:var(--dim);font-size:12.5px">画面は「今のビュー」を描き、操作は<code>client.send(...)</code>を呼ぶだけ。エンジンもFirebaseも知らない。</p>
+    </div>
+    <div class="mid">
+      <div class="arrow">→</div>
+      <div class="iface">
+        <div class="name">interface GameClient</div>
+        <div style="font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:8px;text-align:left;line-height:1.7">
+          subscribePublic(cb)<br>
+          subscribeSelf(uid,cb)<br>
+          send(command)<br>
+          createRoom() / join(code)
+        </div>
+      </div>
+      <div class="arrow">↙ &nbsp; ↘</div>
+    </div>
+    <div class="box">
+      <div class="impl">
+        <h4>LocalGameClient <span class="badge b-todo" style="font-size:10px">Phase 1</span></h4>
+        <p>ブラウザ内で <code>createGame</code>/<code>dispatch</code> を直接回す。Firebase不要・オフライン。UI配線の検証用。</p>
+      </div>
+      <div class="impl">
+        <h4>FirebaseGameClient <span class="badge b-todo" style="font-size:10px">Phase 3</span></h4>
+        <p>callable呼び出し + <code>onValue</code> 購読。同じインターフェイスなので<b>UIは無改造で差し替え</b>。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="h">★ 契約はもう凍っている</div>
+    実質的な設計作業はほぼ不要。<b>コマンド</b>= <code>START_GAME</code> <code>BEGIN_NIGHT</code> <code>SUBMIT_NIGHT_ACTION</code> <code>CAST_VOTE</code> <code>RESOLVE_*</code> ほか計10種。<b>ビュー</b>= <code>toPublicView(state)</code>(全員向け・役職を含まない)と <code>toPlayerView(state,uid)</code>(本人の <code>self.roleId</code> 等)。<b>役職ID</b>= <code>ROLE_IDS</code> の25個が <code>{id}_ver_a.png</code> のカード資産名と完全一致 → 変換表いらず。Phase 0 でやるのはこれを<b>1ファイルに書き写して固定する</b>ことだけ。
+  </div>
+</section>
+
+<!-- ============ 2 推奨ルート ============ -->
+<section>
+  <h2><span class="no">02</span>推奨ルート — ローカル先行 → エミュレータ → 実機</h2>
+  <p class="lead">いきなりFirebaseに行かない。<b>①ローカルで先にUI×エンジンを繋ぎ</b>、<b>②Firebaseはまずエミュレータで</b>組み、<b>③最後に実機デプロイ</b>。課金・クラウド設定は最終段まで不要で、各段が独立して「動く」状態になる。</p>
+
+  <div class="phase">
+    <div class="pnum">0</div>
+    <div>
+      <h3>契約の凍結 <span class="badge b-todo">半日 · 1セッション逐次</span></h3>
+      <p class="goal">目的: 並行作業を始める前に「唯一の共有面」を固定する。ここだけは分岐できない。</p>
+      <ul class="checklist">
+        <li><code>game-client/game-client-interface.mjs</code> に <code>GameClient</code> の型(JSDoc)を定義</li>
+        <li>コマンド10種と payload、<code>toPublicView</code>/<code>toPlayerView</code> の返り値形を <code>docs/…/integration-contract.md</code> に転記</li>
+        <li>UIのモック(<code>PLAYERS</code>等)を、この<b>ビュー形と同じ shape</b> に整形(後の差し替えを無改造にする布石)</li>
+      </ul>
+      <div class="meta"><b>成果物:</b> 共有インターフェイス1本 + 契約書1本(全レーンがこれをimport/参照)</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">1</div>
+    <div>
+      <h3>ローカル統合 — Firebaseゼロで本物のゲームが回る <span class="badge b-todo">Lane A</span></h3>
+      <p class="goal">目的: UIとエンジンの結線を、ネットワーク無しで先に完成させる。最大の価値・最小のリスク。</p>
+      <ul class="checklist">
+        <li><code>LocalGameClient</code> 実装(ブラウザ内で <code>createGame</code>/<code>dispatch</code>、複数プレイヤーはホットシート or 疑似)</li>
+        <li><code>mobile_app.html</code> のモック描画を <code>toPublicView</code>/<code>toPlayerView</code> 購読へ置換</li>
+        <li>役職確認・夜行動・投票・処刑・勝敗が<b>実エンジンの状態で</b>動く(カードは既存のまま)</li>
+      </ul>
+      <div class="meta"><b>依存:</b> エンジン(済) + Phase0 &nbsp;|&nbsp; <b>検証:</b> 1台のブラウザで全フロー通し</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">2</div>
+    <div>
+      <h3>Firebaseバックエンド(エミュレータ上) <span class="badge b-todo">Lane B</span></h3>
+      <p class="goal">目的: 既存の6タスク・プランを実装。ローカルの Firebase Emulator Suite で回すのでクラウド課金・プロジェクト作成は不要。</p>
+      <ul class="checklist">
+        <li><code>firebase-backend/</code>: Callable 4本(<code>createSnapRoom</code>/<code>joinSnapRoom</code>/<code>startWerewolfGame</code>/<code>dispatchWerewolfCommand</code>)</li>
+        <li><code>database.rules.json</code>: public/publicEvents=メンバー読取、privateViews=本人のみ、authoritative=サーバーのみ</li>
+        <li>エンジン+アダプタ契約をFunctions内にbundle。<code>actorId</code>は必ず <code>auth.uid</code> から(なりすまし防止)</li>
+        <li><code>firebase.json</code> の emulators 設定 + 契約/ルールの自動テスト</li>
+      </ul>
+      <div class="meta"><b>依存:</b> エンジン+アダプタ(済) + Phase0の契約 &nbsp;|&nbsp; <b>参照:</b> docs/…/firebase-game-session プラン</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">3</div>
+    <div>
+      <h3>実マルチデバイス — QRで複数スマホ参加 <span class="badge b-todo">Lane C → 統合</span></h3>
+      <p class="goal">目的: <code>FirebaseGameClient</code> を <code>LocalGameClient</code> と<b>同じインターフェイスで</b>実装し、UIを差し替え。実プロジェクトへデプロイ。</p>
+      <ul class="checklist">
+        <li><code>game-client/firebase-game-client.mjs</code>(匿名認証 + callable + <code>onValue</code> 購読)</li>
+        <li>QR/6桁コード参加を <code>live_access_key.mjs</code> の鍵ビジュアルに接続</li>
+        <li>実Firebaseプロジェクト作成 + Blazeプラン + <code>firebase deploy</code>(<b>ここで初めてクラウド設定</b>)</li>
+        <li>再接続・重複送信・ホスト離脱を実機2〜3台で確認</li>
+      </ul>
+      <div class="meta"><b>依存:</b> Phase0の契約 + Lane B(callable名/パス) &nbsp;|&nbsp; <b>要ユーザー判断:</b> Firebaseプロジェクトの選定</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="pnum">4</div>
+    <div>
+      <h3>ビジュアル仕上げ <span class="badge b-todo">Lane D · 全期間並行</span></h3>
+      <p class="goal">目的: 02プロンプトが求めた hi-fi 状態(loading/empty/error/offline/reconnecting)・演出・モーションを詰める。配線に依存しない。</p>
+      <ul class="checklist">
+        <li>各状態のhi-fi画面 / 処刑・勝敗の cinematic reveal / フェーズ遷移の motion storyboard</li>
+        <li>アクセシビリティ最終監査(360px・200%拡大・reduced-motion)</li>
+      </ul>
+      <div class="meta"><b>依存:</b> design-system.css(済)のみ。<b>Claude Design の出番はここ</b>(→ §04)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 並行レーン ============ -->
+<section>
+  <h2><span class="no">03</span>複数AIセッションでの並行 — 4レーンの切り方</h2>
+  <p class="lead"><b>Phase 0で契約を凍結した瞬間から</b>、A/B/Dは別々のAIセッション(=別ウィンドウ)で同時に進められる。鍵は「各レーンが触るディレクトリを分ける」こと。git worktree で作業コピーを分離すれば衝突しない。</p>
+
+  <div class="lanes">
+    <div class="lane a">
+      <div class="tag">LANE A · FRONTEND</div>
+      <h3>UI × エンジン結線</h3>
+      <p class="who">Phase 1。sonnet級で十分(仕様明確)。</p>
+      <ul>
+        <li><code>LocalGameClient</code> 実装</li>
+        <li><code>mobile_app.html</code> をビュー購読へ</li>
+      </ul>
+      <div class="dep"><b>触る:</b> mobile_app.html / game-client/local-* <br><b>始動可:</b> Phase0直後</div>
+    </div>
+    <div class="lane b">
+      <div class="tag">LANE B · BACKEND</div>
+      <h3>Cloud Functions + ルール</h3>
+      <p class="who">Phase 2。統合判断が要る→標準〜上位モデル。</p>
+      <ul>
+        <li>Callable 4本 + emulator</li>
+        <li><code>database.rules.json</code> + テスト</li>
+      </ul>
+      <div class="dep"><b>触る:</b> firebase-backend/ <br><b>始動可:</b> Phase0直後(UI不要)</div>
+    </div>
+    <div class="lane c">
+      <div class="tag">LANE C · CLIENT SDK</div>
+      <h3>FirebaseGameClient</h3>
+      <p class="who">Phase 3。Bのパス確定後に統合。</p>
+      <ul>
+        <li>認証 + callable + 購読</li>
+        <li>QR鍵ビジュアル接続</li>
+      </ul>
+      <div class="dep"><b>触る:</b> game-client/firebase-* <br><b>始動可:</b> 設計書からPhase0直後に着手可 / <b>統合はB完了後</b></div>
+    </div>
+    <div class="lane d">
+      <div class="tag">LANE D · DESIGN</div>
+      <h3>ビジュアル仕上げ</h3>
+      <p class="who">Phase 4。全期間ずっと並行。Claude Design。</p>
+      <ul>
+        <li>hi-fi状態・cinematic・motion</li>
+        <li>a11y最終監査</li>
+      </ul>
+      <div class="dep"><b>触る:</b> 新規html/css(coreは触らない) <br><b>始動可:</b> いつでも(依存なし)</div>
+    </div>
+  </div>
+
+  <h3>並行の依存グラフ</h3>
+  <div style="font-family:var(--mono);font-size:12.5px;color:var(--dim);background:var(--soot);border:1px solid var(--line);border-radius:10px;padding:18px 20px;line-height:2">
+    <span style="color:var(--moon)">Phase&nbsp;0 契約凍結</span> ──┬──▶ <span style="color:#8fd3ab">Lane&nbsp;A（ローカル統合）</span> ──────────────┐<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──▶ <span style="color:#8fb0c9">Lane&nbsp;B（emulatorバックエンド）</span> ──┤<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──▶ <span style="color:#e0bd72">Lane&nbsp;C（Firebaseクライアント）</span>─┤<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--paper)">統合(B+C+A)→ Phase&nbsp;3 実機デプロイ</span><br>
+    <span style="color:#b06a9a">Lane&nbsp;D（ビジュアル）</span> ══ 全期間ずっと独立並行 ══▶
+  </div>
+
+  <h3>worktree での分離(コピペ用)</h3>
+  <table>
+    <thead><tr><th>セッション</th><th>コマンド</th><th>作業ディレクトリ</th></tr></thead>
+    <tbody>
+      <tr><td>Lane A</td><td><span class="k">git worktree add ../wolf-A -b lane-a-local</span></td><td>mobile_app.html / game-client/</td></tr>
+      <tr><td>Lane B</td><td><span class="k">git worktree add ../wolf-B -b lane-b-backend</span></td><td>firebase-backend/</td></tr>
+      <tr><td>Lane C</td><td><span class="k">git worktree add ../wolf-C -b lane-c-client</span></td><td>game-client/firebase-*</td></tr>
+      <tr><td>Lane D</td><td><span class="k">git worktree add ../wolf-D -b lane-d-visual</span></td><td>新規 design/*.html</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn">
+    <div class="h">衝突を避ける2つのルール</div>
+    ① <b>Phase 0 の契約ファイルは main に先にコミット</b>してから各worktreeを切る(全レーンが同じ契約を見る)。② A と D は両方 <code>mobile_app.html</code> に触りうる → <b>Dは独立HTMLで作り、Aが取り込む</b>順にして同一ファイルの同時編集を避ける。B/Cは別ディレクトリなので自由。
+  </div>
+</section>
+
+<!-- ============ 4 意思決定 ============ -->
+<section>
+  <h2><span class="no">04</span>意思決定ポイントと Claude Design の置き場所</h2>
+
+  <h3>判断1 — 権威モデル(いちばん大事)</h3>
+  <div class="fork">
+    <div class="opt rec">
+      <div class="lbl">推奨 · 設計書と一致</div>
+      <h4>サーバー権威(Cloud Functions)</h4>
+      <p class="pro">秘密の役職がFirebaseルールで構造的に守られる</p>
+      <p class="pro">エンジンはサーバーだけ。クライアントは改ざん不能</p>
+      <p class="pro"><b>まずエミュレータ</b>で組めば課金・プロジェクト不要で完成できる</p>
+      <p class="con">Functions実装とデプロイの手間(=Lane B)</p>
+    </div>
+    <div class="opt">
+      <div class="lbl">高速プロトタイプ</div>
+      <h4>snap-pair(クライアント直結)</h4>
+      <p class="pro">Firebase設定ゼロ・即マルチデバイス</p>
+      <p class="con"><b>役職を隠せない</b>(DBが公開読取)→ 設計書が明確に却下</p>
+      <p class="con">身内の動作確認どまり。公開リリース不可</p>
+    </div>
+  </div>
+  <div class="callout">
+    <div class="h">おすすめの落とし所</div>
+    <b>サーバー権威 × エミュレータ先行</b>。Phase 1(ローカル)で「ゲームが回る」体験を先に確定させ、Phase 2 は Firebase Emulator で完成させる。実クラウド(課金・鍵)は Phase 3 の最後だけ。snap-pairは採らないが、その「QR/6桁コードで繋ぐUX」の考え方だけは <code>live_access_key.mjs</code> に既に活きている。
+  </div>
+
+  <h3>判断2 — Claude Design を使うべき所・使わない所</h3>
+  <table>
+    <thead><tr><th>用途</th><th>Claude Design</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td>hi-fi状態画面(loading/error/offline/reconnecting)</td><td><span class="badge b-done">向く</span></td><td>ビジュアル生成が本領。design-system.css のトークンを渡せば一貫</td></tr>
+      <tr><td>処刑・勝敗の cinematic / motion storyboard</td><td><span class="badge b-done">向く</span></td><td>静止画・演出設計に強い</td></tr>
+      <tr><td>カードの見せ方バリエーション検討</td><td><span class="badge b-design">補助的</span></td><td>正本(card_viewer)は固定。あくまで案出し止まり</td></tr>
+      <tr><td>エンジン結線 / Firebase / 状態管理</td><td><span class="badge b-todo">使わない</span></td><td>ロジック配線はコード作業。Lane A/B/C(=Claude Code)の領分</td></tr>
+    </tbody>
+  </table>
+  <p style="color:var(--dim);font-size:13.5px">→ Claude Design は <b>Lane D 専任</b>。design-system.css と mobile_app.html のスクショを入力に、成果は独立HTML/画像で受け取り、Lane A が取り込む。配線タスクには回さない。</p>
+</section>
+
+<!-- ============ 5 タイムライン ============ -->
+<section>
+  <h2><span class="no">05</span>タイムライン — 何が並列で走るか</h2>
+  <p class="lead">相対的な順序と並列度のイメージ(絶対日数ではなく「段」)。Dは全期間、A/B/Cは契約凍結後に一斉スタート。</p>
+  <div class="gantt">
+    <div class="grow"><div class="glabel">Phase 0 契約</div><div class="gtrack"><div class="gbar" style="left:0%;width:12%;background:var(--moon)">凍結</div></div></div>
+    <div class="grow"><div class="glabel">Lane A ローカル</div><div class="gtrack"><div class="gbar" style="left:12%;width:34%;background:#5aa17a">UI×エンジン</div></div></div>
+    <div class="grow"><div class="glabel">Lane B backend</div><div class="gtrack"><div class="gbar" style="left:12%;width:44%;background:#8fb0c9">Functions+rules(emulator)</div></div></div>
+    <div class="grow"><div class="glabel">Lane C client</div><div class="gtrack"><div class="gbar" style="left:30%;width:30%;background:#b08a3d">Firebaseクライアント</div></div></div>
+    <div class="grow"><div class="glabel">統合 + 実機</div><div class="gtrack"><div class="gbar" style="left:60%;width:26%;background:var(--paper)">deploy & 実機QR</div></div></div>
+    <div class="grow"><div class="glabel">Lane D 仕上げ</div><div class="gtrack"><div class="gbar" style="left:12%;width:80%;background:#b06a9a">ビジュアル(全期間)</div></div></div>
+    <div class="gscale"><div></div><div><span>契約</span><span>ローカルで遊べる</span><span>emulatorで多人数</span><span>実機公開</span></div></div>
+  </div>
+  <div class="callout">
+    <div class="h">最初の一歩(今日やること)</div>
+    <b>Phase 0 = 契約凍結</b>を1セッションで逐次実行 → mainにコミット。これが済めば A/B/D を別々のAIセッションで同時に走らせられる。<b>マイルストーン①「1台のブラウザで最後まで遊べる」(Lane A完了)</b>を最初のゴールに置くと、達成感が早く、以降のFirebase作業の答え合わせにも使える。
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="padding:0">
+    人狼ゲーム · Integration Roadmap · 生成 2026-07-19<br>
+    参照: game-engine/README.md ／ docs/superpowers/specs・plans/2026-07-19-firebase-game-session ／ design/design-system.md
+  </div>
+</footer>
+
+</div>
+</body>
+</html>

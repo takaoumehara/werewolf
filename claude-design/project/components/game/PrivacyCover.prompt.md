@@ -1,0 +1,1 @@
+秘密情報の完全不透明カバー + HoldToReveal (長押し中のみ開示、離すと即カバー)。\n\n<PrivacyCover><RoleCard … /></PrivacyCover>\n\n- blur/visibilitychange で自動カバー — アプリスイッチャーに秘密を残さない。blur による半透過秘匿は禁止。

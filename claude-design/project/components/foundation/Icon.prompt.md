@@ -1,0 +1,1 @@
+Lucide line icon wrapper (stroke 1.5) — the page must load <script src="https://unpkg.com/lucide@latest"></script>.\n\n<Icon name="Moon" size={20} />\n\n- 色は currentColor。意味は必ずテキストラベルを併記する。絵文字・手描きSVGは使わない。

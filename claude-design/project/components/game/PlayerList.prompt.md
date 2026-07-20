@@ -1,0 +1,1 @@
+PlayerRow の縦リスト (罫線区切り)。onSelect を渡すと選択リストになる。\n\n<PlayerList players={[{id:1,name:"たかお",me:true},{id:2,name:"ゆき"}]} />
