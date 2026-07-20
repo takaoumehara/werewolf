@@ -1,0 +1,35 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "rooms": {
+      "$roomId": {
+        "meta": {
+          ".read": "auth != null && root.child('roomMembers').child($roomId).child(auth.uid).val() === true"
+        },
+        "players": {
+          ".read": "auth != null && root.child('roomMembers').child($roomId).child(auth.uid).val() === true",
+          "$uid": {
+            "connected":  { ".write": "auth != null && auth.uid === $uid" },
+            "lastSeenAt": { ".write": "auth != null && auth.uid === $uid" },
+            "name":       { ".write": "auth != null && auth.uid === $uid" }
+          }
+        },
+        "game": {
+          "public": {
+            ".read": "auth != null && root.child('roomMembers').child($roomId).child(auth.uid).val() === true"
+          },
+          "publicEvents": {
+            ".read": "auth != null && root.child('roomMembers').child($roomId).child(auth.uid).val() === true"
+          },
+          "privateViews": {
+            "$uid": {
+              ".read": "auth != null && auth.uid === $uid"
+            }
+          }
+        }
+      }
+    }
+  }
+}
