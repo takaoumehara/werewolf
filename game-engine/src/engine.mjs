@@ -393,7 +393,7 @@ export function toPublicView(state) {
     phase: state.phase, round: state.round, deadlineAt: state.deadlineAt,
     players: Object.fromEntries(Object.entries(state.players).map(([id, player]) => [id, {
       id, displayName: player.displayName, alive: player.alive, death: publicDeath(player.death),
-      revealedRoleId: state.phase === "finished" ? player.roleId : state.revealedRoles?.[id],
+      revealedRoleId: state.phase === "finished" ? player.roleId : (state.revealedRoles?.[id] ?? null),
     }])),
     pendingVoteCount: Object.keys(state.pendingVotes).length,
     winner: state.winner,

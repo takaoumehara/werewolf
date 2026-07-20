@@ -706,7 +706,7 @@
         <h2 class="screen-title">部屋を選ぶ</h2>
         <p class="screen-sub">名簿を開くか、名簿に加わってください。</p>
         <div class="stack">
-          <button type="button" class="btn option-row" onclick="appState.view='host'; showScreen('s03');">
+          <button type="button" class="btn option-row" onclick="handleChooseHost()">
             <span class="diamond" aria-hidden="true"></span>
             <span class="option-body">
               <span class="option-title">部屋をつくる</span>
@@ -714,7 +714,7 @@
             </span>
             <span class="option-chevron" aria-hidden="true">▸</span>
           </button>
-          <button type="button" class="btn option-row" onclick="appState.view='player'; showScreen('s03');">
+          <button type="button" class="btn option-row" onclick="handleChoosePlayer()">
             <span class="diamond diamond--outline" aria-hidden="true"></span>
             <span class="option-body">
               <span class="option-title">部屋に入る</span>
@@ -732,7 +732,7 @@
         <div id="s03Body" class="splash"></div>
         <div class="stack" id="s03Footer">
           <div id="s03CountLine"></div>
-          <button type="button" class="btn btn--primary" onclick="showScreen('s04')">次へ</button>
+          <button type="button" class="btn btn--primary" onclick="handleS03Next()">次へ</button>
         </div>
       </section>
 
@@ -744,7 +744,7 @@
           <label for="displayNameInput" class="screen-sub" style="margin:0;">名簿に記す名前</label>
           <input type="text" id="displayNameInput" placeholder="あかり" value="あかり" maxlength="12">
         </div>
-        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="showScreen('s05')">この名前で進む</button>
+        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="handleS04Next()">この名前で進む</button>
       </section>
 
       <!-- s05: ロビー -->
@@ -789,7 +789,7 @@
         <p class="screen-sub">推奨構成(8人): 人狼2 / 予言者1 / 騎士団1 / 市民4</p>
         <div class="ledger-list" id="compositionList"></div>
         <div class="composition-total" id="compositionTotal"></div>
-        <button type="button" class="btn btn--primary" onclick="showScreen('s08')">この構成で進む</button>
+        <button type="button" class="btn btn--primary" onclick="handleS07Next()">この構成で進む</button>
       </section>
 
       <!-- s08: 準備確認 -->
@@ -1008,6 +1008,13 @@
     <div class="dev-drawer-section">
       <h3>視点切替</h3>
       <div class="stack-row" id="devViewGrid" style="flex-wrap:wrap;"></div>
+    </div>
+    <div class="dev-drawer-section">
+      <h3>モード</h3>
+      <div class="stack-row" style="flex-wrap:wrap;">
+        <button type="button" class="btn btn--secondary" onclick="location.search='?demo=1'">デモ</button>
+        <button type="button" class="btn btn--secondary" onclick="location.search=''">ライブ</button>
+      </div>
     </div>
     <div class="dev-drawer-section">
       <h3>接続状態</h3>
@@ -1342,6 +1349,145 @@
   };
 
   /* ===================================================================
+     ライブモード(Firebase 接続)
+     - ?demo=1 のとき: 従来のモック動作。このブロック以降のロジックには
+       一切分岐せず、既存コードパスがそのまま動く(デモは無改変)。
+     - それ以外: live モード。実際の GameClient を通じて動作する。
+     - ?emu=1: エミュレータへ接続(live モード時のみ意味を持つ。判定は
+       <script type="module"> 側で独立して行う)。
+     =================================================================== */
+  const urlParams = new URLSearchParams(location.search);
+  const MODE = urlParams.get('demo') === '1' ? 'demo' : 'live';
+  const MIN_PLAYERS = 3;
+
+  // <script type="module"> 側が非同期で組み立てる GameClient を、読み込み順に
+  // 依存せず受け取るためのハンドシェイク。デモモードでは live コードパスからしか
+  // 参照されないため、resolve されないままで問題ない。
+  window.__liveClientReady = new Promise(function (resolve) {
+    window.__setLiveClient = resolve;
+  });
+
+  function getLiveClient() {
+    if (window.liveClient) return Promise.resolve(window.liveClient);
+    return window.__liveClientReady;
+  }
+
+  let liveCode = null;
+  let pendingJoinCode = '';
+  let latestPlayers = [];
+  let latestMeta = null;
+  let latestSelf = null;
+  let liveSubsAttached = false;
+
+  function attachLiveSubscriptions() {
+    if (liveSubsAttached) return;
+    liveSubsAttached = true;
+    getLiveClient().then(function (client) {
+      client.onMeta(function (meta) {
+        latestMeta = meta;
+        if (meta && meta.status === 'playing' && ['s05', 's06', 's07'].indexOf(appState.screen) !== -1) {
+          showScreen('s08');
+        }
+      });
+      client.onPlayers(function (playersObj) {
+        latestPlayers = playersObj
+          ? Object.keys(playersObj).map(function (id) { return playersObj[id]; })
+            .sort(function (a, b) { return (a.joinedAt || 0) - (b.joinedAt || 0); })
+          : [];
+        if (appState.screen === 's03') {
+          const num = document.getElementById('joinCountNum');
+          if (num) num.textContent = String(latestPlayers.length);
+        }
+        if (appState.screen === 's05') renderS05();
+      });
+      client.onSelf(function (selfView) {
+        latestSelf = (selfView && selfView.self) ? selfView.self : null;
+        if (latestSelf && appState.screen === 's08') {
+          showScreen('s09');
+        } else if (appState.screen === 's09') {
+          renderS09();
+        }
+      });
+    });
+  }
+
+  window.handleChooseHost = function () {
+    appState.view = 'host';
+    if (MODE !== 'live') { showScreen('s03'); return; }
+    showScreen('s03');
+    getLiveClient().then(function (client) {
+      return client.createRoom({ displayName: '記録係', maxPlayers: 12 });
+    }).then(function (data) {
+      liveCode = data.code;
+      attachLiveSubscriptions();
+      if (appState.screen === 's03') renderS03();
+    }).catch(function () {
+      showToast('部屋を作成できませんでした。');
+    });
+  };
+
+  window.handleChoosePlayer = function () {
+    appState.view = 'player';
+    showScreen('s03');
+  };
+
+  window.handleS03Next = function () {
+    if (MODE === 'live' && appState.view === 'player') {
+      const inputs = document.querySelectorAll('#roomCodeInput input');
+      pendingJoinCode = Array.prototype.map.call(inputs, function (el) {
+        return (el.value || '').trim().toUpperCase();
+      }).join('');
+    }
+    showScreen('s04');
+  };
+
+  window.handleS04Next = function () {
+    const nameInput = document.getElementById('displayNameInput');
+    const displayName = (nameInput.value || '').trim() || nameInput.placeholder || 'プレイヤー';
+    if (MODE !== 'live') { showScreen('s05'); return; }
+    getLiveClient().then(function (client) {
+      if (appState.view === 'host') {
+        return client.renameSelf(displayName);
+      }
+      return client.joinRoom({ code: pendingJoinCode, displayName: displayName }).then(function () {
+        attachLiveSubscriptions();
+      });
+    }).then(function () {
+      showScreen('s05');
+    }).catch(function () {
+      showToast('入室できませんでした。合言葉を確認してください。');
+    });
+  };
+
+  window.handleS07Next = function () {
+    if (MODE !== 'live') { showScreen('s08'); return; }
+    const total = composition.reduce(function (sum, c) { return sum + c.count; }, 0);
+    const playerCount = latestPlayers.length;
+    if (total !== playerCount) {
+      showToast('人数(' + playerCount + ')と構成の合計(' + total + ')が一致していません。');
+      return;
+    }
+    const roleIds = [];
+    composition.forEach(function (c) { for (let i = 0; i < c.count; i += 1) roleIds.push(c.id); });
+    getLiveClient().then(function (client) {
+      return client.startGame({ roleIds: roleIds, seed: Date.now() % 2147483647 });
+    }).then(function () {
+      showScreen('s08');
+    }).catch(function () {
+      showToast('開始できませんでした。');
+    });
+  };
+
+  function computeDefaultComposition(playerCount) {
+    return [
+      { id: 'werewolf', label: '人狼', count: 2 },
+      { id: 'prophet', label: '予言者', count: 1 },
+      { id: 'knights', label: '騎士団', count: 1 },
+      { id: 'citizen', label: '市民', count: Math.max(0, playerCount - 4) }
+    ];
+  }
+
+  /* ===================================================================
      JS 契約
      =================================================================== */
   const appState = { phase: 'day', role: 'prophet', view: 'player', screen: 's01' };
@@ -1546,22 +1692,31 @@
     if (appState.view === 'host') {
       title.textContent = '区画名簿の開設';
       sub.textContent = 'QRか合言葉を、参加者に見せてください。';
+      const codeForDisplay = MODE === 'live' ? (liveCode || '------') : roomCode;
       body.innerHTML =
         '<div class="qr-wrap">' +
-          '<div class="qr-panel">' + buildFakeQrSvg(roomCode) + '</div>' +
+          '<div class="qr-panel">' + buildFakeQrSvg(codeForDisplay) + '</div>' +
           '<div style="display:flex;align-items:baseline;gap:10px;">' +
             '<span class="screen-sub" style="margin:0;">合言葉</span>' +
-            '<span class="room-code">' + roomCode.split('').join(' ') + '</span>' +
+            '<span class="room-code">' + codeForDisplay.split('').join(' ') + '</span>' +
           '</div>' +
           '<button type="button" class="btn btn--secondary" id="shareLinkBtn" style="min-height:46px;">共有リンクをコピー</button>' +
         '</div>';
-      countLine.innerHTML = '<div class="center-note" id="joinCountLine">参加 <span class="num" id="joinCountNum" style="font-family:var(--font-mono);font-size:inherit;color:var(--sem-accent);">1</span> / ' + PLAYERS.length + ' 人</div>';
+      if (MODE === 'live') {
+        countLine.innerHTML = '<div class="center-note" id="joinCountLine">参加 <span class="num" id="joinCountNum" style="font-family:var(--font-mono);font-size:inherit;color:var(--sem-accent);">' + (latestPlayers.length || 1) + '</span> 人</div>';
+      } else {
+        countLine.innerHTML = '<div class="center-note" id="joinCountLine">参加 <span class="num" id="joinCountNum" style="font-family:var(--font-mono);font-size:inherit;color:var(--sem-accent);">1</span> / ' + PLAYERS.length + ' 人</div>';
+      }
       const shareBtn = document.getElementById('shareLinkBtn');
       shareBtn.addEventListener('click', function () {
-        try { navigator.clipboard && navigator.clipboard.writeText('https://example.invalid/join/' + roomCode); } catch (e) { /* file:// では失敗して良い */ }
+        try { navigator.clipboard && navigator.clipboard.writeText('https://example.invalid/join/' + codeForDisplay); } catch (e) { /* file:// では失敗して良い */ }
         showToast('リンクをコピーしました。');
       });
-      startJoinCountMock();
+      if (MODE === 'live') {
+        clearIntervalIfAny();
+      } else {
+        startJoinCountMock();
+      }
     } else {
       title.textContent = '名簿に加わる';
       sub.textContent = '受け取った合言葉を入力してください。';
@@ -1571,13 +1726,14 @@
         '</div>';
       countLine.innerHTML = '';
       const codeInput = document.getElementById('roomCodeInput');
-      roomCode.split('').forEach(function (ch) {
+      const codeLength = MODE === 'live' ? 6 : roomCode.length;
+      for (let i = 0; i < codeLength; i += 1) {
         const inp = document.createElement('input');
         inp.type = 'text';
         inp.maxLength = 1;
-        inp.value = ch;
+        if (MODE !== 'live') inp.value = roomCode[i];
         codeInput.appendChild(inp);
-      });
+      }
       clearIntervalIfAny();
     }
   }
@@ -1598,6 +1754,36 @@
      =================================================================== */
   function renderS05() {
     const roomCodeEl = document.getElementById('lobbyRoomCode');
+    if (MODE === 'live') {
+      if (roomCodeEl) roomCodeEl.textContent = liveCode || '------';
+      const liveList = document.getElementById('lobbyPlayerList');
+      liveList.innerHTML = '';
+      const myUid = window.liveClient && window.liveClient.uid;
+      latestPlayers.forEach(function (p, idx) {
+        const isHost = p.role === 'host';
+        const row = document.createElement('div');
+        row.className = 'player-row' + (p.connected ? ' is-completed' : '');
+        row.innerHTML =
+          '<span class="idx">' + String(idx + 1).padStart(2, '0') + '</span>' +
+          '<span class="name">' + p.name + (p.id === myUid ? ' <span style="color:rgba(237,233,220,0.4);font-size:11px;">あなた</span>' : '') + '</span>' +
+          '<span class="diamond' + (isHost ? '' : ' diamond--outline') + '" aria-hidden="true"></span>' +
+          '<span class="status-badge' + (p.connected ? ' is-completed' : '') + '">' + (isHost ? 'ホスト' : (p.connected ? '参加中' : '未接続')) + '</span>';
+        liveList.appendChild(row);
+      });
+      const liveControls = document.getElementById('lobbyControls');
+      const count = latestPlayers.length;
+      const liveCountLine = '<div class="center-note" style="letter-spacing:0.1em;margin-top:var(--sp-2);">参加 ' + count + ' 人</div>';
+      if (appState.view === 'host') {
+        const canStart = count >= MIN_PLAYERS;
+        liveControls.innerHTML =
+          liveCountLine +
+          '<button type="button" class="btn btn--primary" style="margin-top:var(--sp-3);width:100%;"' + (canStart ? '' : ' disabled') + ' onclick="showScreen(\'s06\')">' +
+          (canStart ? '全員そろい次第、開始する' : (MIN_PLAYERS - count) + '人以上そろうと開始できます') + '</button>';
+      } else {
+        liveControls.innerHTML = liveCountLine + '<div class="center-note" style="margin-top:var(--sp-3);">ホストが開始するまでお待ちください。</div>';
+      }
+      return;
+    }
     if (roomCodeEl) roomCodeEl.textContent = roomCode;
 
     const list = document.getElementById('lobbyPlayerList');
@@ -1662,7 +1848,7 @@
   /* ===================================================================
      s07: 役職構成
      =================================================================== */
-  const composition = RECOMMENDED_COMPOSITION.map(function (c) { return { id: c.id, label: c.label, count: c.count }; });
+  let composition = RECOMMENDED_COMPOSITION.map(function (c) { return { id: c.id, label: c.label, count: c.count }; });
 
   function renderComposition() {
     const list = document.getElementById('compositionList');
@@ -1702,6 +1888,28 @@
      s09: 役職確認
      =================================================================== */
   function renderS09() {
+    if (MODE === 'live') {
+      if (!latestSelf) {
+        const slot = document.getElementById('roleCardSlot');
+        slot.innerHTML = '';
+        document.getElementById('roleSecretInfo').innerHTML = '<span class="label">状態</span>役職の到着を待っています。';
+        document.getElementById('roleConfirmBtn').disabled = true;
+        document.getElementById('roleConfirmedNotice').classList.add('u-hidden');
+        return;
+      }
+      const liveRoleId = latestSelf.roleId;
+      const liveTeam = latestSelf.team;
+      renderCardIntoSlot(document.getElementById('roleCardSlot'), liveRoleId);
+      const liveHold = document.getElementById('roleHold');
+      liveHold.classList.remove('faction-citizen', 'faction-werewolf', 'faction-third');
+      liveHold.classList.add(liveTeam === 'citizen' ? 'faction-citizen' : liveTeam === 'werewolf' ? 'faction-werewolf' : 'faction-third');
+      document.getElementById('roleSecretInfo').innerHTML =
+        '<span class="label">勝利条件</span>' + (VICTORY_TEXT_BY_CAMP[liveTeam] || VICTORY_TEXT_BY_CAMP.fox);
+      roleRevealedOnce = false;
+      document.getElementById('roleConfirmBtn').disabled = true;
+      document.getElementById('roleConfirmedNotice').classList.add('u-hidden');
+      return;
+    }
     const roleId = appState.role;
     const role = getRole(roleId);
     renderCardIntoSlot(document.getElementById('roleCardSlot'), roleId);
@@ -1895,7 +2103,10 @@
     if (id === 's03') renderS03();
     if (id === 's05') renderS05();
     if (id === 's06') renderS06();
-    if (id === 's07') renderComposition();
+    if (id === 's07') {
+      if (MODE === 'live') composition = computeDefaultComposition(latestPlayers.length || PLAYERS.length);
+      renderComposition();
+    }
     if (id === 's09') renderS09();
     if (id === 's10') setPhase('night');
     if (id === 's11') { setPhase('night'); renderS11(); }
@@ -2113,6 +2324,33 @@
   window.showScreen = showScreen;
   window.setPhase = setPhase;
   window.appState = appState;
+})();
+</script>
+
+<!-- live モード専用の Firebase 接続。?demo=1 のときはモジュール本体を読み込まない
+     ため、デモモードの挙動・オフライン動作に一切影響しない。 -->
+<script type="module">
+(function () {
+  'use strict';
+  var params = new URLSearchParams(location.search);
+  var isDemo = params.get('demo') === '1';
+  if (isDemo) return;
+  var useEmulator = params.get('emu') === '1';
+  Promise.all([
+    import('./game-client/firebase-game-client.mjs'),
+    import('./game-client/firebase-config.js')
+  ]).then(function (mods) {
+    var createGameClient = mods[0].createGameClient;
+    var firebaseConfig = mods[1].firebaseConfig;
+    var client = createGameClient({ config: firebaseConfig, useEmulator: useEmulator });
+    window.liveClient = client;
+    if (window.__setLiveClient) window.__setLiveClient(client);
+    client.ready.catch(function (err) {
+      console.error('anonymous sign-in failed', err);
+    });
+  }).catch(function (err) {
+    console.error('failed to load firebase game client', err);
+  });
 })();
 </script>
 </body>
