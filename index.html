@@ -108,11 +108,15 @@
     color: #cbd5e1;
     letter-spacing: 0.22em;
   }
-  .op-skip-btn {
+  .op-controls-right {
     position: absolute;
     top: 20px;
     right: 20px;
     z-index: 30;
+    display: flex;
+    gap: 10px;
+  }
+  .op-btn {
     background: rgba(15, 23, 42, 0.75);
     border: 1px solid rgba(226, 232, 240, 0.25);
     color: #cbd5e1;
@@ -122,11 +126,15 @@
     letter-spacing: 0.1em;
     backdrop-filter: blur(8px);
     cursor: pointer;
+    text-decoration: none;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
   }
-  .op-skip-btn:hover {
+  .op-btn:hover {
     background: rgba(30, 41, 59, 0.9);
     color: #fff;
+    border-color: #cfa83c;
   }
   .op-tap-start {
     position: absolute;
@@ -146,6 +154,113 @@
   @keyframes opPulse {
     0%, 100% { opacity: 0.35; transform: scale(0.98); }
     50% { opacity: 1.0; transform: scale(1.02); }
+  }
+
+  /* -----------------------------------------------------------------
+     PC/デスクトップ大画面用 レスポンシブ・かっこいいコンソールレイアウト
+     ----------------------------------------------------------------- */
+  @media (min-width: 860px) {
+    body {
+      background: #060709 url('design-development/key-visuals/kv_shadow_ruins.png') no-repeat center center fixed !important;
+      background-size: cover !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(6, 7, 9, 0.7) 0%, rgba(6, 7, 9, 0.9) 75%, rgba(6, 7, 9, 0.98) 100%),
+                  linear-gradient(to bottom, rgba(6, 7, 9, 0.75) 0%, transparent 50%, rgba(6, 7, 9, 0.92) 100%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .desktop-layout {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 36px;
+      width: 100%;
+      max-width: 1120px;
+      padding: 24px;
+    }
+
+    .desktop-sidebar {
+      flex: 1;
+      max-width: 310px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      color: #e2e8f0;
+    }
+
+    .desktop-sidebar--left {
+      text-align: right;
+    }
+
+    .desktop-sidebar--right {
+      text-align: left;
+    }
+
+    .desktop-brand-title {
+      font-family: 'Cinzel Decorative', 'LINE Seed JP', serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #f8fafc;
+      letter-spacing: 0.12em;
+      text-shadow: 0 0 25px rgba(201, 168, 76, 0.5), 0 2px 10px rgba(0,0,0,0.8);
+    }
+
+    .desktop-brand-sub {
+      font-size: 0.85rem;
+      color: #cfa83c;
+      letter-spacing: 0.22em;
+      margin-top: 4px;
+    }
+
+    .desktop-info-panel {
+      background: rgba(17, 19, 23, 0.75);
+      border: 1px solid rgba(201, 168, 76, 0.25);
+      border-radius: 12px;
+      padding: 18px 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+
+    .desktop-info-panel h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      color: #cfa83c;
+      margin-bottom: 8px;
+      letter-spacing: 0.15em;
+    }
+
+    .desktop-info-panel p {
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: #94a3b8;
+    }
+
+    .app-shell {
+      margin: 0 !important;
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid rgba(201, 168, 76, 0.35);
+      box-shadow: 0 35px 100px rgba(0, 0, 0, 0.9), 0 0 50px rgba(201, 168, 76, 0.18);
+      flex: none;
+    }
+  }
+
+  @media (max-width: 859px) {
+    .desktop-sidebar {
+      display: none !important;
+    }
   }
   /* =====================================================================
      mobile_app.html 固有 CSS
@@ -800,7 +915,10 @@
 <body data-phase="day">
 <!-- オープニング・ローディング演出 OVERLAY -->
 <div id="opening-overlay">
-  <button class="op-skip-btn" id="op-skip-btn">SKIP ✕</button>
+  <div class="op-controls-right">
+    <a href="making.html" class="op-btn">📜 Making</a>
+    <button class="op-btn" id="op-skip-btn">SKIP ✕</button>
+  </div>
   <div class="op-bg active" id="op-bg-1" style="background-image: url('design-development/key-visuals/kv_shadow_ruins.png');"></div>
   <div class="op-bg" id="op-bg-2" style="background-image: url('design-development/key-visuals/kv_tech_ruins_shadow.png');"></div>
   <div class="op-bg" id="op-bg-3" style="background-image: url('design-development/key-visuals/kv_ruined_street.png');"></div>
@@ -820,13 +938,27 @@
   <div class="op-tap-start" id="op-tap-start">TAP TO ENTER THE GAME</div>
 </div>
 
-<div class="app-shell">
-  <div class="phase-backdrop"></div>
-  <div class="texture-overlay"></div>
+<div class="desktop-layout">
+  <!-- PC大画面用 左サイドバー -->
+  <div class="desktop-sidebar desktop-sidebar--left">
+    <div>
+      <div class="desktop-brand-title">月下ノ影</div>
+      <div class="desktop-brand-sub">SHADOWS UNDER THE MOON</div>
+    </div>
+    <div class="desktop-info-panel">
+      <h3>WORLD & STORY</h3>
+      <p>崩壊した2026年現代都市の遺構を城壁とする最後の街。人々の中に紛れ込んだ人狼の影を暴け。</p>
+    </div>
+  </div>
 
-  <div class="dev-hotspot" id="devHotspot" aria-label="開発者メニュー"></div>
+  <!-- 中央 モバイルアプリシェル -->
+  <div class="app-shell">
+    <div class="phase-backdrop"></div>
+    <div class="texture-overlay"></div>
 
-  <div class="safe-frame">
+    <div class="dev-hotspot" id="devHotspot" aria-label="開発者メニュー"></div>
+
+    <div class="safe-frame">
 
     <div class="top-bar">
       <span class="top-bar-title">Kirokumō</span>
@@ -1135,6 +1267,19 @@
         </div>
       </section>
 
+    </div>
+  </div>
+
+  <!-- PC大画面用 右サイドバー -->
+  <div class="desktop-sidebar desktop-sidebar--right">
+    <div class="desktop-info-panel">
+      <h3>JOIN BY MOBILE</h3>
+      <p>スマートフォンのカメラでアプリ内のQRコードをスキャンすると、各プレイヤーの端末から手軽に参加・プレイできます。</p>
+    </div>
+    <div class="desktop-info-panel">
+      <h3>SHORTCUTS</h3>
+      <p><a href="making.html" style="color:#cfa83c; text-decoration:none; display:inline-block; margin-bottom:6px;">📜 カード制作メイキングを読む</a><br>
+      <a href="card_gallery.html" style="color:#cfa83c; text-decoration:none;">🖼 全カードギャラリーを見る</a></p>
     </div>
   </div>
 </div>
