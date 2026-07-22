@@ -4,8 +4,149 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>人狼ゲーム — モバイル UI プロトタイプ</title>
+<script data-qrcode-generator src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
 <link rel="stylesheet" href="design-system.css">
 <style>
+  /* -----------------------------------------------------------------
+     オープニング・ローディング演出 CSS
+     ----------------------------------------------------------------- */
+  #opening-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #060709;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), visibility 1s ease;
+  }
+  #opening-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .op-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 2s ease, transform 8s ease;
+    transform: scale(1.06);
+    filter: brightness(0.7) contrast(1.1);
+  }
+  .op-bg.active {
+    opacity: 0.35;
+    transform: scale(1.0);
+  }
+  .op-overlay-vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 30%, rgba(6, 7, 9, 0.85) 80%, rgba(6, 7, 9, 0.98) 100%),
+                linear-gradient(to bottom, rgba(6, 7, 9, 0.7) 0%, transparent 40%, transparent 60%, rgba(6, 7, 9, 0.95) 100%);
+    pointer-events: none;
+  }
+  .op-caption-box {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 0 24px;
+    max-width: 380px;
+    width: 90%;
+  }
+  .op-text {
+    font-family: 'LINE Seed JP', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.7;
+    color: #f1f5f9;
+    letter-spacing: 0.18em;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.9), 0 0 10px rgba(226, 232, 240, 0.3);
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 1.2s ease, transform 1.2s ease;
+  }
+  .op-text.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .op-sub {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    letter-spacing: 0.22em;
+    margin-top: 12px;
+    text-transform: uppercase;
+  }
+  .op-title-box {
+    position: relative;
+    z-index: 12;
+    text-align: center;
+    opacity: 0;
+    transform: scale(0.92);
+    transition: opacity 2s ease, transform 2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .op-title-box.show {
+    opacity: 1;
+    transform: scale(1.0);
+  }
+  .op-main-title {
+    font-family: 'Cinzel Decorative', 'LINE Seed JP', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    color: #f8fafc;
+    text-shadow: 0 0 30px rgba(226, 54, 54, 0.6), 0 0 12px rgba(0, 0, 0, 0.9);
+    margin-bottom: 8px;
+  }
+  .op-tagline {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    letter-spacing: 0.22em;
+  }
+  .op-skip-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 30;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(226, 232, 240, 0.25);
+    color: #cbd5e1;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .op-skip-btn:hover {
+    background: rgba(30, 41, 59, 0.9);
+    color: #fff;
+  }
+  .op-tap-start {
+    position: absolute;
+    bottom: 45px;
+    z-index: 20;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    letter-spacing: 0.2em;
+    animation: opPulse 2.4s infinite;
+    cursor: pointer;
+    display: none;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 8px 20px;
+    border-radius: 20px;
+    border: 1px solid rgba(226, 232, 240, 0.15);
+  }
+  @keyframes opPulse {
+    0%, 100% { opacity: 0.35; transform: scale(0.98); }
+    50% { opacity: 1.0; transform: scale(1.02); }
+  }
   /* =====================================================================
      mobile_app.html 固有 CSS
      - design-system.css のコンポーネントで組み立てる。ここは画面固有レイアウトと
@@ -657,6 +798,28 @@
 </style>
 </head>
 <body data-phase="day">
+<!-- オープニング・ローディング演出 OVERLAY -->
+<div id="opening-overlay">
+  <button class="op-skip-btn" id="op-skip-btn">SKIP ✕</button>
+  <div class="op-bg active" id="op-bg-1" style="background-image: url('design-development/key-visuals/kv_shadow_ruins.png');"></div>
+  <div class="op-bg" id="op-bg-2" style="background-image: url('design-development/key-visuals/kv_tech_ruins_shadow.png');"></div>
+  <div class="op-bg" id="op-bg-3" style="background-image: url('design-development/key-visuals/kv_ruined_street.png');"></div>
+  <div class="op-overlay-vignette"></div>
+
+  <div class="op-caption-box">
+    <div class="op-text" id="op-caption-text">文明が眠りについて、七年。</div>
+    <div class="op-sub" id="op-caption-sub">ACT I — THE LAST CITADEL</div>
+  </div>
+
+  <div class="op-title-box" id="op-title-box">
+    <div class="op-main-title">月下ノ影</div>
+    <div class="op-tagline">Shadows Under the Moon</div>
+    <div style="font-size:0.85rem; color:#ef4444; margin-top:8px; letter-spacing:0.15em;">今夜、誰かが嘘をついている。</div>
+  </div>
+
+  <div class="op-tap-start" id="op-tap-start">TAP TO ENTER THE GAME</div>
+</div>
+
 <div class="app-shell">
   <div class="phase-backdrop"></div>
   <div class="texture-overlay"></div>
@@ -667,6 +830,7 @@
 
     <div class="top-bar">
       <span class="top-bar-title">Kirokumō</span>
+      <button type="button" class="btn btn--quiet" id="opReplayBtn" onclick="playOpeningAnimation()" style="font-size:0.75rem; padding:4px 8px;">🎬 Movie</button>
       <button type="button" class="btn btn--quiet u-hidden" id="hostAdvanceBtn" onclick="handleHostManualAdvance()">進める</button>
       <button type="button" class="btn btn--quiet rules-link" id="rulesBtn">ルール</button>
     </div>
@@ -1819,7 +1983,7 @@
         '<div class="role-name-english-vertical"></div>' +
         '<div class="card-description-band">' +
           '<div class="camp-container">' +
-            '<img class="camp-icon" src="gz/' + campIconName(role.camp) + '.png" alt="陣営アイコン">' +
+            '<img class="camp-icon" src="icons/camp/' + campIconName(role.camp) + '.png" alt="陣営アイコン">' +
             '<div class="camp-label">' + campLabel(role.camp) + '</div>' +
           '</div>' +
           '<div class="description-text">' + role.desc_ja + '</div>' +
@@ -1847,47 +2011,138 @@
   }
 
   /* ===================================================================
-     偽 QR (プレースホルダ, 白地 SVG + quiet zone は .qr-panel が確保)
+     本物 QR コード生成（qrcode-generator 優先、SVG/API フォールバック）
      =================================================================== */
   function buildFakeQrSvg(seedText) {
-    const size = 21;
-    const cell = 8;
-    let seed = 0;
-    for (let i = 0; i < seedText.length; i++) {
-      seed = (seed * 31 + seedText.charCodeAt(i)) >>> 0;
+    let targetUrl = seedText;
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      const origin = (window.location.origin && window.location.origin !== 'null' && window.location.protocol.startsWith('http'))
+        ? window.location.origin
+        : 'https://werewolf-game.web.app';
+      const path = window.location.pathname || '/index.html';
+      targetUrl = origin + path + '?room=' + encodeURIComponent(seedText);
     }
-    function next() {
-      seed = (seed * 1103515245 + 12345) >>> 0;
-      return (seed >>> 16) % 2;
-    }
-    function isFinder(x, y) {
-      let lx = x, ly = y;
-      if (x >= size - 7) lx = x - (size - 7);
-      if (y >= size - 7) ly = y - (size - 7);
-      if (lx > 6 || ly > 6) return false;
-      const ring = (lx === 0 || lx === 6 || ly === 0 || ly === 6);
-      const dot = (lx >= 2 && lx <= 4 && ly >= 2 && ly <= 4);
-      return ring || dot;
-    }
-    let rects = '';
-    for (let y = 0; y < size; y++) {
-      for (let x = 0; x < size; x++) {
-        const topLeft = x < 7 && y < 7;
-        const topRight = x >= size - 7 && y < 7;
-        const bottomLeft = x < 7 && y >= size - 7;
-        let on;
-        if (topLeft || topRight || bottomLeft) {
-          on = isFinder(x, y) ? 1 : 0;
-        } else {
-          on = next();
-        }
-        if (on) {
-          rects += '<rect x="' + (x * cell) + '" y="' + (y * cell) + '" width="' + cell + '" height="' + cell + '"/>';
-        }
+
+    if (typeof globalThis.qrcode === 'function') {
+      try {
+        const typeNumber = 0;
+        const errorCorrectionLevel = 'M';
+        const qr = globalThis.qrcode(typeNumber, errorCorrectionLevel);
+        qr.addData(targetUrl);
+        qr.make();
+        const cell = 7;
+        const margin = 0;
+        return qr.createSvgTag(cell, margin);
+      } catch (e) {
+        console.warn('qrcode-generator execution failed:', e);
       }
     }
-    return '<svg viewBox="0 0 ' + (size * cell) + ' ' + (size * cell) + '" xmlns="http://www.w3.org/2000/svg" fill="#171310">' + rects + '</svg>';
+
+    // JSライブラリ未読み込み時やオフライン時の信頼性の高いフォールバック
+    const qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=1&data=' + encodeURIComponent(targetUrl);
+    return '<img src="' + qrApiUrl + '" alt="QR Code" style="width:100%;height:100%;display:block;background:#F2EDE0;padding:4px;box-sizing:border-box;border-radius:4px;">';
   }
+
+  /* ===================================================================
+     オープニング・ローディングアニメーション制御 (ストーリーボード全5カット)
+     =================================================================== */
+  let opTimer = null;
+  let opStepIndex = 0;
+  const opScript = [
+    { bgId: 'op-bg-1', text: '文明が眠りについて、七年。', sub: 'ACT I — THE LAST CITADEL', duration: 4500 },
+    { bgId: 'op-bg-2', text: 'それでも、人々は灯りをともす。', sub: 'ACT II — ANCIENT TECHNOLOGY & LIFE', duration: 4500 },
+    { bgId: 'op-bg-1', text: 'だが月だけが、知っている。', sub: 'ACT III — SHADOW OF THE BEAST', duration: 4500 },
+    { bgId: 'op-bg-3', text: '隣人の顔をした、獣がいる。', sub: 'ACT IV — SUSPICION', duration: 5000 },
+    { bgId: 'op-bg-3', showTitle: true, text: '今夜、誰かが嘘をついている。', sub: 'LUNA SECRETA', duration: 6000 }
+  ];
+
+  function hideOpeningOverlay() {
+    clearTimeout(opTimer);
+    const overlay = document.getElementById('opening-overlay');
+    if (overlay) overlay.classList.add('hidden');
+  }
+
+  function playOpeningAnimation() {
+    const overlay = document.getElementById('opening-overlay');
+    const skipBtn = document.getElementById('op-skip-btn');
+    const tapStart = document.getElementById('op-tap-start');
+    const captionText = document.getElementById('op-caption-text');
+    const captionSub = document.getElementById('op-caption-sub');
+    const titleBox = document.getElementById('op-title-box');
+    const bgs = document.querySelectorAll('.op-bg');
+
+    if (!overlay) return;
+    overlay.classList.remove('hidden');
+    if (tapStart) tapStart.style.display = 'none';
+
+    function playStep(index) {
+      opStepIndex = index;
+      const step = opScript[index];
+
+      // 背景切り替え
+      bgs.forEach(b => b.classList.remove('active'));
+      const activeBg = document.getElementById(step.bgId);
+      if (activeBg) activeBg.classList.add('active');
+
+      // テキスト切り替え
+      if (captionText) {
+        captionText.classList.remove('show');
+        setTimeout(() => {
+          captionText.textContent = step.text;
+          if (captionSub) captionSub.textContent = step.sub;
+          captionText.classList.add('show');
+        }, 300);
+      }
+
+      // タイトル表示
+      if (titleBox) {
+        if (step.showTitle) {
+          titleBox.classList.add('show');
+          if (tapStart) tapStart.style.display = 'block';
+        } else {
+          titleBox.classList.remove('show');
+        }
+      }
+
+      clearTimeout(opTimer);
+      if (index < opScript.length - 1) {
+        opTimer = setTimeout(() => playStep(index + 1), step.duration);
+      }
+    }
+
+    if (skipBtn) {
+      skipBtn.onclick = (e) => {
+        e.stopPropagation();
+        hideOpeningOverlay();
+      };
+    }
+
+    if (tapStart) {
+      tapStart.onclick = (e) => {
+        e.stopPropagation();
+        hideOpeningOverlay();
+      };
+    }
+
+    overlay.onclick = () => {
+      if (opStepIndex >= opScript.length - 1) {
+        hideOpeningOverlay();
+      }
+    };
+
+    playStep(0);
+  }
+
+  // アプリ起動時に一度だけ自動再生（一度閉じたらセッション中保持）
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!sessionStorage.getItem('hasPlayedOpening')) {
+      sessionStorage.setItem('hasPlayedOpening', 'true');
+      setTimeout(playOpeningAnimation, 100);
+    } else {
+      const overlay = document.getElementById('opening-overlay');
+      if (overlay) overlay.classList.add('hidden');
+    }
+  });
 
   /* ===================================================================
      状態

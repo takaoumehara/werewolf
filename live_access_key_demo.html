@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#11110e">
+    <title>ライブ入域鍵ジェネレーター</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=Noto+Serif+JP:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./live_access_key.css">
+    <script data-qrcode-generator src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
+</head>
+<body>
+    <main class="access-key-demo">
+        <header class="access-key-demo__header">
+            <div>
+                <p class="access-key-demo__kicker">Citadel archive / live access key forge</p>
+                <h1>部屋ごとに、鍵を発行する。</h1>
+                <p>招待トークンから毎回異なるQRと入域鍵を描画します。同じトークンを開き直すと、テンプレート、配色、鍵の歯、刻印まで同じ鍵へ戻ります。</p>
+            </div>
+            <section class="access-key-demo__controller" aria-label="入域鍵を試す">
+                <label class="access-key-demo__label" for="invite-token">Invite token / Firebase pairing code</label>
+                <div class="access-key-demo__input-row">
+                    <input class="access-key-demo__input" id="invite-token" data-invite-token inputmode="text" autocomplete="off" spellcheck="false" maxlength="24" aria-describedby="invite-hint">
+                    <button class="access-key-demo__button" type="button" data-create-access-key>新しい鍵を発行</button>
+                </div>
+                <p class="access-key-demo__hint" id="invite-hint">デモではブラウザが安全な 8 文字トークンを生成します。本番では Firebase の Cloud Function が発行します。</p>
+                <nav class="access-key-demo__templates" aria-label="テンプレートを確認する">
+                    <span>Template archive</span>
+                    <button type="button" data-template-token="AAAAAB">鍵頭</button>
+                    <button type="button" data-template-token="AAAAAE">鍵穴</button>
+                    <button type="button" data-template-token="AAAAAA">月印</button>
+                    <button type="button" data-template-token="AAAAAG">狼印</button>
+                    <button type="button" data-template-token="AAAAAC">記録板</button>
+                </nav>
+            </section>
+        </header>
+
+        <section class="access-key-demo__workspace" aria-label="ライブ入域鍵のプレビュー">
+            <div class="access-key-demo__stage" data-access-key-preview aria-live="polite"></div>
+            <aside>
+                <dl class="access-key-demo__data">
+                    <div>
+                        <dt>Template</dt>
+                        <dd data-template-name>—</dd>
+                    </div>
+                    <div>
+                        <dt>Visual serial</dt>
+                        <dd data-serial>—</dd>
+                    </div>
+                    <div>
+                        <dt>QR payload</dt>
+                        <dd data-invite-url>—</dd>
+                        <button class="access-key-demo__copy" type="button" data-copy-link>リンクを写す</button>
+                    </div>
+                    <div>
+                        <dt>Guarantee</dt>
+                        <dd>同一トークン → 同一の鍵。別トークン → 別のQRとシリアル。</dd>
+                    </div>
+                </dl>
+                <p class="access-key-demo__status" role="status" aria-live="polite" data-status></p>
+            </aside>
+        </section>
+
+        <section class="access-key-demo__contract" aria-labelledby="firebase-contract-title">
+            <h2 id="firebase-contract-title">Firebase room creation contract</h2>
+            <p>本番の <code>createSnapRoom</code> は、安全な <code>inviteToken</code> をサーバーで発行し、<code>deriveAccessKey(inviteToken)</code> の戻り値を <code>rooms/{roomId}/meta/accessKey</code> へ保存します。ホスト画面はこのメタデータと <code>https://ゲームURL/i/{inviteToken}</code> を受け取り、この画面と同じ方法で描画します。参加者はQRを読み取り、Cloud Function がトークンを検証してからルームへ追加します。</p>
+        </section>
+    </main>
+
+    <script type="module">
+        import {
+            ACCESS_KEY_STYLE_VERSION,
+            accessKeyMarkup,
+            buildInviteUrl,
+            deriveAccessKey,
+            generateDemoInviteToken,
+            renderAccessKeyQr,
+        } from './live_access_key.mjs';
+
+        const preview = document.querySelector('[data-access-key-preview]');
+        const tokenInput = document.querySelector('[data-invite-token]');
+        const createButton = document.querySelector('[data-create-access-key]');
+        const copyButton = document.querySelector('[data-copy-link]');
+        const status = document.querySelector('[data-status]');
+        const templateName = document.querySelector('[data-template-name]');
+        const serial = document.querySelector('[data-serial]');
+        const inviteUrlOutput = document.querySelector('[data-invite-url]');
+        let activeInviteUrl = '';
+
+        const publicOrigin = location.protocol === 'file:'
+            ? 'https://werewolf-gilt.vercel.app'
+            : location.origin;
+
+        function urlToken() {
+            const token = new URLSearchParams(location.search).get('invite');
+            return token || generateDemoInviteToken();
+        }
+
+        function replaceTokenInUrl(token) {
+            const url = new URL(location.href);
+            url.searchParams.set('invite', token);
+            url.searchParams.set('v', String(ACCESS_KEY_STYLE_VERSION));
+            history.replaceState({}, '', url);
+        }
+
+        async function render(token) {
+            const normalized = token.trim().toUpperCase();
+            const accessKey = deriveAccessKey(normalized, ACCESS_KEY_STYLE_VERSION);
+            activeInviteUrl = buildInviteUrl(publicOrigin, accessKey.inviteToken);
+
+            preview.innerHTML = accessKeyMarkup(accessKey);
+            tokenInput.value = accessKey.inviteToken;
+            templateName.textContent = accessKey.templateId;
+            serial.textContent = accessKey.serial;
+            inviteUrlOutput.textContent = activeInviteUrl;
+            replaceTokenInUrl(accessKey.inviteToken);
+
+            const canvas = preview.querySelector('[data-access-key-qr]');
+            await renderAccessKeyQr(canvas, activeInviteUrl, accessKey);
+            status.textContent = `記録者が ${accessKey.templateId} 型の入域鍵を発行しました。`;
+        }
+
+        createButton.addEventListener('click', () => {
+            render(generateDemoInviteToken()).catch((error) => {
+                status.textContent = `鍵を発行できませんでした: ${error.message}`;
+            });
+        });
+
+        tokenInput.addEventListener('change', () => {
+            render(tokenInput.value).catch((error) => {
+                status.textContent = '6〜24 文字の英数字を入力してください。';
+            });
+        });
+
+        document.querySelectorAll('[data-template-token]').forEach((button) => {
+            button.addEventListener('click', () => {
+                render(button.dataset.templateToken).catch((error) => {
+                    status.textContent = `見本を表示できませんでした: ${error.message}`;
+                });
+            });
+        });
+
+        copyButton.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(activeInviteUrl);
+                status.textContent = '入域鍵のリンクを記録しました。';
+            } catch {
+                status.textContent = `入域リンク: ${activeInviteUrl}`;
+            }
+        });
+
+        render(urlToken()).catch((error) => {
+            status.textContent = `入域鍵を復元できませんでした: ${error.message}`;
+        });
+    </script>
+</body>
+</html>

@@ -8,9 +8,15 @@ firebase-debug.log
 *-debug.log
 functions/node_modules/
 GeminiAPKEY.md
+kie-ai-API.md
 **/serviceAccount*.json
 claude-design/project/uploads/
 claude-design/project/assets/
 tmp/
 tmp/ui-shots/
 .superpowers/
+
+# Archiving
+_archive/
+_archieve/
+

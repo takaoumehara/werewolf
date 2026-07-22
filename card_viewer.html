@@ -813,12 +813,12 @@
             
 
             
-            // Icon Mapping from gz/ folder (png format)
+            // Icon Mapping from icons/camp/ folder (png format)
             let iconName = currentRole.camp;
             if (currentRole.camp === "fox") {
                 iconName = "neutral";
             }
-            document.getElementById("camp-icon").src = `gz/${iconName}.png`;
+            document.getElementById("camp-icon").src = `icons/camp/${iconName}.png`;
             
             // Render Text elements based on Language Mode
             const jpLabel = document.getElementById("role-jp");
