@@ -422,6 +422,21 @@ body {
   color: var(--p-text);
 }
 
+/* フォーカス可視化（WCAG 2.2 SC 2.4.11/2.4.13） */
+.btn:focus-visible,
+.opt-card:focus-visible,
+.gm-row:focus-visible,
+.rules-tab-btn:focus-visible,
+.role-chip:focus-visible,
+.target-option:focus-visible,
+.stepper-btn:focus-visible,
+.chat-chip:focus-visible,
+.chat-input:focus-visible,
+.seg-control > button:focus-visible {
+  outline: 3px solid var(--sem-accent, var(--p-moonlight));
+  outline-offset: 2px;
+}
+
 /* btn--hold: 長押し進捗リング/バー。--hold-progress(0〜1) を JS 側で更新する */
 .btn--hold {
   --hold-progress: 0;
@@ -1360,7 +1375,7 @@ body {
 .role-chip {
   flex-shrink: 0;
   padding: 9px 16px;
-  min-height: 40px;
+  min-height: var(--tap-min);
   border-radius: 20px;
   font-size: 13.5px;
   font-weight: 700;
