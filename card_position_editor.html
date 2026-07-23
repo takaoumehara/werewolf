@@ -838,7 +838,14 @@
         <div>
           <label style="font-size:12px;font-weight:700;color:var(--ink);display:block;margin-bottom:6px;" id="setting-label-reset">⚠️ 全カード初期化 (Reset to Defaults)</label>
           <button class="button button--danger-hold" id="reset-all" type="button" style="width:100%;" title="2秒間長押しで全リセット">⚠️ RESET ALL (長押し2秒)</button>
-       const DEFAULT_POSITION = Object.freeze({
+          <p style="font-size:11px;color:var(--muted);margin:4px 0 0 0;" id="setting-desc-reset">確定済みの正本デフォルト値に全25カードを一括復元します。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_POSITION = Object.freeze({
       scale: 1, x: 0, y: 0,
       bgScale: 1, bgX: 0, bgY: 0,
       brightness: 1, contrast: 1, saturate: 1, hue: 0
