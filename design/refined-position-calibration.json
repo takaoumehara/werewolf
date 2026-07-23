@@ -10,7 +10,6 @@
   "bodyguard": { "scale": 0.92, "x": -1.25, "y": 3.82 },
   "twins": { "scale": 1.24, "x": -0.39, "y": 3.37 },
   "magician": { "scale": 0.9, "x": -2.72, "y": 0.46 },
-  "magician_c": { "scale": 0.86, "x": -1.77, "y": 0.93 },
   "hunter": { "scale": 1, "x": -0.71, "y": 0.72 },
   "tough_guy": { "scale": 1, "x": 0, "y": 0 },
   "spy": { "scale": 1, "x": 0, "y": 0 },
@@ -23,5 +22,6 @@
   "lone_wolf": { "scale": 1, "x": -1.27, "y": 4.8 },
   "god": { "scale": 1.09, "x": 0, "y": 0 },
   "lovers": { "scale": 1, "x": 2.01, "y": 0.52 },
-  "mysterious_fox": { "scale": 1, "x": 0, "y": 0 }
+  "mysterious_fox": { "scale": 1, "x": 0, "y": 0 },
+  "ghost_wolf": { "scale": 1.38, "x": -2.03, "y": -2.77 }
 }

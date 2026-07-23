@@ -1442,6 +1442,7 @@
         </div>
         <div class="stack" style="width:100%;">
           <button type="button" class="btn btn--primary" onclick="showScreen('s02')">はじめる</button>
+          <button type="button" class="btn btn--secondary" onclick="openMakingModal()" style="margin-top: 8px;">🎨 メイキング / カードギャラリー</button>
           <div class="app-version">REC. 0.4.1</div>
         </div>
       </section>
@@ -1855,6 +1856,33 @@
   </div>
 </div>
 
+<!-- Making Modal (Making / Gallery / Editor Hub) -->
+<div class="bottom-sheet" id="makingModal">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h2 class="screen-title" style="color:var(--sem-accent);margin:0;font-size:18px;">🎨 メイキング & カードデザイン</h2>
+    <button type="button" class="btn btn--quiet" onclick="closeMakingModal()">閉じる</button>
+  </div>
+  <p class="screen-sub" style="margin-top:6px;">カードイラストの閲覧・レイヤー調整・ポジショニングエディターを開きます。</p>
+  <hr class="engraved-rule">
+  <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;max-height:60dvh;overflow-y:auto;">
+    <a href="card_gallery.html" target="_blank" class="opt-card" style="text-decoration:none;">
+      <span class="opt-card-tag"><i></i>正本ギャラリー</span>
+      <span class="opt-card-title">🎴 カードギャラリー (Card Gallery)</span>
+      <span class="opt-card-desc">全25役職のカードデザイン・正本調整データを全画面グリッド一覧で閲覧できます。</span>
+    </a>
+    <a href="card_position_editor.html" target="_blank" class="opt-card" style="text-decoration:none;">
+      <span class="opt-card-tag"><i></i>レイヤー調整ツール</span>
+      <span class="opt-card-title">🎛 ポジションエディター (Position Editor)</span>
+      <span class="opt-card-desc">人物・背景レイヤーの移動、拡大縮小、カラーティント調整を行い、JSONパラメータを出力できます。</span>
+    </a>
+    <a href="card_viewer.html" target="_blank" class="opt-card" style="text-decoration:none;">
+      <span class="opt-card-tag"><i></i>詳細ビューア</span>
+      <span class="opt-card-title">👁 カードビューア (Card Viewer)</span>
+      <span class="opt-card-desc">各役職カードの解説・ルビ・詳細画像を1枚ずつ実寸大で確認できます。</span>
+    </a>
+  </div>
+</div>
+
 <!-- dev drawer (BottomSheet) -->
 <div class="bottom-sheet" id="devDrawer">
   <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -1863,6 +1891,14 @@
   </div>
   <hr class="engraved-rule">
   <div style="max-height:60dvh;overflow-y:auto;">
+    <div class="dev-drawer-section">
+      <h3>デザイン & メイキング</h3>
+      <div class="stack-row" style="flex-wrap:wrap;gap:8px;">
+        <button type="button" class="btn btn--secondary" onclick="openMakingModal()">🎨 メイキングモーダルを開く</button>
+        <a href="card_gallery.html" target="_blank" class="btn btn--quiet" style="text-decoration:none;">🎴 ギャラリー</a>
+        <a href="card_position_editor.html" target="_blank" class="btn btn--quiet" style="text-decoration:none;">🎛 エディター</a>
+      </div>
+    </div>
     <div class="dev-drawer-section">
       <h3>画面ジャンプ</h3>
       <div class="dev-drawer-grid" id="devScreenGrid"></div>
@@ -3905,6 +3941,15 @@
   }
   function closeDevDrawer() {
     document.getElementById('devDrawer').classList.remove('is-open');
+  }
+
+  function openMakingModal() {
+    const modal = document.getElementById('makingModal');
+    if (modal) modal.classList.add('is-open');
+  }
+  function closeMakingModal() {
+    const modal = document.getElementById('makingModal');
+    if (modal) modal.classList.remove('is-open');
   }
 
   document.addEventListener('DOMContentLoaded', function () {

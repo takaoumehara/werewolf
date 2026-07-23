@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>人狼ゲーム カードデッキ ビューア (HTML Overlay Edition)</title>
+    <title>人狼ゲーム カードデッキ ビューア (Card Viewer)</title>
     <!-- Google Fonts Load: LINE Seed JP (Bold 700) & Cinzel Decorative (Black 900) -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=LINE+Seed+JP:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -119,29 +119,15 @@
             width: var(--card-w);
             height: var(--card-h);
             background: #111317;
-            cursor: pointer;
-            perspective: 1000px; /* 3D Camera Perspective */
-            transform-style: preserve-3d;
-            will-change: transform;
-        }
-        .card-tap-pulse {
-            animation: cardPulse 0.4s ease-out;
-        }
-        @keyframes cardPulse {
-            0% { transform: scale(1.0); }
-            30% { transform: scale(0.97); }
-            100% { transform: scale(1.0); }
+            user-select: none;
         }
         
-        /* The Card Image Background (Rotated in 3D Space) */
+        /* The Card Image Layers */
         .card {
             position: relative;
             width: 100%;
             height: 100%;
-            user-select: none;
             overflow: hidden;
-            transform-style: preserve-3d;
-            will-change: transform;
         }
         .card-layer-bg {
             position: absolute;
@@ -153,9 +139,6 @@
             background-position: center;
             background-repeat: no-repeat;
             z-index: 1;
-            /* Ambient background slow zoom loop (Cubic Bezier breathing curve) */
-            animation: idleZoomBg 16s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
-            will-change: transform;
         }
         .card-layer-char {
             position: absolute;
@@ -167,261 +150,150 @@
             background-position: center;
             background-repeat: no-repeat;
             z-index: 2;
-            /* Ambient character slow floating loop (Cubic Bezier floating curve) */
-            animation: idleFloatChar 6s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
-            will-change: transform, filter, opacity;
-            transform-origin: center bottom;
-        }
-
-        .card-layer-char.refined-positioned {
-            animation: none;
-            transform-origin: center center;
-        }
-
-        /* --- Ambient Idle Loops (Super Natural Floating, No Mechanical Zoom) --- */
-        @keyframes idleFloatChar {
-            0% {
-                transform: translateY(0) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-4px) rotate(0.15deg) translateX(0.5px);
-            }
-            100% {
-                transform: translateY(-7px) rotate(-0.15deg) translateX(-0.5px);
-            }
-        }
-        @keyframes idleZoomBg {
-            0% {
-                transform: scale(1.0) translate(0, 0);
-            }
-            100% {
-                transform: scale(1.012) translate(-1px, 0.8px);
-            }
-        }
-
-        /* --- Tap Action Single Shots --- */
-        .card-layer-char.action-werewolf {
-            /* Anticipation (Tension pull-back) curves */
-            animation: actWerewolf 0.55s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
-        }
-        .card-layer-char.action-magician {
-            animation: actMagician 0.6s ease-in-out forwards;
-        }
-        .card-layer-char.action-mysterious_fox {
-            animation: actFox 0.5s ease-in-out forwards;
-        }
-        .card-layer-char.action-bodyguard {
-            animation: actBodyguard 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .card-layer-char.action-generic {
-            animation: actGeneric 0.4s ease-out forwards;
-        }
-
-        @keyframes actWerewolf {
-            0% { transform: translateY(-4px) scale(1.01); }
-            22% { transform: translateY(-14px) scale(0.97) rotate(0.8deg); } /* Anticipation: pull back/shrink before strike */
-            50% { transform: translateY(28px) scale(1.18) rotate(-1.5deg); } /* Strike: leap forward */
-            100% { transform: translateY(0) scale(1.0); }
-        }
-        @keyframes actMagician {
-            0% { transform: translateY(-4px) scale(1.01) rotateY(0deg); }
-            50% { transform: translateY(-16px) scale(1.08) rotateY(15deg); }
-            100% { transform: translateY(0) scale(1.0) rotateY(0deg); }
-        }
-        @keyframes actFox {
-            0% { transform: translateY(-4px) scale(1.01); opacity: 1; filter: blur(0px); }
-            25% { transform: translateY(-4px) scale(1.01) translateX(-18px); opacity: 0.3; filter: blur(1.5px); }
-            60% { transform: translateY(-4px) scale(1.01) translateX(18px); opacity: 0.3; filter: blur(1.5px); }
-            100% { transform: translateY(0) scale(1.0); opacity: 1; filter: blur(0px); }
-        }
-        @keyframes actBodyguard {
-            0% { transform: translateY(-4px) scale(1.01); }
-            30% { transform: translate(-20px, 12px) scale(1.08); }
-            100% { transform: translateY(0) scale(1.0); }
-        }
-        @keyframes actGeneric {
-            0% { transform: translateY(-4px) scale(1.01); }
-            40% { transform: translateY(-4px) scale(1.06); }
-            100% { transform: translateY(0) scale(1.0); }
         }
         
-        /* --- Japanese Mode: Left-Top Vertical Japanese Text (No Outline, Flat White, LINE Seed JP Bold) --- */
+        /* --- Japanese Mode: Left-Top Vertical Japanese Text --- */
         .role-name-japanese {
             writing-mode: vertical-rl;
+            text-orientation: upright;
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            color: #ffffff;
             font-family: 'LINE Seed JP', sans-serif;
             font-weight: 700;
             font-size: 38px;
-            color: #ffffff;
             letter-spacing: 6px;
-            position: absolute;
-            left: 24px;
-            top: 30px;
-            display: block;
-            z-index: 3;
+            line-height: 1.0;
+            z-index: 10;
         }
         .role-name-japanese ruby {
             ruby-position: over;
         }
         .role-name-japanese rt {
-            font-family: 'LINE Seed JP', sans-serif;
-            font-weight: 700;
             font-size: 10px;
+            letter-spacing: 1px;
+            font-weight: 700;
             color: #ffffff;
-            ruby-align: center;
-            padding-left: 5px;
         }
-        
-        /* --- Japanese Mode: Right-Top English Text (80% White, Cinzel Decorative Black) --- */
+
+        /* --- Japanese Mode: Right-Top Horizontal English Subtitle --- */
         .role-name-english-rt {
-            font-family: 'Cinzel Decorative', serif;
-            font-weight: 900;
-            font-size: 18px;
-            color: rgba(255, 255, 255, 0.8);
             position: absolute;
+            top: 28px;
             right: 24px;
-            top: 32px;
-            letter-spacing: 0.5px;
-            display: block;
-            text-transform: capitalize;
-            z-index: 3;
-            text-align: right;
-        }
-        
-        /* --- English Mode: Right-Top Horizontal English Text (100% White, Cinzel Decorative, Right Aligned) --- */
-        .role-name-english-vertical {
-            writing-mode: horizontal-tb; /* Horizontal writing */
+            color: #ffffff;
             font-family: 'Cinzel Decorative', serif;
             font-weight: 900;
-            font-size: 32px; /* Large volume size */
-            color: #ffffff; /* 100% White */
-            position: absolute;
-            right: 24px; /* Shifted to right side as requested */
-            left: auto;
-            text-align: right; /* Align text to the right */
-            top: 30px;
-            width: 320px; /* Expanded width to prevent wraps of long words like 'Necromancer' */
-            line-height: 1.15;
-            letter-spacing: -2px; /* Tight tracking/letter-spacing as requested */
-            display: none;
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            text-align: right;
+            text-transform: uppercase;
+            z-index: 10;
+            line-height: 1.2;
+            max-width: 180px;
             word-wrap: break-word;
-            overflow-wrap: break-word;
-            text-transform: capitalize; /* Force Title Case: First letter capitalized, rest lowercase */
-            z-index: 3;
+        }
+
+        /* --- English Mode: Right-Top Horizontal Large English Title --- */
+        .role-name-english-vertical {
+            position: absolute;
+            top: 28px;
+            right: 24px;
+            color: #ffffff;
+            font-family: 'Cinzel Decorative', serif;
+            font-weight: 900;
+            text-align: right;
+            text-transform: uppercase;
+            z-index: 10;
+            line-height: 1.1;
+            max-width: 280px;
+            word-wrap: break-word;
         }
         
-        /* --- Bottom STICKY Description Band --- */
+        /* Bottom STICKY Description Band */
         .card-description-band {
             position: absolute;
             bottom: 0;
             left: 0;
-            right: 0;
-            height: 120px;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            align-items: center;
-            padding: 15px 20px;
+            width: 100%;
             box-sizing: border-box;
-            gap: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
-            z-index: 3;
-        }
-        
-        /* Camp Icon & Label container (Vertical stack) */
-        .camp-container {
+            background: linear-gradient(to top, rgba(13, 15, 18, 0.96) 0%, rgba(13, 15, 18, 0.88) 75%, rgba(13, 15, 18, 0) 100%);
+            padding: 40px 24px 24px 24px;
+            z-index: 10;
             display: flex;
             flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .camp-container {
+            display: flex;
             align-items: center;
-            justify-content: center;
             gap: 6px;
-            width: 70px;
-            flex-shrink: 0;
         }
         .camp-icon {
-            width: 44px;
-            height: 44px;
+            width: 16px;
+            height: 16px;
             object-fit: contain;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
         }
         .camp-label {
-            font-family: 'LINE Seed JP', sans-serif;
-            font-size: 9px;
+            font-size: 11px;
             font-weight: 700;
-            color: #ffffff; /* Small white text */
-            text-align: center;
-            white-space: nowrap;
-            letter-spacing: 0.2px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #e2e8f0;
         }
-        
         .description-text {
-            font-family: 'LINE Seed JP', sans-serif;
             font-size: 13.5px;
-            line-height: 1.5;
-            color: #ffffff;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-            flex-grow: 1;
+            line-height: 1.55;
+            color: #f8fafc;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         }
     </style>
 </head>
 <body>
 
-    <h1>人狼ゲーム カード UI ビューア</h1>
+    <h1 id="page-title">人狼ゲーム カードビューア</h1>
 
     <div class="controls">
         <div class="control-group">
-            <label for="role-select">役職の選択:</label>
-            <button class="nav-btn" onclick="navigateRole(-1)">◀ 前へ</button>
+            <button class="nav-btn" id="btn-prev" onclick="prevRole()">← 前へ</button>
             <select id="role-select" onchange="updateCard()"></select>
-            <button class="nav-btn" onclick="navigateRole(1)">次へ ▶</button>
+            <button class="nav-btn" id="btn-next" onclick="nextRole()">次へ →</button>
         </div>
         <div class="control-group">
-            <label for="version-select">背景デザイン:</label>
+            <label id="lbl-lang">言語 (LANG):</label>
+            <div class="lang-switch">
+                <div class="lang-btn active" id="btn-ja" onclick="setLanguage('ja')">日本語</div>
+                <div class="lang-btn" id="btn-en" onclick="setLanguage('en')">ENGLISH</div>
+            </div>
+        </div>
+        <div class="control-group">
+            <label id="lbl-style">スタイル (STYLE):</label>
             <select id="version-select" onchange="updateCard()">
-                <option value="raw-illustrations-72-a">Ver.A (フラット背景)</option>
-                <option value="raw-illustrations-72-a-lifelike">Ver.A Lifelike</option>
-                <option value="raw-illustrations-72-a-refined">Ver.A Refined</option>
-                <option value="raw-illustrations-72-a2">Ver.A2 (背景描き込み)</option>
-                <option value="lifelike-trans">Lifelike（背景合成）</option>
-                <option value="refined-trans">Refined（背景合成）</option>
-                <option value="videos-72">Ver.A2 (動画ループ背景)</option>
-                <option value="kling-3">Ver.A2 (Kling 3.0動画)</option>
+                <option value="refined">Refined</option>
+                <option value="lifelike">Lifelike</option>
+                <option value="a">Ver. A</option>
             </select>
         </div>
         <div class="control-group">
-            <label>表示言語:</label>
+            <label id="lbl-bg">背景 (BG):</label>
             <div class="lang-switch">
-                <div class="lang-btn active" id="btn-ja" onclick="setLanguage('ja')">日本語 (JA)</div>
-                <div class="lang-btn" id="btn-en" onclick="setLanguage('en')">English (EN)</div>
-            </div>
-        </div>
-        <div class="control-group">
-            <label>アニメーション:</label>
-            <div class="lang-switch">
-                <div class="lang-btn active" id="btn-anim-on" onclick="setAnimation(true)">ON</div>
-                <div class="lang-btn" id="btn-anim-off" onclick="setAnimation(false)">OFF</div>
-            </div>
-        </div>
-        <div class="control-group" id="gyro-control-group" style="display: none;">
-            <label>3D傾きセンサー:</label>
-            <div class="lang-switch">
-                <div class="lang-btn" id="btn-gyro" onclick="toggleGyro()">有効化 (OFF)</div>
+                <div class="lang-btn active" id="btn-bg-on" onclick="setBackground(true)">ON</div>
+                <div class="lang-btn" id="btn-bg-off" onclick="setBackground(false)">OFF</div>
             </div>
         </div>
     </div>
 
     <!-- The 9:16 Smartphone Card -->
-    <div class="card-wrapper" id="card-wrapper" onclick="triggerTapAction()">
+    <div class="card-wrapper" id="card-wrapper">
         <div class="card" id="card-bg">
             <!-- Dynamic Layer 1: Background -->
             <div class="card-layer-bg" id="layer-bg"></div>
-            <!-- Dynamic Layer 1.5: Video Loop (For MP4 animated background) -->
-            <video class="card-layer-video" id="layer-video" autoplay loop muted playsinline style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1.8; pointer-events: none;"></video>
-            <!-- Dynamic Layer 2: Character (Transparent PNG) -->
+            <!-- Dynamic Layer 2: Character -->
             <div class="card-layer-char" id="layer-char"></div>
-            <!-- Dynamic Layer 2.2: Character Canvas (For realtime chroma-key rendering) -->
-            <canvas class="card-layer-char" id="layer-char-canvas" style="display: none; pointer-events: none; object-fit: cover;"></canvas>
-            <!-- Hidden Video for Chroma Key Source -->
-            <video id="layer-char-green-video" preload="auto" loop muted playsinline style="display: none;"></video>
             
             <!-- Left-Top Vertical Japanese (Visible in JA mode) -->
             <div class="role-name-japanese" id="role-jp"></div>
@@ -429,10 +301,10 @@
             <!-- Right-Top Horizontal English (Visible in JA mode) -->
             <div class="role-name-english-rt" id="role-en-rt"></div>
             
-            <!-- Left-Top Horizontal English (Visible in EN mode instead of Japanese, Title Case) -->
+            <!-- Left-Top Horizontal English (Visible in EN mode) -->
             <div class="role-name-english-vertical" id="role-en-vertical"></div>
             
-            <!-- Bottom STICKY Description Band (Non-scrollable, large font) -->
+            <!-- Bottom STICKY Description Band -->
             <div class="card-description-band">
                 <div class="camp-container">
                     <img class="camp-icon" id="camp-icon" src="" alt="Camp Icon">
@@ -444,939 +316,230 @@
     </div>
 
     <script>
-        // 24 Roles database with Japanese and English information (Capitalized to help Title Case)
         const rolesData = [
-            {
-                id: "dictator",
-                jp: "独裁者",
-                en: "Dictator",
-                rubies: ["どく", "さい", "しゃ"],
-                camp: "citizen",
-                desc_ja: "投票時に自分の正体を明かすことで、その日の投票を自分一人で決定できる。",
-                desc_en: "By revealing your true identity during the vote, you can decide the vote of the day all by yourself."
-            },
-            {
-                id: "knights",
-                jp: "騎士団",
-                en: "Knights",
-                rubies: ["き", "し", "だん"],
-                camp: "citizen",
-                desc_ja: "毎日一人を指定して、人狼の襲撃から守ることができる。ただし自分自身は守れない。",
-                desc_en: "Can protect one player from the werewolf attack every night. Cannot protect themselves."
-            },
-
-            {
-                id: "double",
-                jp: "影武者",
-                en: "Double",
-                rubies: ["かげ", "む", "しゃ"],
-                camp: "citizen",
-                desc_ja: "最初に指定した市民と同じ役職になり、その身代わりとして人狼の前に立ち塞がる。",
-                desc_en: "Becomes the same role as a designated citizen at the start, sacrificing themselves in their place."
-            },
-            {
-                id: "counselor",
-                jp: "カウンセラー",
-                en: "Counselor",
-                rubies: ["", "", "", "", "", ""],
-                camp: "citizen",
-                desc_ja: "他のプレイヤーの精神を分析し、人狼の恐怖に呑まれかけている者を正常に導く。",
-                desc_en: "Analyzes the mental state of another player, leading those slipping into werewolf fear back to sanity."
-            },
-            {
-                id: "necromancer",
-                jp: "霊媒師",
-                en: "Necromancer",
-                rubies: ["れい", "ばい", "し"],
-                camp: "citizen",
-                desc_ja: "毎夜、前日に処刑されたプレイヤーが「人狼」であったか「人間」であったかを知ることができる。",
-                desc_en: "Can know every night whether the player executed on the previous day was a 'Werewolf' or a 'Human'."
-            },
-            {
-                id: "trapper",
-                jp: "罠師",
-                en: "Trapper",
-                rubies: ["わな", "し"],
-                camp: "citizen",
-                desc_ja: "指定した場所に罠を仕掛け、人狼が襲撃に来た際に罠にハメて相打ちに持ち込む。",
-                desc_en: "Sets a trap in a designated place, taking down the werewolf with them if they attack there."
-            },
-            {
-                id: "citizen",
-                jp: "市民",
-                en: "Citizen",
-                rubies: ["し", "みん"],
-                camp: "citizen",
-                desc_ja: "特別な能力は持たないが、お互いの信頼と鋭い議論によって人狼の正体を見破る主役。",
-                desc_en: "Has no special abilities, but is the main protagonist who exposes the werewolves through trust and sharp discussions."
-            },
-            {
-                id: "prophet",
-                jp: "予言者",
-                en: "Prophet",
-                rubies: ["よ", "げん", "しゃ"],
-                camp: "citizen",
-                desc_ja: "毎夜、生存しているプレイヤーの中から一人を指定し、「人狼」か「人間」かを知ることができる。",
-                desc_en: "Can designate one player every night to learn whether they are a 'Werewolf' or a 'Human'."
-            },
-            {
-                id: "bodyguard",
-                jp: "ボディガード",
-                en: "Bodyguard",
-                rubies: ["", "", "", "", "", ""],
-                camp: "citizen",
-                desc_ja: "強靭な肉体で市民を守る。夜の襲撃から指定したプレイヤーを一人だけ守護する。",
-                desc_en: "Protects citizens with a strong body. Protects one designated player from night attacks."
-            },
-            {
-                id: "twins",
-                jp: "共有者",
-                en: "Twins",
-                rubies: ["きょう", "ゆう", "しゃ"],
-                camp: "citizen",
-                desc_ja: "もう一人の共有者とお互いが人間であることを最初から知っている、お互いの絆で繋がった二人。",
-                desc_en: "Two players connected by bond who know from the beginning that they are both human."
-            },
-            {
-                id: "magician",
-                jp: "奇術師",
-                en: "Magician",
-                rubies: ["き", "じゅつ", "し"],
-                camp: "citizen",
-                desc_ja: "手品のように他のプレイヤーの役職を一時的に入れ替え、議論の方向性を攪乱する。",
-                desc_en: "Temporarily swaps roles of other players like a magic trick to confuse the direction of the discussion."
-            },
-            {
-                id: "magician_c",
-                jp: "奇術師 C",
-                en: "Magician C",
-                rubies: ["き", "じゅつ", "し", ""],
-                camp: "citizen",
-                desc_ja: "手品のように他のプレイヤーの役職を一時的に入れ替え、議論の方向性を攪乱する。(カードバリエーション版)",
-                desc_en: "Temporarily swaps roles of other players like a magic trick to confuse the direction of the discussion. (Alternative card version)"
-            },
-            {
-                id: "hunter",
-                jp: "ハンター",
-                en: "Hunter",
-                rubies: ["", "", "", "", ""],
-                camp: "citizen",
-                desc_ja: "自分が処刑または人狼に殺された際、最後の一撃で他のプレイヤー一人を道連れにして死亡する。",
-                desc_en: "When executed or killed by werewolves, takes one other player down with them as a parting shot."
-            },
-            {
-                id: "tough_guy",
-                jp: "タフガイ",
-                en: "Tough Guy",
-                rubies: ["", "", "", "", ""],
-                camp: "citizen",
-                desc_ja: "人狼に襲撃されてもその夜は死なず、次の日の夜に怪我の悪化によって死亡するタフな人間。",
-                desc_en: "Does not die the night they are attacked by werewolves, but dies the following night due to worsening wounds."
-            },
-            {
-                id: "spy",
-                jp: "スパイ",
-                en: "Spy",
-                rubies: ["", "", "", ""],
-                camp: "werewolf",
-                desc_ja: "市民陣営の中に紛れ込み、夜の会話をこっそり人狼チームへ送信する情報工作員。",
-                desc_en: "Blends in with the citizens and secretly relays the night discussions to the werewolf team."
-            },
-            {
-                id: "betrayal_twin",
-                jp: "裏切りの共有者",
-                en: "Betrayal Twin",
-                rubies: ["うら", "ぎ", "", "", "きょう", "ゆう", "しゃ"],
-                camp: "werewolf",
-                desc_ja: "共有者のふりをしているが、実は心は人狼陣営。お互いの正体を知る裏切り者の双子。",
-                desc_en: "Pretends to be a twin but is actually on the werewolf side, knowing each other's identity."
-            },
-            {
-                id: "werewolf",
-                jp: "人狼",
-                en: "Werewolf",
-                rubies: ["じん", "ろう"],
-                camp: "werewolf",
-                desc_ja: "人間に化けた狼。毎夜、市民陣営のプレイヤーを一人選び、襲撃して捕食する人狼ゲームの闇。",
-                desc_en: "A wolf disguised as a human. Attacks and eats one citizen player chosen every night."
-            },
-            {
-                id: "traitor",
-                jp: "内通者",
-                en: "Traitor",
-                rubies: ["ない", "つう", "しゃ"],
-                camp: "werewolf",
-                desc_ja: "人間でありながら人狼に内通し、人狼チームの勝利のために議論を嘘で誘導する裏切り者。",
-                desc_en: "A human siding with werewolves, leading the discussions with lies to help the werewolf team win."
-            },
-            {
-                id: "betrayer",
-                jp: "裏切り者",
-                en: "Betrayer",
-                rubies: ["うら", "ぎ", "", "もの"],
-                camp: "werewolf",
-                desc_ja: "人狼陣営の勝利を望む人間。誰が人狼かは知らないが、市民陣営を攪乱して処刑へ追い込む。",
-                desc_en: "A human who wants the werewolf team to win. Does not know who the werewolves are but leads citizens to execution."
-            },
-            {
-                id: "werewolf_child",
-                jp: "人狼の子ども",
-                en: "Werewolf's Child",
-                rubies: ["じん", "ろう", "", "こ", "", ""],
-                camp: "werewolf",
-                desc_ja: "自分が死亡した際、残された人狼たちに強い怒りと力を给え、次の夜の襲撃数を一時的に増やす。",
-                desc_en: "When dead, grants strong rage and power to the remaining werewolves, increasing night attacks."
-            },
-            {
-                id: "android",
-                jp: "アンドロイド",
-                en: "Android",
-                rubies: ["", "", "", "", "", ""],
-                camp: "fox",
-                desc_ja: "人間でも狼でもない存在。全てのプレイヤーが死亡し、自分だけが生き残ることで単独勝利する。",
-                desc_en: "Neither human nor wolf. Wins alone if they survive until all other players are dead."
-            },
-            {
-                id: "lone_wolf",
-                jp: "一匹狼",
-                en: "Lone Wolf",
-                rubies: ["いっ", "ぴき", "おおかみ"],
-                camp: "werewolf",
-                desc_ja: "他の人狼と会話することはできないが、自分の意志で独立した単独襲撃を行うことができる人狼。",
-                desc_en: "Cannot talk to other werewolves, but can conduct independent single attacks of their own."
-            },
-            {
-                id: "god",
-                jp: "神様",
-                en: "God",
-                rubies: ["かみ", "さま", ""],
-                camp: "citizen",
-                desc_ja: "天界から全てを見通す。毎夜、誰が襲撃されたかを神の神託として受け取る高貴な存在。",
-                desc_en: "Sees all from the heavens. Receives the name of the attacked player every night as a divine revelation."
-            },
-            {
-                id: "lovers",
-                jp: "恋人",
-                en: "Lovers",
-                rubies: ["こい", "びと", ""],
-                camp: "citizen",
-                desc_ja: "恋に落ちた二人。どちらか一方が死亡した場合、もう片方も悲しみのあまり即座に死亡する。",
-                desc_en: "Two in love. If one dies, the other immediately dies of grief."
-            },
-            {
-                id: "mysterious_fox",
-                jp: "妖狐",
-                en: "Mysterious Fox",
-                rubies: ["よう", "こ", ""],
-                camp: "fox",
-                desc_ja: "人狼の襲撃では死なないが、予言者に占われると呪殺され死亡する。最後まで生き残れば単独勝利。",
-                desc_en: "Does not die from werewolf attacks, but dies if divined by the prophet. Wins alone if surviving to the end."
-            }
+            { id: "dictator", jp: "独裁者", en: "Dictator", rubies: ["どく", "さい", "しゃ"], camp: "citizen", desc_ja: "投票時に自分の正体を明かすことで、その日の投票を自分一人で決定できる。", desc_en: "By revealing your true identity during the vote, you can decide the vote of the day all by yourself." },
+            { id: "knights", jp: "騎士団", en: "Knights", rubies: ["き", "し", "だん"], camp: "citizen", desc_ja: "毎日一人を指定して、人狼の襲撃から守ることができる。ただし自分自身は守れない。", desc_en: "Can protect one player from the werewolf attack every night. Cannot protect themselves." },
+            { id: "double", jp: "影武者", en: "Double", rubies: ["かげ", "む", "しゃ"], camp: "citizen", desc_ja: "最初に指定した市民と同じ役職になり、その身代わりとして人狼の前に立ち塞がる。", desc_en: "Becomes the same role as a designated citizen at the start, sacrificing themselves in their place." },
+            { id: "counselor", jp: "カウンセラー", en: "Counselor", rubies: ["", "", "", "", "", ""], camp: "citizen", desc_ja: "他のプレイヤーの精神を分析し、人狼の恐怖に呑まれかけている者を正常に導く。", desc_en: "Analyzes the mental state of another player, leading those slipping into werewolf fear back to sanity." },
+            { id: "necromancer", jp: "霊媒師", en: "Necromancer", rubies: ["れい", "ばい", "し"], camp: "citizen", desc_ja: "毎夜、前日に処刑されたプレイヤーが「人狼」であったか「人間」であったかを知ることができる。", desc_en: "Can know every night whether the player executed on the previous day was a 'Werewolf' or a 'Human'." },
+            { id: "trapper", jp: "罠師", en: "Trapper", rubies: ["わな", "し"], camp: "citizen", desc_ja: "指定した場所に罠を仕掛け、人狼が襲撃に来た際に罠にハメて相打ちに持ち込む。", desc_en: "Sets a trap in a designated place, taking down the werewolf with them if they attack there." },
+            { id: "citizen", jp: "市民", en: "Citizen", rubies: ["し", "みん"], camp: "citizen", desc_ja: "特別な能力は持たないが、お互いの信頼と鋭い議論によって人狼の正体を見破る主役。", desc_en: "Has no special abilities, but is the main protagonist who exposes the werewolves through trust and sharp discussions." },
+            { id: "prophet", jp: "予言者", en: "Prophet", rubies: ["よ", "げん", "しゃ"], camp: "citizen", desc_ja: "毎夜、生存しているプレイヤーの中から一人を指定し、「人狼」か「人間」かを知ることができる。", desc_en: "Can designate one player every night to learn whether they are a 'Werewolf' or a 'Human'." },
+            { id: "bodyguard", jp: "ボディガード", en: "Bodyguard", rubies: ["", "", "", "", "", ""], camp: "citizen", desc_ja: "強靭な肉体で市民を守る。夜の襲撃から指定したプレイヤーを一人だけ守護する。", desc_en: "Protects citizens with a strong body. Protects one designated player from night attacks." },
+            { id: "twins", jp: "共有者", en: "Twins", rubies: ["きょう", "ゆう", "しゃ"], camp: "citizen", desc_ja: "もう一人の共有者とお互いが人間であることを最初から知っている、お互いの絆で繋がった二人。", desc_en: "Two players connected by bond who know from the beginning that they are both human." },
+            { id: "magician", jp: "奇術師", en: "Magician", rubies: ["き", "じゅつ", "し"], camp: "citizen", desc_ja: "手品のように他のプレイヤーの役職を一時的に入れ替え、議論の方向性を攪乱する。", desc_en: "Temporarily swaps roles of other players like a magic trick to confuse the direction of the discussion." },
+            { id: "hunter", jp: "ハンター", en: "Hunter", rubies: ["", "", "", "", ""], camp: "citizen", desc_ja: "自分が処刑または人狼に殺された際、最後の一撃で他のプレイヤー一人を道連れにして死亡する。", desc_en: "When executed or killed by werewolves, takes one other player down with them as a parting shot." },
+            { id: "tough_guy", jp: "タフガイ", en: "Tough Guy", rubies: ["", "", "", "", ""], camp: "citizen", desc_ja: "人狼に襲撃されてもその夜は死なず、次の日の夜に怪我の悪化によって死亡するタフな人間。", desc_en: "Does not die the night they are attacked by werewolves, but dies the following night due to worsening wounds." },
+            { id: "spy", jp: "スパイ", en: "Spy", rubies: ["", "", "", ""], camp: "werewolf", desc_ja: "市民陣営の中に紛れ込み、夜の会話をこっそり人狼チームへ送信する情報工作員。", desc_en: "Blends in with the citizens and secretly relays the night discussions to the werewolf team." },
+            { id: "betrayal_twin", jp: "裏切りの共有者", en: "Betrayal Twin", rubies: ["うら", "ぎ", "", "", "きょう", "ゆう", "しゃ"], camp: "werewolf", desc_ja: "共有者のふりをしているが、実は心は人狼陣営。お互いの正体を知る裏切り者の双子。", desc_en: "Pretends to be a twin but is actually on the werewolf side, knowing each other's identity." },
+            { id: "werewolf", jp: "人狼", en: "Werewolf", rubies: ["じん", "ろう"], camp: "werewolf", desc_ja: "人間に化けた狼。毎夜、市民陣営のプレイヤーを一人選び、襲撃して捕食する人狼ゲームの闇。", desc_en: "A wolf disguised as a human. Attacks and eats one citizen player chosen every night." },
+            { id: "traitor", jp: "内通者", en: "Traitor", rubies: ["ない", "つう", "しゃ"], camp: "werewolf", desc_ja: "人間でありながら人狼に内通し、人狼チームの勝利のために議論を嘘で誘導する裏切り者。", desc_en: "A human siding with werewolves, leading the discussions with lies to help the werewolf team win." },
+            { id: "betrayer", jp: "裏切り者", en: "Betrayer", rubies: ["うら", "ぎ", "", "もの"], camp: "werewolf", desc_ja: "人狼陣営の勝利を望む人間。誰が人狼かは知らないが、市民陣営を攪乱して処刑へ追い込む。", desc_en: "A human who wants the werewolf team to win. Does not know who the werewolves are but leads citizens to execution." },
+            { id: "werewolf_child", jp: "人狼の子ども", en: "Werewolf's Child", rubies: ["じん", "ろう", "", "こ", "", ""], camp: "werewolf", desc_ja: "自分が死亡した際、残された人狼たちに強い怒りと力を与え、次の夜の襲撃数を一時的に増やす。", desc_en: "When dead, grants strong rage and power to the remaining werewolves, increasing night attacks." },
+            { id: "android", jp: "アンドロイド", en: "Android", rubies: ["", "", "", "", "", ""], camp: "fox", desc_ja: "人間でも狼でもない存在。全てのプレイヤーが死亡し、自分だけが生き残ることで単独勝利する。", desc_en: "Neither human nor wolf. Wins alone if they survive until all other players are dead." },
+            { id: "lone_wolf", jp: "一匹狼", en: "Lone Wolf", rubies: ["いっ", "ぴき", "おおかみ"], camp: "werewolf", desc_ja: "他の人狼と会話することはできないが、自分の意志で独立した単独襲撃を行うことができる人狼。", desc_en: "Cannot talk to other werewolves, but can conduct independent single attacks of their own." },
+            { id: "god", jp: "神様", en: "God", rubies: ["かみ", "さま", ""], camp: "citizen", desc_ja: "天界から全てを見通す。毎夜、誰が襲撃されたかを神の神託として受け取る高貴な存在。", desc_en: "Sees all from the heavens. Receives the name of the attacked player every night as a divine revelation." },
+            { id: "lovers", jp: "恋人", en: "Lovers", rubies: ["こい", "びと", ""], camp: "citizen", desc_ja: "恋に落ちた二人。どちらか一方が死亡した場合、もう片方も悲しみのあまり即座に死亡する。", desc_en: "Two in love. If one dies, the other immediately dies of grief." },
+            { id: "mysterious_fox", jp: "妖狐", en: "Mysterious Fox", rubies: ["よう", "こ", ""], camp: "fox", desc_ja: "人狼の襲撃では死なないが、予言者に占われると呪殺され死亡する。最後まで生き残れば単独勝利。", desc_en: "Does not die from werewolf attacks, but dies if divined by the prophet. Wins alone if surviving to the end." },
+            { id: "ghost_wolf", jp: "狼の亡霊", en: "Ghost Wolf", rubies: ["おおかみ", "", "ぼう", "れい"], camp: "werewolf", desc_ja: "人狼陣営。人間・人狼ともにカウントされず、死亡後もゲームから離脱せず議論・投票・襲撃相談に参加できる。", desc_en: "Werewolf side. Does not count as human or wolf, and remains active in discussion, voting, and attack plan after death." }
         ];
 
-        // Populate Role Selector Dropdown
-        const select = document.getElementById("role-select");
-        rolesData.forEach(r => {
-            const opt = document.createElement("option");
-            opt.value = r.id;
-            opt.textContent = `${r.jp} (${r.en})`;
-            select.appendChild(opt);
-        });
-
-        // App state
-        let currentRole = rolesData[0];
-        let currentLang = 'ja'; // 'ja' or 'en'
-        const flatImageFolders = new Set([
-            "raw-illustrations-72-a",
-            "raw-illustrations-72-a-lifelike",
-            "raw-illustrations-72-a-refined"
-        ]);
         const REFINED_POSITIONS = {
             dictator: { scale: 0.91, x: 1.76, y: 7.29 }, knights: { scale: 1.42, x: -2.36, y: -5.99 },
             double: { scale: 0.94, x: -0.13, y: 4.98 }, counselor: { scale: 0.93, x: -2.9, y: 4.63 },
             necromancer: { scale: 1.02, x: 0.75, y: 4.2 }, trapper: { scale: 0.96, x: -1, y: 4.28 },
             citizen: { scale: 0.95, x: 2.21, y: 4.91 }, prophet: { scale: 0.95, x: -1.2, y: 2.93 },
             bodyguard: { scale: 0.92, x: -1.25, y: 3.82 }, twins: { scale: 1.24, x: -0.39, y: 3.37 },
-            magician: { scale: 0.9, x: -2.72, y: 0.46 }, magician_c: { scale: 0.86, x: -1.77, y: 0.93 },
+            magician: { scale: 0.9, x: -2.72, y: 0.46 },
             hunter: { scale: 1, x: -0.71, y: 0.72 }, tough_guy: { scale: 1, x: 0, y: 0 }, spy: { scale: 1, x: 0, y: 0 },
             betrayal_twin: { scale: 0.89, x: -0.1, y: 5.32 }, werewolf: { scale: 0.98, x: 0.27, y: 8.16 },
             traitor: { scale: 0.91, x: 1.75, y: 4.57 }, betrayer: { scale: 1, x: 1.57, y: 2.9 },
             werewolf_child: { scale: 0.95, x: -0.15, y: 4.54 }, android: { scale: 1.02, x: 0.68, y: 4.56 },
             lone_wolf: { scale: 1, x: -1.27, y: 4.8 }, god: { scale: 1.09, x: 0, y: 0 },
-            lovers: { scale: 1, x: 2.01, y: 0.52 }, mysterious_fox: { scale: 1, x: 0, y: 0 }
+            lovers: { scale: 1, x: 2.01, y: 0.52 }, mysterious_fox: { scale: 1, x: 0, y: 0 },
+            ghost_wolf: { scale: 1.38, x: -2.03, y: -2.77 }
         };
-        const compositeCharacterFolders = {
-            "raw-illustrations-72-a2": "raw-illustrations-transparent-72",
-            "lifelike-trans": "00_transparent-illustrations-72-a-lifelike",
-            "refined-trans": "00_transparent-illustrations-72-a-refined"
+
+        const styleFolderMap = {
+            refined: '00_transparent-illustrations-72-a-refined',
+            lifelike: '00_transparent-illustrations-72-a-lifelike',
+            a: 'raw-illustrations-transparent-72'
         };
+
         const assetCacheVersion = '20260719-refined-assets';
+
+        let currentRole = rolesData[0];
+        let currentLang = 'ja'; // 'ja' or 'en'
+        let bgEnabled = true;
 
         function versionedAsset(path) {
             return `${path}?v=${assetCacheVersion}`;
         }
-        
+
+        function populateRoleDropdown() {
+            const select = document.getElementById("role-select");
+            select.innerHTML = "";
+            rolesData.forEach(r => {
+                const opt = document.createElement("option");
+                opt.value = r.id;
+                opt.textContent = currentLang === 'ja' ? `${r.jp} (${r.en})` : `${r.en} (${r.jp})`;
+                select.appendChild(opt);
+            });
+            select.value = currentRole.id;
+        }
+
+        function updateUIControlsLanguage() {
+            document.getElementById("page-title").textContent = currentLang === 'ja' ? "人狼ゲーム カードビューア" : "WEREWOLF CARD VIEWER";
+            document.getElementById("btn-prev").textContent = currentLang === 'ja' ? "← 前へ" : "← PREV";
+            document.getElementById("btn-next").textContent = currentLang === 'ja' ? "次へ →" : "NEXT →";
+            document.getElementById("lbl-lang").textContent = currentLang === 'ja' ? "言語 (LANG):" : "LANG:";
+            document.getElementById("lbl-style").textContent = currentLang === 'ja' ? "スタイル (STYLE):" : "STYLE:";
+            document.getElementById("lbl-bg").textContent = currentLang === 'ja' ? "背景 (BG):" : "BACKGROUND:";
+            
+            document.getElementById("btn-ja").classList.toggle("active", currentLang === 'ja');
+            document.getElementById("btn-en").classList.toggle("active", currentLang === 'en');
+
+            populateRoleDropdown();
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            updateUIControlsLanguage();
+            updateCard();
+        }
+
+        function setBackground(enabled) {
+            bgEnabled = enabled;
+            document.getElementById("btn-bg-on").classList.toggle("active", bgEnabled);
+            document.getElementById("btn-bg-off").classList.toggle("active", !bgEnabled);
+            updateCard();
+        }
+
+        function prevRole() {
+            const idx = rolesData.findIndex(r => r.id === currentRole.id);
+            const prevIdx = (idx - 1 + rolesData.length) % rolesData.length;
+            currentRole = rolesData[prevIdx];
+            document.getElementById("role-select").value = currentRole.id;
+            updateCard();
+        }
+
+        function nextRole() {
+            const idx = rolesData.findIndex(r => r.id === currentRole.id);
+            const nextIdx = (idx + 1) % rolesData.length;
+            currentRole = rolesData[nextIdx];
+            document.getElementById("role-select").value = currentRole.id;
+            updateCard();
+        }
+
         function updateCard() {
             const roleId = document.getElementById("role-select").value;
             currentRole = rolesData.find(r => r.id === roleId);
-            
-            // Background & Character Layer Mapping
-            const versionSelect = document.getElementById("version-select").value;
+
+            const styleSelect = document.getElementById("version-select").value; // 'refined', 'lifelike', 'a'
             const layerBg = document.getElementById("layer-bg");
             const layerChar = document.getElementById("layer-char");
-            const layerVideo = document.getElementById("layer-video");
-            layerChar.classList.remove("refined-positioned");
+
+            // Reset character transforms
             layerChar.style.transform = "";
-            
-            // Reset videos & canvas by default
-            stopChromaKeyLoop();
-            layerVideo.style.display = "none";
-            try {
-                layerVideo.pause();
-            } catch(e) {}
-            
+
             let bgId = currentRole.id;
-            let flatImgName = `${currentRole.id}_ver_a.png`;
             let charImgName = `${currentRole.id}_ver_a.png`;
-            
+
             if (currentRole.id === "magician_c") {
                 bgId = "magician";
-                flatImgName = "magician_ver_c.png";
                 charImgName = "magician_ver_c.png";
             }
-            
-            if (flatImageFolders.has(versionSelect)) {
-                // Ver.A: フラット背景（元のイラストをそのまま1枚絵として layer-bg に設定）
-                layerBg.style.backgroundImage = `url('${versionedAsset(`${versionSelect}/${flatImgName}`)}')`;
-                layerChar.style.display = "none";
-            } else if (compositeCharacterFolders[versionSelect]) {
-                const characterPath = versionedAsset(`${compositeCharacterFolders[versionSelect]}/${charImgName}`);
+
+            // Layer 1: Background
+            if (bgEnabled) {
                 layerBg.style.backgroundImage = `url('${versionedAsset(`backgrounds-72/${bgId}_bg.png`)}')`;
-
-                if (versionSelect === "lifelike-trans") {
-                    layerChar.style.display = "none";
-                    applyBlueScreenTransparency(chromaCanvas, characterPath);
-                } else {
-                    layerChar.style.backgroundImage = `url('${characterPath}')`;
-                    if (versionSelect === "refined-trans") {
-                        const position = REFINED_POSITIONS[currentRole.id];
-                        layerChar.classList.add("refined-positioned");
-                        layerChar.style.transform = `translate3d(${position.x}%, ${position.y}%, 0) scale(${position.scale})`;
-                    }
-                    layerChar.style.display = "block";
-                }
-            } else if (versionSelect === "videos-72") {
-                // Ver.A2 Video edition
-                if (currentRole.id === "werewolf") {
-                    // Play background loop video
-                    layerVideo.src = "videos-72/werewolf_bg_loop.mp4";
-                    layerVideo.style.display = "block";
-                    layerVideo.play().catch(err => console.log("BG Video play failed:", err));
-                    
-                    // Show Chroma Key Canvas for Character
-                    layerChar.style.display = "none";
-                    const canvasEl = document.getElementById("layer-char-canvas");
-                    canvasEl.style.display = "block";
-                    
-                    // Set video source and trigger green-screen renderer
-                    const videoEl = document.getElementById("layer-char-green-video");
-                    videoEl.src = "videos-72/werewolf_char_green_loop.mp4";
-                    startChromaKeyLoop();
-                } else {
-                    // Fallback to static A2 layered view for other roles
-                    layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
-                    layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charImgName}')`;
-                    layerChar.style.display = "block";
-                }
-            } else if (versionSelect === "kling-3") {
-                // Kling 3.0 combined video loop
-                if (currentRole.id === "werewolf") {
-                    layerVideo.src = "00_combined/Kling3.0/werewolf.mp4";
-                    layerVideo.style.display = "block";
-                    layerVideo.play().catch(err => console.log("Kling 3.0 Video play failed:", err));
-                    
-                    // Hide static elements
-                    layerChar.style.display = "none";
-                    layerBg.style.backgroundImage = "none";
-                } else {
-                    // Fallback to static A2 layered view for other roles
-                    layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
-                    layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charImgName}')`;
-                    layerChar.style.display = "block";
-                }
             } else {
-                // Ver.A2: レレイヤード合成エディション（背景のみ画像 + 透過キャラクター画像）
-                layerBg.style.backgroundImage = `url('backgrounds-72/${bgId}_bg.png')`;
-                layerChar.style.backgroundImage = `url('raw-illustrations-transparent-72/${charImgName}')`;
-                layerChar.style.display = "block";
+                layerBg.style.backgroundImage = "none";
             }
-            
 
-            
-            // Icon Mapping from icons/camp/ folder (png format)
+            // Layer 2: Character
+            const charFolder = styleFolderMap[styleSelect] || styleFolderMap.refined;
+            const characterPath = versionedAsset(`${charFolder}/${charImgName}`);
+            layerChar.style.backgroundImage = `url('${characterPath}')`;
+            layerChar.style.display = "block";
+
+            // Position adjustments for Refined style
+            if (styleSelect === "refined" && REFINED_POSITIONS[currentRole.id]) {
+                const pos = REFINED_POSITIONS[currentRole.id];
+                layerChar.style.transform = `translate3d(${pos.x}%, ${pos.y}%, 0) scale(${pos.scale})`;
+            }
+
+            // Camp Icon Mapping
             let iconName = currentRole.camp;
             if (currentRole.camp === "fox") {
                 iconName = "neutral";
             }
             document.getElementById("camp-icon").src = `icons/camp/${iconName}.png`;
-            
-            // Render Text elements based on Language Mode
+
+            // Text elements
             const jpLabel = document.getElementById("role-jp");
             const enRtLabel = document.getElementById("role-en-rt");
             const enVerticalLabel = document.getElementById("role-en-vertical");
             const descLabel = document.getElementById("role-desc");
             const campLabel = document.getElementById("camp-label");
-            
+
             if (currentLang === 'ja') {
-                // Japanese Mode
                 jpLabel.style.display = "block";
                 enRtLabel.style.display = "block";
                 enVerticalLabel.style.display = "none";
-                
-                // Render Japanese main text + rubies
+
                 jpLabel.innerHTML = "";
                 const chars = currentRole.jp.split("");
                 chars.forEach((char, idx) => {
                     const ruby = document.createElement("ruby");
                     ruby.textContent = char;
-                    if (currentRole.rubies[idx]) {
+                    const rtVal = currentRole.rubies[idx];
+                    if (rtVal && rtVal !== "") {
                         const rt = document.createElement("rt");
-                        rt.textContent = currentRole.rubies[idx];
+                        rt.textContent = rtVal;
                         ruby.appendChild(rt);
                     }
                     jpLabel.appendChild(ruby);
                 });
-                
-                // Render Horizontal English (Right-Top)
+
                 enRtLabel.textContent = currentRole.en;
-                
-                // Render Japanese Camp label
-                if (currentRole.camp === 'citizen') {
-                    campLabel.textContent = "市民チーム";
-                } else if (currentRole.camp === 'werewolf') {
-                    campLabel.textContent = "人狼チーム";
-                } else {
-                    campLabel.textContent = "第三陣営";
-                }
-                
-                // Render Japanese description
                 descLabel.textContent = currentRole.desc_ja;
+
+                if (currentRole.camp === "citizen") campLabel.textContent = "市民陣営";
+                else if (currentRole.camp === "werewolf") campLabel.textContent = "人狼陣営";
+                else campLabel.textContent = "第三陣営";
             } else {
-                // English Mode
                 jpLabel.style.display = "none";
                 enRtLabel.style.display = "none";
                 enVerticalLabel.style.display = "block";
-                
-                // Render Horizontal English in place of Japanese (Left-Top)
+
                 enVerticalLabel.textContent = currentRole.en;
-                
-                // Dynamically adjust font-size based on character length for Cinzel Decorative
-                const textLength = currentRole.en.length;
-                if (textLength > 16) {
-                    enVerticalLabel.style.fontSize = "22px";
-                    enVerticalLabel.style.letterSpacing = "-1.5px";
-                } else if (textLength > 12) {
-                    enVerticalLabel.style.fontSize = "26px";
-                    enVerticalLabel.style.letterSpacing = "-2px";
-                } else {
-                    enVerticalLabel.style.fontSize = "32px";
-                    enVerticalLabel.style.letterSpacing = "-2px";
-                }
-                
-                // Render English Camp label
-                if (currentRole.camp === 'citizen') {
-                    campLabel.textContent = "Town";
-                } else if (currentRole.camp === 'werewolf') {
-                    campLabel.textContent = "Werewolves";
-                } else {
-                    campLabel.textContent = "Neutral";
-                }
-                
-                // Render English description
                 descLabel.textContent = currentRole.desc_en;
+
+                if (currentRole.camp === "citizen") campLabel.textContent = "CITIZEN TEAM";
+                else if (currentRole.camp === "werewolf") campLabel.textContent = "WEREWOLF TEAM";
+                else campLabel.textContent = "NEUTRAL ROLE";
             }
         }
 
-        function setLanguage(lang) {
-            currentLang = lang;
-            document.getElementById("btn-ja").className = `lang-btn ${lang === 'ja' ? 'active' : ''}`;
-            document.getElementById("btn-en").className = `lang-btn ${lang === 'en' ? 'active' : ''}`;
-            updateCard();
+        // Init
+        const urlParams = new URLSearchParams(window.location.search);
+        const roleParam = urlParams.get('role');
+        const langParam = urlParams.get('lang');
+        const verParam = urlParams.get('ver');
+
+        if (roleParam && rolesData.some(r => r.id === roleParam)) {
+            currentRole = rolesData.find(r => r.id === roleParam);
+        }
+        if (langParam === 'en' || langParam === 'ja') {
+            currentLang = langParam;
+        }
+        if (verParam && ['refined', 'lifelike', 'a'].includes(verParam)) {
+            document.getElementById("version-select").value = verParam;
         }
 
-        function navigateRole(direction) {
-            const select = document.getElementById("role-select");
-            let newIndex = select.selectedIndex + direction;
-            if (newIndex < 0) {
-                newIndex = select.options.length - 1;
-            } else if (newIndex >= select.options.length) {
-                newIndex = 0;
-            }
-            select.selectedIndex = newIndex;
-            updateCard();
-        }
-
-        let isAnimating = false;
-        let isAnimationEnabled = true;
-        
-        function setAnimation(enabled) {
-            isAnimationEnabled = enabled;
-            document.getElementById("btn-anim-on").className = `lang-btn ${enabled ? 'active' : ''}`;
-            document.getElementById("btn-anim-off").className = `lang-btn ${!enabled ? 'active' : ''}`;
-            
-            const layerBg = document.getElementById("layer-bg");
-            const layerChar = document.getElementById("layer-char");
-            
-            if (!enabled) {
-                // Disable all CSS animations and reset parallax transforms
-                layerBg.style.animation = "none";
-                layerChar.style.animation = "none";
-                resetParallax();
-                
-                // Hide gyro controls if disabled
-                document.getElementById("gyro-control-group").style.display = "none";
-                if (isGyroActive) {
-                    isGyroActive = false;
-                    window.removeEventListener("deviceorientation", handleGyroMove);
-                    const btn = document.getElementById("btn-gyro");
-                    btn.classList.remove("active");
-                    btn.textContent = "有効化 (OFF)";
-                }
-            } else {
-                // Restore animations
-                layerBg.style.animation = "";
-                layerChar.style.animation = "";
-                
-                // Restore gyro group if mobile
-                const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
-                if (isMobile) {
-                    document.getElementById("gyro-control-group").style.display = "block";
-                }
-            }
-        }
-        
-        function triggerTapAction() {
-            if (!isAnimationEnabled || isAnimating) return;
-            
-            const selectVal = document.getElementById("role-select").value;
-            const versionSelect = document.getElementById("version-select").value;
-            
-            // Only trigger character action in layered A2 mode
-            if (versionSelect !== "raw-illustrations-72-a2") return;
-            
-            isAnimating = true;
-            const layerChar = document.getElementById("layer-char");
-            const cardWrapper = document.getElementById("card-wrapper");
-            
-            // Determine action CSS class based on role ID
-            let actionClass = "action-generic";
-            if (selectVal === "werewolf" || selectVal === "lone_wolf" || selectVal === "werewolf_child") {
-                actionClass = "action-werewolf";
-            } else if (selectVal === "magician" || selectVal === "magician_c") {
-                actionClass = "action-magician";
-            } else if (selectVal === "mysterious_fox") {
-                actionClass = "action-mysterious_fox";
-            } else if (selectVal === "bodyguard" || selectVal === "knights") {
-                actionClass = "action-bodyguard";
-            }
-            
-            // Pause ambient loop, force browser layout reflow, then apply action
-            layerChar.style.animation = "none";
-            void layerChar.offsetWidth; // Reflow trigger
-            
-            layerChar.classList.add(actionClass);
-            cardWrapper.classList.add("card-tap-pulse");
-            
-            // Listen for single shot animation completion to clean up
-            layerChar.addEventListener("animationend", function handler() {
-                layerChar.classList.remove(actionClass);
-                cardWrapper.classList.remove("card-tap-pulse");
-                layerChar.style.animation = ""; // Restore ambient loop float
-                isAnimating = false;
-                layerChar.removeEventListener("animationend", handler);
-            });
-        }
-
-        let isGyroActive = false;
-        let baseBeta = null;
-        let baseGamma = null;
-
-        function toggleGyro() {
-            const btn = document.getElementById("btn-gyro");
-            if (isGyroActive) {
-                // Disable
-                window.removeEventListener("deviceorientation", handleGyroMove);
-                isGyroActive = false;
-                btn.classList.remove("active");
-                btn.textContent = "有効化 (OFF)";
-                resetParallax();
-            } else {
-                // Request Permission (Required for iOS 13+)
-                if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
-                    DeviceOrientationEvent.requestPermission()
-                        .then(response => {
-                            if (response === "granted") {
-                                enableGyro();
-                            } else {
-                                alert("ジャイロセンサーの使用許可が拒否されました。");
-                            }
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            alert("センサーの初期化に失敗しました。");
-                        });
-                } else {
-                    // Standard Android/PC
-                    enableGyro();
-                }
-            }
-        }
-
-        function enableGyro() {
-            const btn = document.getElementById("btn-gyro");
-            isGyroActive = true;
-            baseBeta = null;
-            baseGamma = null;
-            btn.classList.add("active");
-            btn.textContent = "有効化 (ON)";
-            window.addEventListener("deviceorientation", handleGyroMove);
-        }
-
-        function handleGyroMove(e) {
-            if (isAnimating) return;
-            
-            const cardBg = document.getElementById("card-bg");
-            const layerBg = document.getElementById("layer-bg");
-            const layerChar = document.getElementById("layer-char");
-            
-            if (!cardBg || !layerBg || !layerChar) return;
-            
-            // Set base orientation calibration on first read
-            if (baseBeta === null) {
-                baseBeta = e.beta;
-                baseGamma = e.gamma;
-                return;
-            }
-            
-            // Calculate delta relative to starting position, clamp within safe limits
-            let deltaBeta = e.beta - baseBeta;
-            let deltaGamma = e.gamma - baseGamma;
-            
-            // Clamping to a max of 20 degrees
-            deltaBeta = Math.max(-20, Math.min(20, deltaBeta));
-            deltaGamma = Math.max(-20, Math.min(20, deltaGamma));
-            
-            // Map rotation directly (Beta controls rotateX, Gamma controls rotateY)
-            const tiltX = deltaBeta * 0.7; // Sensitivity modifier
-            const tiltY = -deltaGamma * 0.7;
-            
-            // Convert to relative ratio (-0.5 to 0.5) for translation parallax
-            const ratioX = deltaGamma / 40;
-            const ratioY = deltaBeta / 40;
-            
-            // Pause ambient loop
-            layerBg.style.animationPlayState = "paused";
-            layerChar.style.animationPlayState = "paused";
-            
-            // Smooth tilt
-            cardBg.style.transition = "transform 0.15s ease-out";
-            cardBg.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-            
-            layerBg.style.transition = "transform 0.15s ease-out";
-            layerBg.style.transform = `scale(1.012) translate(${ratioX * -18}px, ${ratioY * -18}px)`;
-            
-            layerChar.style.transition = "transform 0.15s ease-out";
-            layerChar.style.transform = `translate(${ratioX * 22}px, ${ratioY * 14}px)`;
-        }
-
-        function resetParallax() {
-            const cardBg = document.getElementById("card-bg");
-            const layerBg = document.getElementById("layer-bg");
-            const layerChar = document.getElementById("layer-char");
-            
-            if (!cardBg || !layerBg || !layerChar) return;
-            
-            // Springy bounce-back physics easing on release
-            const springEasing = "transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-            
-            cardBg.style.transition = springEasing;
-            cardBg.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg)";
-            
-            layerBg.style.transition = springEasing;
-            layerBg.style.transform = "scale(1.012) translate(0px, 0px)";
-            
-            layerChar.style.transition = springEasing;
-            layerChar.style.transform = "translate(0px, 0px)";
-            
-            // Safely resume loops after bounce completes
-            setTimeout(() => {
-                if (!isGyroActive) {
-                    layerBg.style.animationPlayState = "running";
-                    layerChar.style.animationPlayState = "running";
-                }
-            }, 600);
-        }
-
-        function init3DParallax() {
-            const cardWrapper = document.getElementById("card-wrapper");
-            const cardBg = document.getElementById("card-bg");
-            const layerBg = document.getElementById("layer-bg");
-            const layerChar = document.getElementById("layer-char");
-            
-            if (!cardWrapper || !cardBg) return;
-            
-            // Detect Mobile to show gyro controls
-            const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
-            if (isMobile && isAnimationEnabled) {
-                document.getElementById("gyro-control-group").style.display = "block";
-            }
-            
-            let startX = 0;
-            let startY = 0;
-            let isDragging = false;
-            
-            const handleTouchStart = (e) => {
-                if (!isAnimationEnabled || isAnimating || isGyroActive) return;
-                isDragging = true;
-                
-                const touch = e.touches[0];
-                const rect = cardWrapper.getBoundingClientRect();
-                startX = touch.clientX - rect.left - rect.width / 2;
-                startY = touch.clientY - rect.top - rect.height / 2;
-                
-                cardBg.style.transition = "none";
-                layerBg.style.transition = "none";
-                layerChar.style.transition = "none";
-                
-                layerBg.style.animationPlayState = "paused";
-                layerChar.style.animationPlayState = "paused";
-            };
-            
-            const handleTouchMove = (e) => {
-                if (!isAnimationEnabled || !isDragging || isAnimating || isGyroActive) return;
-                
-                const touch = e.touches[0];
-                const rect = cardWrapper.getBoundingClientRect();
-                
-                // Get offset from center (-0.5 to +0.5)
-                const offsetX = (touch.clientX - rect.left) / rect.width - 0.5;
-                const offsetY = (touch.clientY - rect.top) / rect.height - 0.5;
-                
-                // Clamp coordinates to keep rotation safe
-                const x = Math.max(-0.5, Math.min(0.5, offsetX));
-                const y = Math.max(-0.5, Math.min(0.5, offsetY));
-                
-                // Rotation angle (up to 12 degrees for dynamic mobile touch feedback)
-                const tiltX = -y * 22;
-                const tiltY = x * 22;
-                
-                cardBg.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(0.975)`; // Shrink slightly to feel pressed
-                
-                // Parallel layered shift
-                layerBg.style.transform = `scale(1.012) translate(${x * -20}px, ${y * -20}px)`;
-                layerChar.style.transform = `translate(${x * 24}px, ${y * 14}px)`;
-            };
-            
-            const handleTouchEnd = () => {
-                isDragging = false;
-                if (!isAnimationEnabled || isGyroActive) return;
-                resetParallax();
-            };
-            
-            // PC Mouse Drag/Hover logic
-            const handleMouseMove = (e) => {
-                if (!isAnimationEnabled || isAnimating || isGyroActive) return;
-                
-                layerBg.style.animationPlayState = "paused";
-                layerChar.style.animationPlayState = "paused";
-                
-                const rect = cardWrapper.getBoundingClientRect();
-                const x = (e.clientX - rect.left) / rect.width - 0.5;
-                const y = (e.clientY - rect.top) / rect.height - 0.5;
-                
-                const tiltX = -y * 16;
-                const tiltY = x * 16;
-                
-                cardBg.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-                layerBg.style.transform = `scale(1.012) translate(${x * -16}px, ${y * -16}px)`;
-                layerChar.style.transform = `translate(${x * 20}px, ${y * 12}px)`;
-            };
-            
-            const handleMouseEnter = () => {
-                if (isGyroActive) return;
-                cardBg.style.transition = "none";
-                layerBg.style.transition = "none";
-                layerChar.style.transition = "none";
-            };
-            
-            const handleMouseLeave = () => {
-                if (isGyroActive) return;
-                resetParallax();
-            };
-            
-            // Touch Bindings (Direct Drag-to-Tilt吸い付き)
-            cardWrapper.addEventListener("touchstart", handleTouchStart, { passive: true });
-            cardWrapper.addEventListener("touchmove", handleTouchMove, { passive: true });
-            cardWrapper.addEventListener("touchend", handleTouchEnd);
-            
-            // Mouse Bindings
-            cardWrapper.addEventListener("mousemove", handleMouseMove);
-            cardWrapper.addEventListener("mouseenter", handleMouseEnter);
-            cardWrapper.addEventListener("mouseleave", handleMouseLeave);
-        }
-
-        
-        // --- Chroma Key Video Layer Rendering (Optimized for 60fps Mobile Performance) ---
-        let chromaInterval = null;
-        let chromaVideo = null;
-        let chromaCanvas = null;
-        let chromaCtx = null;
-        let tempCanvas = null;
-        let tempCtx = null;
-        let staticChromaRequest = 0;
-        
-        function initChromaKey() {
-            chromaVideo = document.getElementById("layer-char-green-video");
-            chromaCanvas = document.getElementById("layer-char-canvas");
-            chromaCtx = chromaCanvas.getContext("2d", { willReadFrequently: true });
-            
-            tempCanvas = document.createElement("canvas");
-            tempCtx = tempCanvas.getContext("2d", { willReadFrequently: true });
-        }
-        
-        function startChromaKeyLoop() {
-            if (chromaInterval) cancelAnimationFrame(chromaInterval);
-            
-            chromaVideo.play().catch(err => console.log("Video play failed:", err));
-            
-            function render() {
-                if (chromaVideo.paused || chromaVideo.ended) {
-                    chromaInterval = requestAnimationFrame(render);
-                    return;
-                }
-                
-                // Downsample image process width and height to 360x640 to reduce CPU processing overhead (saves 75% load)
-                const w = 360;
-                const h = 640;
-                
-                if (chromaCanvas.width !== w) {
-                    chromaCanvas.width = w;
-                    chromaCanvas.height = h;
-                    tempCanvas.width = w;
-                    tempCanvas.height = h;
-                }
-                
-                // Draw downsampled frame
-                tempCtx.drawImage(chromaVideo, 0, 0, w, h);
-                const imgData = tempCtx.getImageData(0, 0, w, h);
-                const data = imgData.data;
-                
-                // Optimized color key looping for green pixels (#00FF00)
-                for (let i = 0; i < data.length; i += 4) {
-                    const r = data[i];
-                    const g = data[i+1];
-                    const b = data[i+2];
-                    
-                    // Chroma threshold check: High green relative to red and blue
-                    if (g > 80 && g > r * 1.35 && g > b * 1.35) {
-                        data[i+3] = 0; // Set pixel fully transparent
-                    } else if (g > r * 1.15 && g > b * 1.15) {
-                        // Anti-aliased feathering on edges to preserve woodcut line density
-                        const factor = (g - Math.max(r, b) * 1.15) / (Math.max(r, b) * 0.2);
-                        data[i+3] = Math.max(0, 255 * (1 - factor));
-                    }
-                }
-                
-                chromaCtx.putImageData(imgData, 0, 0);
-                chromaInterval = requestAnimationFrame(render);
-            }
-            chromaInterval = requestAnimationFrame(render);
-        }
-        
-        function stopChromaKeyLoop() {
-            staticChromaRequest++;
-            if (chromaInterval) {
-                cancelAnimationFrame(chromaInterval);
-                chromaInterval = null;
-            }
-            if (chromaVideo) {
-                chromaVideo.pause();
-            }
-            if (chromaCanvas) {
-                chromaCanvas.style.display = "none";
-            }
-        }
-
-        // Some Lifelike source files are delivered on a blue-screen rather than
-        // with an alpha channel. Key that blue once, on-device, for static cards.
-        function applyBlueScreenTransparency(canvas, imageUrl) {
-            const request = ++staticChromaRequest;
-            const image = new Image();
-            image.decoding = 'async';
-            image.onload = () => {
-                if (request !== staticChromaRequest) return;
-
-                const width = 768;
-                const height = 1344;
-                canvas.width = width;
-                canvas.height = height;
-                const context = canvas.getContext('2d', { willReadFrequently: true });
-                context.clearRect(0, 0, width, height);
-                context.drawImage(image, 0, 0, width, height);
-
-                const imageData = context.getImageData(0, 0, width, height);
-                const pixels = imageData.data;
-                for (let index = 0; index < pixels.length; index += 4) {
-                    const red = pixels[index];
-                    const green = pixels[index + 1];
-                    const blue = pixels[index + 2];
-                    const strongestNonBlue = Math.max(red, green);
-
-                    if (blue > 115 && blue > red * 1.35 && blue > green * 1.22) {
-                        const strength = Math.min(1, (blue - strongestNonBlue * 1.22) / 42);
-                        pixels[index + 3] = Math.round(pixels[index + 3] * (1 - strength));
-                    }
-                }
-                context.putImageData(imageData, 0, 0);
-                canvas.style.display = "block";
-            };
-            image.src = imageUrl;
-        }
-
-        function applyUrlParams() {
-            const params = new URLSearchParams(window.location.search);
-            const roleParam = params.get("role");
-            const langParam = params.get("lang");
-            const verParam = params.get("ver");
-            const roleSelect = document.getElementById("role-select");
-            const versionSelect = document.getElementById("version-select");
-
-            if (roleParam && rolesData.some(role => role.id === roleParam)) {
-                roleSelect.value = roleParam;
-            }
-
-            if (langParam === "en" || langParam === "ja") {
-                currentLang = langParam;
-                document.getElementById("btn-ja").className = `lang-btn ${langParam === 'ja' ? 'active' : ''}`;
-                document.getElementById("btn-en").className = `lang-btn ${langParam === 'en' ? 'active' : ''}`;
-            }
-
-            const legacyVersionMap = {
-                flat: "raw-illustrations-72-a",
-                char: "raw-illustrations-72-a2"
-            };
-            const normalizedVersion = legacyVersionMap[verParam] || verParam;
-            if (normalizedVersion && Array.from(versionSelect.options).some(option => option.value === normalizedVersion)) {
-                versionSelect.value = normalizedVersion;
-            }
-        }
-
-        window.onload = () => {
-            initChromaKey();
-            applyUrlParams();
-            updateCard();
-            init3DParallax();
-        };
+        updateUIControlsLanguage();
+        updateCard();
     </script>
 </body>
 </html>

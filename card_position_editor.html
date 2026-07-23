@@ -79,6 +79,9 @@
     }
 
     .toolbar {
+      position: sticky;
+      top: 12px;
+      z-index: 50;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -87,7 +90,102 @@
       padding: 12px 14px;
       border: 1px solid var(--line);
       border-radius: 12px;
-      background: rgba(23, 25, 29, 0.88);
+      background: rgba(23, 25, 29, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6);
+    }
+
+    .inspector {
+      position: sticky;
+      top: 78px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      background: rgba(23, 25, 29, 0.95);
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.24);
+    }
+
+    .editor-card-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .editor-card-footer {
+      width: var(--card-width);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: rgba(23, 25, 29, 0.85);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      backdrop-filter: blur(4px);
+    }
+
+    .card-footer-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .button--copy-card {
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: bold;
+      min-height: 28px;
+      border-radius: 6px;
+      background: rgba(229, 184, 111, 0.12);
+      border: 1px solid rgba(229, 184, 111, 0.3);
+      color: var(--accent);
+      transition: all 120ms ease;
+    }
+
+    .button--copy-card:hover {
+      background: var(--accent);
+      color: #16120d;
+      border-color: var(--accent-strong);
+    }
+
+    .button--danger-hold {
+      position: relative;
+      overflow: hidden;
+      color: #ff8585;
+      border-color: rgba(255, 107, 107, 0.35);
+      background: rgba(255, 107, 107, 0.08);
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    .button--danger-hold::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: var(--hold-progress, 0%);
+      background: rgba(255, 107, 107, 0.4);
+      transition: width 40ms linear;
+      pointer-events: none;
+    }
+
+    .button--danger-hold:hover {
+      border-color: var(--danger);
+      color: #fff;
+      background: rgba(255, 107, 107, 0.2);
+    }
+
+    .save-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #74b9a5;
+      margin-left: 8px;
+      font-weight: bold;
     }
 
     .toolbar-note {
@@ -207,11 +305,40 @@
 
     .editor-card.is-dragging { cursor: grabbing; }
 
-    .editor-card__background, .editor-card__character {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+    .target-switch-group {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .target-btn {
+      flex: 1;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(246, 241, 232, 0.04);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      transition: all 140ms ease;
+    }
+
+    .target-btn:hover {
+      color: var(--ink);
+      border-color: var(--accent);
+    }
+
+    .target-btn.is-active {
+      background: var(--accent);
+      color: #16120d;
+      border-color: var(--accent-strong);
+    }
+
+    .tint-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
     }
 
     .editor-card__background {
@@ -219,6 +346,8 @@
       background-position: center;
       background-repeat: no-repeat;
       background-size: cover;
+      transform-origin: center center;
+      transition: transform 60ms linear, filter 60ms linear;
     }
 
     .editor-card__character {
@@ -229,6 +358,12 @@
       transform-origin: center center;
       user-select: none;
       -webkit-user-drag: none;
+      transition: transform 60ms linear, filter 60ms linear;
+    }
+
+    .editor-card.editing-bg .editor-card__background {
+      outline: 2px dashed var(--accent);
+      outline-offset: -4px;
     }
 
     .editor-card::after {
@@ -502,18 +637,27 @@
         <p class="eyebrow">Final Card Calibration / Refined + Transparent</p>
         <h1>Position Editor</h1>
       </div>
-      <p class="masthead-copy">25枚の人物レイヤーを背景に合わせて調整します。カードを選び、ドラッグ・ホイール・数値入力で整えたら、全設定をJSONでコピーできます。</p>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <a class="button button--quiet" href="card_gallery.html" style="text-decoration:none;font-size:11px;padding:6px 12px;">🎴 CARD GALLERY</a>
+        <a class="button button--quiet" href="card_viewer.html" style="text-decoration:none;font-size:11px;padding:6px 12px;">👁 CARD VIEWER</a>
+        <a class="button button--quiet" href="index.html" style="text-decoration:none;font-size:11px;padding:6px 12px;">🏠 BACK TO APP</a>
+      </div>
     </header>
 
     <section class="toolbar" aria-label="Editor actions">
-      <div class="toolbar-note"><span class="status-dot" aria-hidden="true"></span><span>Refined / Transparent / Background ON</span><span id="edited-count">0 / 25 adjusted</span></div>
+      <div class="toolbar-note">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>Refined / Transparent / Background ON</span>
+        <span id="edited-count">0 / 26 adjusted</span>
+        <span class="save-indicator" id="save-status">💾 自動保存ON</span>
+      </div>
       <div class="toolbar-actions">
         <div class="language-switch" aria-label="Language">
           <button class="language-button" id="language-ja" type="button" aria-pressed="true">日本語</button>
           <button class="language-button" id="language-en" type="button" aria-pressed="false">ENGLISH</button>
         </div>
-        <button class="button button--quiet" id="reset-all" type="button">RESET ALL</button>
-        <button class="button button--primary" id="copy-all" type="button">COPY ALL POSITIONS</button>
+        <button class="button button--danger-hold" id="reset-all" type="button" title="2秒間長押しで全リセット">⚠️ RESET ALL (長押し2秒)</button>
+        <button class="button button--primary" id="copy-all" type="button">📋 COPY ALL POSITIONS</button>
       </div>
     </section>
 
@@ -521,31 +665,66 @@
       <section class="editor-grid" id="editor-grid" aria-label="Refined card gallery"></section>
 
       <aside class="inspector" aria-label="Selected card controls">
-        <p class="inspector-kicker">Selected Role</p>
+        <p class="inspector-kicker" id="label-selected-kicker">SELECTED ROLE</p>
         <h2 id="selected-role">Knights</h2>
         <p class="inspector-subtitle" id="selected-role-jp">騎士団</p>
 
+        <!-- Edit Target Switcher (Character vs Background) -->
         <div class="control-block">
-          <label class="control-label" for="scale-input"><span>Scale</span><span class="control-value" id="scale-value">1.00×</span></label>
+          <label class="control-label"><span id="label-target">EDIT TARGET LAYER</span></label>
+          <div class="target-switch-group">
+            <button class="target-btn is-active" id="target-character" type="button">👤 <span id="label-target-char">Character</span></button>
+            <button class="target-btn" id="target-background" type="button">🖼 <span id="label-target-bg">Background</span></button>
+          </div>
+        </div>
+
+        <!-- Scale Control -->
+        <div class="control-block">
+          <label class="control-label" for="scale-input"><span id="label-scale">Scale</span><span class="control-value" id="scale-value">1.00×</span></label>
           <div class="range-row">
             <input id="scale-input" type="range" min="0.5" max="2.5" step="0.01" value="1" aria-label="Scale">
             <input id="scale-number" type="number" min="0.5" max="2.5" step="0.01" value="1" aria-label="Scale value">
           </div>
         </div>
 
+        <!-- Offset Control (X / Y) -->
         <div class="control-block">
-          <div class="control-label"><span>Offset</span><span class="control-value">%</span></div>
+          <div class="control-label"><span id="label-offset">Offset</span><span class="control-value">%</span></div>
           <div class="axis-grid">
-            <div class="axis-field"><label for="x-input">X horizontal</label><input id="x-input" type="number" min="-100" max="100" step="0.01" value="0" aria-label="Horizontal offset"></div>
-            <div class="axis-field"><label for="y-input">Y vertical</label><input id="y-input" type="number" min="-100" max="100" step="0.01" value="0" aria-label="Vertical offset"></div>
+            <div class="axis-field"><label for="x-input" id="label-offset-x">X horizontal</label><input id="x-input" type="number" min="-100" max="100" step="0.01" value="0" aria-label="Horizontal offset"></div>
+            <div class="axis-field"><label for="y-input" id="label-offset-y">Y vertical</label><input id="y-input" type="number" min="-100" max="100" step="0.01" value="0" aria-label="Vertical offset"></div>
           </div>
+        </div>
+
+        <!-- Color & Tint Filters (CSS Filters) -->
+        <div class="control-block">
+          <div class="control-label"><span id="label-tint">Color & Tint Filters</span><span class="control-value" id="tint-active-label">Normal</span></div>
+          <div class="tint-grid">
+            <div class="axis-field">
+              <label for="brightness-input" id="label-brightness">Brightness</label>
+              <input id="brightness-input" type="range" min="0.5" max="1.5" step="0.05" value="1">
+            </div>
+            <div class="axis-field">
+              <label for="contrast-input" id="label-contrast">Contrast</label>
+              <input id="contrast-input" type="range" min="0.5" max="1.5" step="0.05" value="1">
+            </div>
+            <div class="axis-field">
+              <label for="saturate-input" id="label-saturate">Saturate</label>
+              <input id="saturate-input" type="range" min="0" max="2" step="0.05" value="1">
+            </div>
+            <div class="axis-field">
+              <label for="hue-input" id="label-hue">Hue-Rotate</label>
+              <input id="hue-input" type="range" min="-180" max="180" step="5" value="0">
+            </div>
+          </div>
+          <button class="button button--quiet" id="reset-tint" type="button" style="width:100%;margin-top:8px;font-size:11px;">↺ Reset Tint</button>
         </div>
 
         <div class="inspector-actions">
           <button class="button button--quiet" id="reset-selected" type="button">RESET SELECTED</button>
           <button class="button button--primary" id="copy-selected" type="button">COPY SELECTED</button>
         </div>
-        <p class="help-copy">Drag a card to move its character. Scroll to scale. Arrow keys nudge 1%; Shift + Arrow nudges 10%.</p>
+        <p class="help-copy" id="help-text">Drag a card to move target layer. Scroll to scale. Arrow keys nudge 1%; Shift + Arrow nudges 10%.</p>
         <div id="editor-status" aria-live="polite" class="sr-only">Editor ready</div>
         <textarea id="export-area" class="export-area" aria-label="Position JSON fallback"></textarea>
       </aside>
@@ -553,31 +732,43 @@
   </main>
 
   <script>
-    // Keep the editor self-contained so it also works when opened directly as
-    // file://. The same pure functions live in card_position_editor.mjs for tests.
-    const DEFAULT_POSITION = Object.freeze({ scale: 1, x: 0, y: 0 });
+    const DEFAULT_POSITION = Object.freeze({
+      scale: 1, x: 0, y: 0,
+      bgScale: 1, bgX: 0, bgY: 0,
+      brightness: 1, contrast: 1, saturate: 1, hue: 0
+    });
     const round = value => Math.round(value * 100) / 100;
     const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
     const normalizePosition = position => ({
-      scale: round(clamp(Number(position.scale), 0.5, 2.5)),
-      x: round(clamp(Number(position.x), -100, 100)),
-      y: round(clamp(Number(position.y), -100, 100))
+      scale: round(clamp(Number(position.scale ?? 1), 0.5, 2.5)),
+      x: round(clamp(Number(position.x ?? 0), -100, 100)),
+      y: round(clamp(Number(position.y ?? 0), -100, 100)),
+      bgScale: round(clamp(Number(position.bgScale ?? 1), 0.5, 3.0)),
+      bgX: round(clamp(Number(position.bgX ?? 0), -100, 100)),
+      bgY: round(clamp(Number(position.bgY ?? 0), -100, 100)),
+      brightness: round(clamp(Number(position.brightness ?? 1), 0.5, 1.5)),
+      contrast: round(clamp(Number(position.contrast ?? 1), 0.5, 1.5)),
+      saturate: round(clamp(Number(position.saturate ?? 1), 0, 2)),
+      hue: Math.round(clamp(Number(position.hue ?? 0), -180, 180))
     });
-    function createPositionMap(roleIds) {
-      return Object.fromEntries(roleIds.map(roleId => [roleId, { ...DEFAULT_POSITION }]));
-    }
+
     function updatePosition(map, roleId, patch) {
       if (!map[roleId]) throw new Error(`Unknown role: ${roleId}`);
       return { ...map, [roleId]: normalizePosition({ ...map[roleId], ...patch }) };
     }
-    function resetPosition(map, roleId) {
-      return updatePosition(map, roleId, DEFAULT_POSITION);
-    }
-    function serializePositions(map, roleIds) {
-      const lines = roleIds.map(roleId => {
+
+    function serializePositions(map, roleIdsToSerialize) {
+      const lines = roleIdsToSerialize.map(roleId => {
         if (!map[roleId]) throw new Error(`Unknown role: ${roleId}`);
-        const value = normalizePosition(map[roleId]);
-        return `  ${JSON.stringify(roleId)}: { "scale": ${value.scale}, "x": ${value.x}, "y": ${value.y} }`;
+        const v = normalizePosition(map[roleId]);
+        const isCustomBg = (v.bgScale !== 1 || v.bgX !== 0 || v.bgY !== 0);
+        const isCustomTint = (v.brightness !== 1 || v.contrast !== 1 || v.saturate !== 1 || v.hue !== 0);
+
+        let extra = '';
+        if (isCustomBg) extra += `, "bgScale": ${v.bgScale}, "bgX": ${v.bgX}, "bgY": ${v.bgY}`;
+        if (isCustomTint) extra += `, "brightness": ${v.brightness}, "contrast": ${v.contrast}, "saturate": ${v.saturate}, "hue": ${v.hue}`;
+
+        return `  ${JSON.stringify(roleId)}: { "scale": ${v.scale}, "x": ${v.x}, "y": ${v.y}${extra} }`;
       });
       return `{\n${lines.join(',\n')}\n}`;
     }
@@ -588,13 +779,14 @@
       necromancer: { scale: 1.02, x: 0.75, y: 4.2 }, trapper: { scale: 0.96, x: -1, y: 4.28 },
       citizen: { scale: 0.95, x: 2.21, y: 4.91 }, prophet: { scale: 0.95, x: -1.2, y: 2.93 },
       bodyguard: { scale: 0.92, x: -1.25, y: 3.82 }, twins: { scale: 1.24, x: -0.39, y: 3.37 },
-      magician: { scale: 0.9, x: -2.72, y: 0.46 }, magician_c: { scale: 0.86, x: -1.77, y: 0.93 },
+      magician: { scale: 0.9, x: -2.72, y: 0.46 },
       hunter: { scale: 1, x: -0.71, y: 0.72 }, tough_guy: { scale: 1, x: 0, y: 0 }, spy: { scale: 1, x: 0, y: 0 },
       betrayal_twin: { scale: 0.89, x: -0.1, y: 5.32 }, werewolf: { scale: 0.98, x: 0.27, y: 8.16 },
       traitor: { scale: 0.91, x: 1.75, y: 4.57 }, betrayer: { scale: 1, x: 1.57, y: 2.9 },
       werewolf_child: { scale: 0.95, x: -0.15, y: 4.54 }, android: { scale: 1.02, x: 0.68, y: 4.56 },
       lone_wolf: { scale: 1, x: -1.27, y: 4.8 }, god: { scale: 1.09, x: 0, y: 0 },
-      lovers: { scale: 1, x: 2.01, y: 0.52 }, mysterious_fox: { scale: 1, x: 0, y: 0 }
+      lovers: { scale: 1, x: 2.01, y: 0.52 }, mysterious_fox: { scale: 1, x: 0, y: 0 },
+      ghost_wolf: { scale: 1.38, x: -2.03, y: -2.77 }
     };
 
     const assetVersion = '20260719-refined-assets';
@@ -610,7 +802,6 @@
       ['bodyguard', 'ボディガード', 'Bodyguard', []],
       ['twins', '共有者', 'Twins', ['きょう', 'ゆう', 'しゃ']],
       ['magician', '奇術師', 'Magician', ['き', 'じゅつ', 'し']],
-      ['magician_c', '奇術師 C', 'Magician C', ['き', 'じゅつ', 'し', '']],
       ['hunter', 'ハンター', 'Hunter', []],
       ['tough_guy', 'タフガイ', 'Tough Guy', []],
       ['spy', 'スパイ', 'Spy', []],
@@ -623,12 +814,48 @@
       ['lone_wolf', '一匹狼', 'Lone Wolf', ['いっ', 'ぴき', 'おおかみ']],
       ['god', '神様', 'God', ['かみ', 'さま', '']],
       ['lovers', '恋人', 'Lovers', ['こい', 'びと', '']],
-      ['mysterious_fox', '妖狐', 'Mysterious Fox', ['よう', 'こ', '']]
+      ['mysterious_fox', '妖狐', 'Mysterious Fox', ['よう', 'こ', '']],
+      ['ghost_wolf', '狼の亡霊', 'Ghost Wolf', ['おおかみ', '', 'ぼう', 'れい']]
     ].map(([id, jp, en, rubies]) => ({ id, jp, en, rubies }));
 
+    const DRAFT_KEY = 'refined_card_position_editor_draft_v2';
+
+    function saveDraft() {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(positionMap));
+        const statusEl = document.getElementById('save-status');
+        if (statusEl) {
+          statusEl.textContent = currentLanguage === 'ja' ? '💾 自動保存完了' : '💾 Auto-Saved';
+        }
+      } catch (e) {
+        console.warn('Draft save failed', e);
+      }
+    }
+
+    function loadDraft() {
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const initial = baselinePositionMap();
+          roleIds.forEach(id => {
+            if (parsed[id]) {
+              initial[id] = normalizePosition(parsed[id]);
+            }
+          });
+          return initial;
+        }
+      } catch (e) {
+        console.warn('Draft load failed', e);
+      }
+      return baselinePositionMap();
+    }
+
     const roleIds = roles.map(role => role.id);
-    const baselinePositionMap = () => Object.fromEntries(roleIds.map(roleId => [roleId, { ...DEFAULT_POSITION, ...REFINED_POSITIONS[roleId] }]));
-    let positionMap = baselinePositionMap();
+    const baselinePositionMap = () => Object.fromEntries(roleIds.map(roleId => [roleId, normalizePosition({ ...DEFAULT_POSITION, ...REFINED_POSITIONS[roleId] })]));
+    
+    let activeTarget = 'character'; // 'character' | 'background'
+    let positionMap = loadDraft();
     let selectedRoleId = roleIds[0];
     let currentLanguage = 'ja';
     let pointerState = null;
@@ -644,9 +871,17 @@
     const xInput = document.getElementById('x-input');
     const yInput = document.getElementById('y-input');
 
+    const brightnessInput = document.getElementById('brightness-input');
+    const contrastInput = document.getElementById('contrast-input');
+    const saturateInput = document.getElementById('saturate-input');
+    const hueInput = document.getElementById('hue-input');
+
+    const targetCharBtn = document.getElementById('target-character');
+    const targetBgBtn = document.getElementById('target-background');
+
     const assetPath = path => `${path}?v=${assetVersion}`;
-    const imageName = roleId => roleId === 'magician_c' ? 'magician_ver_c.png' : `${roleId}_ver_a.png`;
-    const backgroundName = roleId => roleId === 'magician_c' || roleId === 'magician' ? 'magician_bg.png' : `${roleId}_bg.png`;
+    const imageName = roleId => `${roleId}_ver_a.png`;
+    const backgroundName = roleId => `${roleId}_bg.png`;
     const getCard = roleId => grid.querySelector(`[data-role-id="${roleId}"]`);
     const announce = message => {
       status.textContent = message;
@@ -654,30 +889,76 @@
     };
 
     function isChanged(position) {
-      return position.scale !== 1 || position.x !== 0 || position.y !== 0;
+      return position.scale !== 1 || position.x !== 0 || position.y !== 0 ||
+             position.bgScale !== 1 || position.bgX !== 0 || position.bgY !== 0 ||
+             position.brightness !== 1 || position.contrast !== 1 || position.saturate !== 1 || position.hue !== 0;
     }
 
     function updateEditedCount() {
       const changed = roleIds.filter(roleId => isChanged(positionMap[roleId])).length;
-      editedCount.textContent = `${changed} / ${roleIds.length} adjusted`;
+      editedCount.textContent = `${changed} / ${roleIds.length} ${currentLanguage === 'ja' ? '調整済' : 'adjusted'}`;
     }
 
     function applyTransform(roleId) {
       const card = getCard(roleId);
       if (!card) return;
-      const position = positionMap[roleId];
-      card.querySelector('.editor-card__character').style.transform = `translate3d(${position.x}%, ${position.y}%, 0) scale(${position.scale})`;
+      const pos = positionMap[roleId];
+
+      const charEl = card.querySelector('.editor-card__character');
+      const bgEl = card.querySelector('.editor-card__background');
+
+      if (charEl) {
+        charEl.style.transform = `translate3d(${pos.x}%, ${pos.y}%, 0) scale(${pos.scale})`;
+      }
+      if (bgEl) {
+        bgEl.style.transform = `translate3d(${pos.bgX}%, ${pos.bgY}%, 0) scale(${pos.bgScale})`;
+      }
+
+      const filterStr = `brightness(${pos.brightness}) contrast(${pos.contrast}) saturate(${pos.saturate}) hue-rotate(${pos.hue}deg)`;
+      
+      if (activeTarget === 'background') {
+        if (bgEl) bgEl.style.filter = filterStr;
+        if (charEl) charEl.style.filter = 'none';
+        card.classList.add('editing-bg');
+      } else {
+        if (charEl) charEl.style.filter = filterStr;
+        if (bgEl) bgEl.style.filter = 'none';
+        card.classList.remove('editing-bg');
+      }
     }
 
     function syncInspector() {
       const role = roles.find(item => item.id === selectedRoleId);
-      const position = positionMap[selectedRoleId];
+      const pos = positionMap[selectedRoleId];
+
       selectedRole.textContent = currentLanguage === 'ja' ? role.jp : role.en;
       selectedRoleJp.textContent = currentLanguage === 'ja' ? role.en : role.jp;
-      scaleRange.value = position.scale;
-      scaleNumber.value = position.scale;
-      xInput.value = position.x;
-      yInput.value = position.y;
+
+      if (activeTarget === 'background') {
+        scaleRange.value = pos.bgScale;
+        scaleNumber.value = pos.bgScale;
+        xInput.value = pos.bgX;
+        yInput.value = pos.bgY;
+        document.getElementById('scale-value').textContent = `${pos.bgScale.toFixed(2)}× (BG)`;
+      } else {
+        scaleRange.value = pos.scale;
+        scaleNumber.value = pos.scale;
+        xInput.value = pos.x;
+        yInput.value = pos.y;
+        document.getElementById('scale-value').textContent = `${pos.scale.toFixed(2)}× (Char)`;
+      }
+
+      if (brightnessInput) brightnessInput.value = pos.brightness;
+      if (contrastInput) contrastInput.value = pos.contrast;
+      if (saturateInput) saturateInput.value = pos.saturate;
+      if (hueInput) hueInput.value = pos.hue;
+
+      const isTintDefault = (pos.brightness === 1 && pos.contrast === 1 && pos.saturate === 1 && pos.hue === 0);
+      const tintLabel = document.getElementById('tint-active-label');
+      if (tintLabel) {
+        tintLabel.textContent = isTintDefault ? (currentLanguage === 'ja' ? '通常' : 'Normal') : (currentLanguage === 'ja' ? '調整済み' : 'Tuned');
+        tintLabel.style.color = isTintDefault ? 'var(--muted)' : 'var(--accent)';
+      }
     }
 
     function japaneseTitle(role) {
@@ -687,24 +968,46 @@
       }).join('');
     }
 
-    function englishTitleStyle(role) {
-      if (role.en.length > 16) return 'font-size:22px;letter-spacing:-1.5px;';
-      if (role.en.length > 12) return 'font-size:26px;letter-spacing:-2px;';
-      return 'font-size:32px;letter-spacing:-2px;';
-    }
-
     function selectRole(roleId, announceSelection = true) {
       selectedRoleId = roleId;
       grid.querySelectorAll('.editor-card').forEach(card => card.classList.toggle('is-selected', card.dataset.roleId === roleId));
+      roleIds.forEach(applyTransform);
       syncInspector();
       if (announceSelection) announce(`${roles.find(role => role.id === roleId).en} selected`);
     }
 
+    function setTargetLayer(target) {
+      activeTarget = target;
+      targetCharBtn.classList.toggle('is-active', target === 'character');
+      targetBgBtn.classList.toggle('is-active', target === 'background');
+      roleIds.forEach(applyTransform);
+      syncInspector();
+      announce(target === 'background' ? 'Editing Background layer' : 'Editing Character layer');
+    }
+
     function setPosition(patch, message = 'Position updated') {
-      positionMap = updatePosition(positionMap, selectedRoleId, patch);
+      const currentPos = positionMap[selectedRoleId];
+      let updatedPatch = {};
+
+      if (activeTarget === 'background') {
+        if ('scale' in patch) updatedPatch.bgScale = patch.scale;
+        if ('x' in patch) updatedPatch.bgX = patch.x;
+        if ('y' in patch) updatedPatch.bgY = patch.y;
+      } else {
+        if ('scale' in patch) updatedPatch.scale = patch.scale;
+        if ('x' in patch) updatedPatch.x = patch.x;
+        if ('y' in patch) updatedPatch.y = patch.y;
+      }
+
+      ['brightness', 'contrast', 'saturate', 'hue'].forEach(key => {
+        if (key in patch) updatedPatch[key] = patch[key];
+      });
+
+      positionMap = updatePosition(positionMap, selectedRoleId, updatedPatch);
       applyTransform(selectedRoleId);
       syncInspector();
       updateEditedCount();
+      saveDraft();
       announce(message);
     }
 
@@ -714,58 +1017,97 @@
         const file = imageName(role.id);
         const titleMarkup = currentLanguage === 'ja'
           ? `<div class="role-name-japanese">${japaneseTitle(role)}</div><div class="role-name-english-rt">${role.en}</div>`
-          : `<div class="role-name-english-vertical" style="${englishTitleStyle(role)}">${role.en}</div>`;
-        return `<article class="editor-card${selected}" data-role-id="${role.id}" tabindex="0" aria-label="${role.jp} ${role.en}">
-          <div class="editor-card__background" style="background-image:url('${assetPath(`backgrounds-72/${backgroundName(role.id)}`)}')"></div>
-          <img class="editor-card__character" src="${assetPath(`00_transparent-illustrations-72-a-refined/${file}`)}" alt="${role.en}" draggable="false">
-          ${titleMarkup}
-          <div class="editor-card__selection">EDITING</div>
-        </article>`;
+          : `<div class="role-name-english-vertical" style="font-size:32px;letter-spacing:-2px;">${role.en}</div>`;
+        return `
+        <div class="editor-card-wrapper" data-role-wrapper="${role.id}">
+          <article class="editor-card${selected}" data-role-id="${role.id}" tabindex="0" aria-label="${role.jp} ${role.en}">
+            <div class="editor-card__background" style="background-image:url('${assetPath(`backgrounds-72/${backgroundName(role.id)}`)}')"></div>
+            <img class="editor-card__character" src="${assetPath(`00_transparent-illustrations-72-a-refined/${file}`)}" alt="${role.en}" draggable="false">
+            ${titleMarkup}
+            <div class="editor-card__selection">EDITING</div>
+          </article>
+          <div class="editor-card-footer">
+            <span class="card-footer-title">${role.jp}</span>
+            <button type="button" class="button--copy-card" data-copy-role="${role.id}">📋 COPY POS</button>
+          </div>
+        </div>`;
       }).join('');
 
       roles.forEach(role => {
         const card = getCard(role.id);
+        const wrapper = grid.querySelector(`[data-role-wrapper="${role.id}"]`);
+
+        if (wrapper) {
+          const copyBtn = wrapper.querySelector('[data-copy-role]');
+          if (copyBtn) {
+            copyBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const singleJson = serializePositions(positionMap, [role.id]);
+              copyText(singleJson, `${role.jp} (${role.en}) の設定値をコピーしました`);
+            });
+          }
+        }
+
         card.addEventListener('pointerdown', event => {
           selectRole(role.id, false);
           card.focus({ preventScroll: true });
-          pointerState = { roleId: role.id, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, start: { ...positionMap[role.id] } };
+          const pos = positionMap[role.id];
+          const startVal = activeTarget === 'background' ? { x: pos.bgX, y: pos.bgY } : { x: pos.x, y: pos.y };
+          
+          pointerState = {
+            roleId: role.id,
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            start: startVal
+          };
           card.setPointerCapture(event.pointerId);
           card.classList.add('is-dragging');
         });
+
         card.addEventListener('pointermove', event => {
           if (!pointerState || pointerState.pointerId !== event.pointerId) return;
           const deltaX = (event.clientX - pointerState.startX) / card.clientWidth * 100;
           const deltaY = (event.clientY - pointerState.startY) / card.clientHeight * 100;
-          positionMap = updatePosition(positionMap, role.id, { x: pointerState.start.x + deltaX, y: pointerState.start.y + deltaY });
-          applyTransform(role.id);
-          syncInspector();
-          updateEditedCount();
+
+          if (activeTarget === 'background') {
+            setPosition({ x: pointerState.start.x + deltaX, y: pointerState.start.y + deltaY }, 'BG Offset updated');
+          } else {
+            setPosition({ x: pointerState.start.x + deltaX, y: pointerState.start.y + deltaY }, 'Position updated');
+          }
         });
+
         card.addEventListener('pointerup', event => {
           if (pointerState?.pointerId !== event.pointerId) return;
           pointerState = null;
           card.classList.remove('is-dragging');
           announce('Position updated');
         });
+
         card.addEventListener('pointercancel', () => {
           pointerState = null;
           card.classList.remove('is-dragging');
         });
+
         card.addEventListener('wheel', event => {
-          selectRole(role.id, false);
+          if (selectedRoleId !== role.id) return;
           event.preventDefault();
-          setPosition({ scale: positionMap[role.id].scale - event.deltaY * 0.001 }, 'Scale updated');
+          const currentScale = activeTarget === 'background' ? positionMap[role.id].bgScale : positionMap[role.id].scale;
+          setPosition({ scale: currentScale - event.deltaY * 0.001 }, 'Scale updated');
         }, { passive: false });
+
         card.addEventListener('keydown', event => {
           if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
           event.preventDefault();
           const step = event.shiftKey ? 10 : 1;
-          const position = positionMap[role.id];
+          const pos = positionMap[role.id];
+          const curX = activeTarget === 'background' ? pos.bgX : pos.x;
+          const curY = activeTarget === 'background' ? pos.bgY : pos.y;
           const patch = {};
-          if (event.key === 'ArrowLeft') patch.x = position.x - step;
-          if (event.key === 'ArrowRight') patch.x = position.x + step;
-          if (event.key === 'ArrowUp') patch.y = position.y - step;
-          if (event.key === 'ArrowDown') patch.y = position.y + step;
+          if (event.key === 'ArrowLeft') patch.x = curX - step;
+          if (event.key === 'ArrowRight') patch.x = curX + step;
+          if (event.key === 'ArrowUp') patch.y = curY - step;
+          if (event.key === 'ArrowDown') patch.y = curY + step;
           setPosition(patch, 'Position nudged');
         });
       });
@@ -776,8 +1118,44 @@
       currentLanguage = language;
       document.getElementById('language-ja').setAttribute('aria-pressed', language === 'ja');
       document.getElementById('language-en').setAttribute('aria-pressed', language === 'en');
+
+      const isJa = language === 'ja';
+      const mastheadCopy = document.querySelector('.masthead-copy');
+      if (mastheadCopy) {
+        mastheadCopy.textContent = isJa
+          ? "25枚の人物レイヤー・背景を調整します。カードを選び、人物/背景切替・ドラッグ・ホイール・ティントで整えたら、全設定をJSONでコピーできます。"
+          : "Calibrate 25 character & background layers. Select a card, switch layers, drag, scroll, and tune color tint before copying JSON.";
+      }
+      
+      const setElText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      };
+
+      setElText('label-selected-kicker', isJa ? "選択中の役職" : "SELECTED ROLE");
+      setElText('label-target', isJa ? "編集レイヤーの切り替え" : "EDIT TARGET LAYER");
+      setElText('label-target-char', isJa ? "人物レイヤー" : "Character");
+      setElText('label-target-bg', isJa ? "背景レイヤー" : "Background");
+      setElText('label-scale', isJa ? "拡大縮小 (スケール)" : "Scale");
+      setElText('label-offset', isJa ? "位置移動 (Offset)" : "Offset");
+      setElText('label-offset-x', isJa ? "X 水平移動" : "X horizontal");
+      setElText('label-offset-y', isJa ? "Y 垂直移動" : "Y vertical");
+      setElText('label-tint', isJa ? "カラー＆ティント (色味・濃さ)" : "Color & Tint Filters");
+      setElText('label-brightness', isJa ? "明るさ" : "Brightness");
+      setElText('label-contrast', isJa ? "コントラスト" : "Contrast");
+      setElText('label-saturate', isJa ? "鮮やかさ (彩度)" : "Saturate");
+      setElText('label-hue', isJa ? "色相 (カラーティント)" : "Hue-Rotate");
+      setElText('reset-selected', isJa ? "このカードを初期化" : "RESET SELECTED");
+      setElText('copy-selected', isJa ? "この設定をコピー" : "COPY SELECTED");
+      setElText('reset-all', isJa ? "⚠️ 全初期化 (長押し2秒)" : "⚠️ RESET ALL (Hold 2s)");
+      setElText('copy-all', isJa ? "📋 全設定をコピー" : "📋 COPY ALL POSITIONS");
+      setElText('help-text', isJa
+        ? "カードをドラッグして移動。ホイールで拡大縮小。矢印キーで1%移動（Shift+矢印で10%）。"
+        : "Drag a card to move target layer. Scroll to scale. Arrow keys nudge 1%; Shift + Arrow nudges 10%.");
+
       renderCards();
       syncInspector();
+      updateEditedCount();
     }
 
     async function copyText(output, message) {
@@ -794,27 +1172,83 @@
       }
     }
 
+    let holdTimer = null;
+    let holdStartTime = 0;
+    const resetAllBtn = document.getElementById('reset-all');
+
+    function cancelHold() {
+      if (holdTimer) cancelAnimationFrame(holdTimer);
+      holdTimer = null;
+      holdStartTime = 0;
+      if (resetAllBtn) {
+        resetAllBtn.style.setProperty('--hold-progress', '0%');
+      }
+    }
+
+    function startHold(e) {
+      if (e.type === 'touchstart') e.preventDefault();
+      holdStartTime = Date.now();
+
+      function updateProgress() {
+        if (!holdStartTime) return;
+        const elapsed = Date.now() - holdStartTime;
+        const progress = Math.min(100, (elapsed / 2000) * 100);
+        resetAllBtn.style.setProperty('--hold-progress', `${progress}%`);
+
+        if (elapsed >= 2000) {
+          cancelHold();
+          if (confirm('⚠️【確認】全カードの調整パラメータを初期値にリセットします。\n\n自動保存された下書きもクリアされます。本当によろしいですか？')) {
+            positionMap = baselinePositionMap();
+            try { localStorage.removeItem(DRAFT_KEY); } catch(err){}
+            roleIds.forEach(applyTransform);
+            syncInspector();
+            updateEditedCount();
+            announce('All cards reset to baseline');
+          }
+        } else {
+          holdTimer = requestAnimationFrame(updateProgress);
+        }
+      }
+      holdTimer = requestAnimationFrame(updateProgress);
+    }
+
+    if (resetAllBtn) {
+      ['mousedown', 'touchstart'].forEach(evt => resetAllBtn.addEventListener(evt, startHold));
+      ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(evt => resetAllBtn.addEventListener(evt, cancelHold));
+    }
+
+    if (targetCharBtn) targetCharBtn.addEventListener('click', () => setTargetLayer('character'));
+    if (targetBgBtn) targetBgBtn.addEventListener('click', () => setTargetLayer('background'));
+
     document.getElementById('language-ja').addEventListener('click', () => setLanguage('ja'));
     document.getElementById('language-en').addEventListener('click', () => setLanguage('en'));
-    document.getElementById('scale-input').addEventListener('input', event => setPosition({ scale: event.target.value }));
-    document.getElementById('scale-number').addEventListener('input', event => setPosition({ scale: event.target.value }));
-    document.getElementById('x-input').addEventListener('input', event => setPosition({ x: event.target.value }));
-    document.getElementById('y-input').addEventListener('input', event => setPosition({ y: event.target.value }));
+
+    document.getElementById('scale-input').addEventListener('input', event => setPosition({ scale: Number(event.target.value) }));
+    document.getElementById('scale-number').addEventListener('input', event => setPosition({ scale: Number(event.target.value) }));
+    document.getElementById('x-input').addEventListener('input', event => setPosition({ x: Number(event.target.value) }));
+    document.getElementById('y-input').addEventListener('input', event => setPosition({ y: Number(event.target.value) }));
+
+    if (brightnessInput) brightnessInput.addEventListener('input', e => setPosition({ brightness: Number(e.target.value) }));
+    if (contrastInput) contrastInput.addEventListener('input', e => setPosition({ contrast: Number(e.target.value) }));
+    if (saturateInput) saturateInput.addEventListener('input', e => setPosition({ saturate: Number(e.target.value) }));
+    if (hueInput) hueInput.addEventListener('input', e => setPosition({ hue: Number(e.target.value) }));
+
+    const resetTintBtn = document.getElementById('reset-tint');
+    if (resetTintBtn) {
+      resetTintBtn.addEventListener('click', () => {
+        setPosition({ brightness: 1, contrast: 1, saturate: 1, hue: 0 }, 'Tint reset to normal');
+      });
+    }
+
     document.getElementById('reset-selected').addEventListener('click', () => {
       positionMap = updatePosition(positionMap, selectedRoleId, REFINED_POSITIONS[selectedRoleId]);
       applyTransform(selectedRoleId);
       syncInspector();
       updateEditedCount();
+      saveDraft();
       announce('Selected card reset');
     });
-    document.getElementById('reset-all').addEventListener('click', () => {
-      positionMap = baselinePositionMap();
-      roleIds.forEach(applyTransform);
-      syncInspector();
-      updateEditedCount();
-      announce('All cards reset');
-    });
-    document.getElementById('copy-all').addEventListener('click', () => copyText(serializePositions(positionMap, roleIds), 'All 25 positions copied'));
+    document.getElementById('copy-all').addEventListener('click', () => copyText(serializePositions(positionMap, roleIds), 'All 26 positions copied'));
     document.getElementById('copy-selected').addEventListener('click', () => {
       const one = serializePositions(positionMap, [selectedRoleId]);
       copyText(one, 'Selected position copied');
@@ -822,6 +1256,7 @@
 
     renderCards();
     syncInspector();
+    updateEditedCount();
   </script>
 </body>
 </html>
