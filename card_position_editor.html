@@ -341,6 +341,13 @@
       margin-top: 8px;
     }
 
+    .editor-card__background, .editor-card__character {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
     .editor-card__background {
       z-index: 1;
       background-position: center;
@@ -364,6 +371,81 @@
     .editor-card.editing-bg .editor-card__background {
       outline: 2px dashed var(--accent);
       outline-offset: -4px;
+    }
+
+    .card-lock-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 5;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(18, 15, 12, 0.85);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      transition: all 140ms ease;
+    }
+
+    .editor-card.is-unlocked .card-lock-badge {
+      background: var(--accent);
+      color: #16120d;
+      border-color: var(--accent-strong);
+      box-shadow: 0 0 10px rgba(229, 184, 111, 0.4);
+    }
+
+    .editor-card.is-locked {
+      cursor: default;
+    }
+
+    /* Modal / Settings Overlay */
+    .settings-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+
+    .settings-modal-backdrop.is-active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .settings-modal {
+      width: 90%;
+      max-width: 480px;
+      background: #191612;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.8);
+      color: var(--ink);
+    }
+
+    .settings-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+    }
+
+    .settings-modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0;
     }
 
     .editor-card::after {
@@ -656,7 +738,7 @@
           <button class="language-button" id="language-ja" type="button" aria-pressed="true">日本語</button>
           <button class="language-button" id="language-en" type="button" aria-pressed="false">ENGLISH</button>
         </div>
-        <button class="button button--danger-hold" id="reset-all" type="button" title="2秒間長押しで全リセット">⚠️ RESET ALL (長押し2秒)</button>
+        <button class="button button--quiet" id="open-settings-btn" type="button">⚙️ SETTINGS</button>
         <button class="button button--primary" id="copy-all" type="button">📋 COPY ALL POSITIONS</button>
       </div>
     </section>
@@ -665,9 +747,14 @@
       <section class="editor-grid" id="editor-grid" aria-label="Refined card gallery"></section>
 
       <aside class="inspector" aria-label="Selected card controls">
-        <p class="inspector-kicker" id="label-selected-kicker">SELECTED ROLE</p>
-        <h2 id="selected-role">Knights</h2>
-        <p class="inspector-subtitle" id="selected-role-jp">騎士団</p>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <p class="inspector-kicker" id="label-selected-kicker">SELECTED ROLE</p>
+            <h2 id="selected-role">Knights</h2>
+            <p class="inspector-subtitle" id="selected-role-jp">騎士団</p>
+          </div>
+          <button class="button button--quiet" id="lock-toggle-btn" type="button" style="font-size:11px;padding:4px 8px;margin-top:4px;">🔒 Locked</button>
+        </div>
 
         <!-- Edit Target Switcher (Character vs Background) -->
         <div class="control-block">
@@ -682,8 +769,8 @@
         <div class="control-block">
           <label class="control-label" for="scale-input"><span id="label-scale">Scale</span><span class="control-value" id="scale-value">1.00×</span></label>
           <div class="range-row">
-            <input id="scale-input" type="range" min="0.5" max="2.5" step="0.01" value="1" aria-label="Scale">
-            <input id="scale-number" type="number" min="0.5" max="2.5" step="0.01" value="1" aria-label="Scale value">
+            <input id="scale-input" type="range" min="0.1" max="3.0" step="0.01" value="1" aria-label="Scale">
+            <input id="scale-number" type="number" min="0.1" max="3.0" step="0.01" value="1" aria-label="Scale value">
           </div>
         </div>
 
@@ -731,8 +818,27 @@
     </div>
   </main>
 
-  <script>
-    const DEFAULT_POSITION = Object.freeze({
+  <!-- Settings Modal Overlay -->
+  <div class="settings-modal-backdrop" id="settings-modal-backdrop">
+    <div class="settings-modal">
+      <div class="settings-modal-header">
+        <h3 class="settings-modal-title" id="setting-modal-title">⚙️ Editor Settings</h3>
+        <button class="button button--quiet" id="close-settings-btn" type="button" style="padding:4px 8px;font-size:12px;">✕ Close</button>
+      </div>
+      <div class="settings-modal-body">
+        <p style="font-size:12px;color:var(--muted);margin:0 0 10px 0;" id="setting-modal-desc">カード保護ロックおよび全カードの一括操作を行います。</p>
+        
+        <div style="display:flex;gap:10px;">
+          <button class="button button--quiet" id="unlock-all-btn" type="button" style="flex:1;">🔓 全部アンロック</button>
+          <button class="button button--quiet" id="lock-all-btn" type="button" style="flex:1;">🔒 全部ロック</button>
+        </div>
+
+        <hr style="border:0;border-top:1px solid var(--line);margin:6px 0;">
+
+        <div>
+          <label style="font-size:12px;font-weight:700;color:var(--ink);display:block;margin-bottom:6px;" id="setting-label-reset">⚠️ 全カード初期化 (Reset to Defaults)</label>
+          <button class="button button--danger-hold" id="reset-all" type="button" style="width:100%;" title="2秒間長押しで全リセット">⚠️ RESET ALL (長押し2秒)</button>
+       const DEFAULT_POSITION = Object.freeze({
       scale: 1, x: 0, y: 0,
       bgScale: 1, bgX: 0, bgY: 0,
       brightness: 1, contrast: 1, saturate: 1, hue: 0
@@ -740,10 +846,10 @@
     const round = value => Math.round(value * 100) / 100;
     const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
     const normalizePosition = position => ({
-      scale: round(clamp(Number(position.scale ?? 1), 0.5, 2.5)),
+      scale: round(clamp(Number(position.scale ?? 1), 0.1, 3.0)),
       x: round(clamp(Number(position.x ?? 0), -100, 100)),
       y: round(clamp(Number(position.y ?? 0), -100, 100)),
-      bgScale: round(clamp(Number(position.bgScale ?? 1), 0.5, 3.0)),
+      bgScale: round(clamp(Number(position.bgScale ?? 1), 0.1, 3.0)),
       bgX: round(clamp(Number(position.bgX ?? 0), -100, 100)),
       bgY: round(clamp(Number(position.bgY ?? 0), -100, 100)),
       brightness: round(clamp(Number(position.brightness ?? 1), 0.5, 1.5)),
@@ -818,7 +924,17 @@
       ['ghost_wolf', '狼の亡霊', 'Ghost Wolf', ['おおかみ', '', 'ぼう', 'れい']]
     ].map(([id, jp, en, rubies]) => ({ id, jp, en, rubies }));
 
-    const DRAFT_KEY = 'refined_card_position_editor_draft_v2';
+    const DRAFT_KEY = 'refined_card_position_editor_draft_v3';
+    const roleIds = roles.map(role => role.id);
+
+    const baselinePositionMap = () => Object.fromEntries(roleIds.map(roleId => [roleId, normalizePosition({ ...DEFAULT_POSITION, ...REFINED_POSITIONS[roleId] })]));
+    
+    let activeTarget = 'character'; // 'character' | 'background'
+    let positionMap = loadDraft();
+    let lockMap = Object.fromEntries(roleIds.map(id => [id, true])); // 全カードのデフォルトは誤操作防止のロック状態
+    let selectedRoleId = roleIds[0];
+    let currentLanguage = 'ja';
+    let pointerState = null;
 
     function saveDraft() {
       try {
@@ -851,15 +967,6 @@
       return baselinePositionMap();
     }
 
-    const roleIds = roles.map(role => role.id);
-    const baselinePositionMap = () => Object.fromEntries(roleIds.map(roleId => [roleId, normalizePosition({ ...DEFAULT_POSITION, ...REFINED_POSITIONS[roleId] })]));
-    
-    let activeTarget = 'character'; // 'character' | 'background'
-    let positionMap = loadDraft();
-    let selectedRoleId = roleIds[0];
-    let currentLanguage = 'ja';
-    let pointerState = null;
-
     const grid = document.getElementById('editor-grid');
     const status = document.getElementById('editor-status');
     const exportArea = document.getElementById('export-area');
@@ -878,6 +985,7 @@
 
     const targetCharBtn = document.getElementById('target-character');
     const targetBgBtn = document.getElementById('target-background');
+    const lockToggleBtn = document.getElementById('lock-toggle-btn');
 
     const assetPath = path => `${path}?v=${assetVersion}`;
     const imageName = roleId => `${roleId}_ver_a.png`;
@@ -888,15 +996,16 @@
       window.setTimeout(() => { if (status.textContent === message) status.textContent = ''; }, 2600);
     };
 
-    function isChanged(position) {
-      return position.scale !== 1 || position.x !== 0 || position.y !== 0 ||
+    function isChanged(position, roleId) {
+      const base = REFINED_POSITIONS[roleId] || DEFAULT_POSITION;
+      return position.scale !== (base.scale ?? 1) || position.x !== (base.x ?? 0) || position.y !== (base.y ?? 0) ||
              position.bgScale !== 1 || position.bgX !== 0 || position.bgY !== 0 ||
              position.brightness !== 1 || position.contrast !== 1 || position.saturate !== 1 || position.hue !== 0;
     }
 
     function updateEditedCount() {
-      const changed = roleIds.filter(roleId => isChanged(positionMap[roleId])).length;
-      editedCount.textContent = `${changed} / ${roleIds.length} ${currentLanguage === 'ja' ? '調整済' : 'adjusted'}`;
+      const changed = roleIds.filter(roleId => isChanged(positionMap[roleId], roleId)).length;
+      editedCount.textContent = `${changed} / ${roleIds.length} ${currentLanguage === 'ja' ? '変更あり' : 'modified'}`;
     }
 
     function applyTransform(roleId) {
@@ -925,14 +1034,44 @@
         if (bgEl) bgEl.style.filter = 'none';
         card.classList.remove('editing-bg');
       }
+
+      const isLocked = lockMap[roleId];
+      card.classList.toggle('is-locked', isLocked);
+      card.classList.toggle('is-unlocked', !isLocked);
+
+      const badge = card.querySelector('.card-lock-badge');
+      if (badge) {
+        badge.textContent = isLocked ? '🔒 LOCKED' : '🔓 UNLOCKED';
+      }
+    }
+
+    function toggleLock(roleId) {
+      lockMap[roleId] = !lockMap[roleId];
+      applyTransform(roleId);
+      if (roleId === selectedRoleId) syncInspector();
+      announce(lockMap[roleId] ? `${roleId} locked` : `${roleId} unlocked! (2-tap)` );
+    }
+
+    function setAllLock(locked) {
+      roleIds.forEach(id => { lockMap[id] = locked; });
+      roleIds.forEach(applyTransform);
+      syncInspector();
+      announce(locked ? (currentLanguage === 'ja' ? '全カードをロックしました' : 'All cards locked') : (currentLanguage === 'ja' ? '全カードをアンロックしました' : 'All cards unlocked'));
     }
 
     function syncInspector() {
       const role = roles.find(item => item.id === selectedRoleId);
       const pos = positionMap[selectedRoleId];
+      const isLocked = lockMap[selectedRoleId];
 
       selectedRole.textContent = currentLanguage === 'ja' ? role.jp : role.en;
       selectedRoleJp.textContent = currentLanguage === 'ja' ? role.en : role.jp;
+
+      if (lockToggleBtn) {
+        lockToggleBtn.textContent = isLocked ? '🔒 Locked' : '🔓 Unlocked';
+        lockToggleBtn.style.background = isLocked ? 'rgba(246, 241, 232, 0.06)' : 'var(--accent)';
+        lockToggleBtn.style.color = isLocked ? 'var(--muted)' : '#16120d';
+      }
 
       if (activeTarget === 'background') {
         scaleRange.value = pos.bgScale;
@@ -952,6 +1091,11 @@
       if (contrastInput) contrastInput.value = pos.contrast;
       if (saturateInput) saturateInput.value = pos.saturate;
       if (hueInput) hueInput.value = pos.hue;
+
+      // ロック中の場合はコントロール入力群を無効化
+      [scaleRange, scaleNumber, xInput, yInput, brightnessInput, contrastInput, saturateInput, hueInput, targetCharBtn, targetBgBtn].forEach(el => {
+        if (el) el.disabled = isLocked;
+      });
 
       const isTintDefault = (pos.brightness === 1 && pos.contrast === 1 && pos.saturate === 1 && pos.hue === 0);
       const tintLabel = document.getElementById('tint-active-label');
@@ -986,6 +1130,8 @@
     }
 
     function setPosition(patch, message = 'Position updated') {
+      if (lockMap[selectedRoleId]) return; // ロック中の場合は無視
+
       const currentPos = positionMap[selectedRoleId];
       let updatedPatch = {};
 
@@ -1021,6 +1167,7 @@
         return `
         <div class="editor-card-wrapper" data-role-wrapper="${role.id}">
           <article class="editor-card${selected}" data-role-id="${role.id}" tabindex="0" aria-label="${role.jp} ${role.en}">
+            <span class="card-lock-badge" data-lock-badge="${role.id}">🔒 LOCKED</span>
             <div class="editor-card__background" style="background-image:url('${assetPath(`backgrounds-72/${backgroundName(role.id)}`)}')"></div>
             <img class="editor-card__character" src="${assetPath(`00_transparent-illustrations-72-a-refined/${file}`)}" alt="${role.en}" draggable="false">
             ${titleMarkup}
@@ -1048,9 +1195,26 @@
           }
         }
 
+        const lockBadge = card.querySelector(`[data-lock-badge="${role.id}"]`);
+        if (lockBadge) {
+          lockBadge.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleLock(role.id);
+          });
+        }
+
+        // ダブルクリック / ダブルタップ（2拍子リズム）でアンロック/ロック切り替え！
+        card.addEventListener('dblclick', (e) => {
+          e.preventDefault();
+          toggleLock(role.id);
+        });
+
         card.addEventListener('pointerdown', event => {
           selectRole(role.id, false);
           card.focus({ preventScroll: true });
+          
+          if (lockMap[role.id]) return; // ロック状態なら移動を無効化
+
           const pos = positionMap[role.id];
           const startVal = activeTarget === 'background' ? { x: pos.bgX, y: pos.bgY } : { x: pos.x, y: pos.y };
           
@@ -1066,6 +1230,7 @@
         });
 
         card.addEventListener('pointermove', event => {
+          if (lockMap[role.id]) return;
           if (!pointerState || pointerState.pointerId !== event.pointerId) return;
           const deltaX = (event.clientX - pointerState.startX) / card.clientWidth * 100;
           const deltaY = (event.clientY - pointerState.startY) / card.clientHeight * 100;
@@ -1090,13 +1255,14 @@
         });
 
         card.addEventListener('wheel', event => {
-          if (selectedRoleId !== role.id) return;
+          if (selectedRoleId !== role.id || lockMap[role.id]) return;
           event.preventDefault();
           const currentScale = activeTarget === 'background' ? positionMap[role.id].bgScale : positionMap[role.id].scale;
           setPosition({ scale: currentScale - event.deltaY * 0.001 }, 'Scale updated');
         }, { passive: false });
 
         card.addEventListener('keydown', event => {
+          if (lockMap[role.id]) return;
           if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
           event.preventDefault();
           const step = event.shiftKey ? 10 : 1;
@@ -1123,8 +1289,8 @@
       const mastheadCopy = document.querySelector('.masthead-copy');
       if (mastheadCopy) {
         mastheadCopy.textContent = isJa
-          ? "25枚の人物レイヤー・背景を調整します。カードを選び、人物/背景切替・ドラッグ・ホイール・ティントで整えたら、全設定をJSONでコピーできます。"
-          : "Calibrate 25 character & background layers. Select a card, switch layers, drag, scroll, and tune color tint before copying JSON.";
+          ? "25枚の人物レイヤー・背景を調整します。ダブルクリック（2拍子）でロック解除し、ドラッグ・ホイール・ティントで整えられます。"
+          : "Calibrate 25 character & background layers. Double-tap to unlock, then drag, scroll, and tune color tint before copying JSON.";
       }
       
       const setElText = (id, text) => {
@@ -1145,13 +1311,20 @@
       setElText('label-contrast', isJa ? "コントラスト" : "Contrast");
       setElText('label-saturate', isJa ? "鮮やかさ (彩度)" : "Saturate");
       setElText('label-hue', isJa ? "色相 (カラーティント)" : "Hue-Rotate");
-      setElText('reset-selected', isJa ? "このカードを初期化" : "RESET SELECTED");
+      setElText('reset-selected', isJa ? "正本値にリセット" : "RESET SELECTED");
       setElText('copy-selected', isJa ? "この設定をコピー" : "COPY SELECTED");
-      setElText('reset-all', isJa ? "⚠️ 全初期化 (長押し2秒)" : "⚠️ RESET ALL (Hold 2s)");
+      setElText('reset-all', isJa ? "⚠️ 全カード初期化 (長押し2秒)" : "⚠️ RESET ALL (Hold 2s)");
       setElText('copy-all', isJa ? "📋 全設定をコピー" : "📋 COPY ALL POSITIONS");
       setElText('help-text', isJa
-        ? "カードをドラッグして移動。ホイールで拡大縮小。矢印キーで1%移動（Shift+矢印で10%）。"
-        : "Drag a card to move target layer. Scroll to scale. Arrow keys nudge 1%; Shift + Arrow nudges 10%.");
+        ? "カードをダブルタップ（2拍子）でロック解除。ドラッグで移動、ホイールで拡大縮小（0.1×〜3.0×）。"
+        : "Double-tap a card to unlock. Drag to move, scroll to scale (0.1× to 3.0×).");
+
+      setElText('setting-modal-title', isJa ? "⚙️ エディター設定" : "⚙️ Editor Settings");
+      setElText('setting-modal-desc', isJa ? "カード保護ロックおよび全カードの一括操作を行います。" : "Manage card locks and bulk position calibration.");
+      setElText('unlock-all-btn', isJa ? "🔓 全カードをアンロック" : "🔓 Unlock All Cards");
+      setElText('lock-all-btn', isJa ? "🔒 全カードをロック" : "🔒 Lock All Cards");
+      setElText('setting-label-reset', isJa ? "⚠️ 正本デフォルト値へ全リセット" : "⚠️ Reset All to Baseline Defaults");
+      setElText('setting-desc-reset', isJa ? "確定済みの正本デフォルト値に全25カードを一括復元します。" : "Restores all 25 cards to default calibrated values.");
 
       renderCards();
       syncInspector();
@@ -1172,6 +1345,7 @@
       }
     }
 
+    // RESET ALL Hold-to-confirm logic
     let holdTimer = null;
     let holdStartTime = 0;
     const resetAllBtn = document.getElementById('reset-all');
@@ -1197,13 +1371,13 @@
 
         if (elapsed >= 2000) {
           cancelHold();
-          if (confirm('⚠️【確認】全カードの調整パラメータを初期値にリセットします。\n\n自動保存された下書きもクリアされます。本当によろしいですか？')) {
+          if (confirm('⚠️【確認】全25カードの調整パラメータを確定済みの正本デフォルト値へ一括復元します。\n\n自動保存された下書きもクリアされます。本当によろしいですか？')) {
             positionMap = baselinePositionMap();
             try { localStorage.removeItem(DRAFT_KEY); } catch(err){}
             roleIds.forEach(applyTransform);
             syncInspector();
             updateEditedCount();
-            announce('All cards reset to baseline');
+            announce('All cards reset to baseline defaults!');
           }
         } else {
           holdTimer = requestAnimationFrame(updateProgress);
@@ -1219,6 +1393,26 @@
 
     if (targetCharBtn) targetCharBtn.addEventListener('click', () => setTargetLayer('character'));
     if (targetBgBtn) targetBgBtn.addEventListener('click', () => setTargetLayer('background'));
+    if (lockToggleBtn) lockToggleBtn.addEventListener('click', () => toggleLock(selectedRoleId));
+
+    const settingsModalBackdrop = document.getElementById('settings-modal-backdrop');
+    const openSettingsBtn = document.getElementById('open-settings-btn');
+    const closeSettingsBtn = document.getElementById('close-settings-btn');
+
+    if (openSettingsBtn && settingsModalBackdrop) {
+      openSettingsBtn.addEventListener('click', () => settingsModalBackdrop.classList.add('is-active'));
+    }
+    if (closeSettingsBtn && settingsModalBackdrop) {
+      closeSettingsBtn.addEventListener('click', () => settingsModalBackdrop.classList.remove('is-active'));
+    }
+    if (settingsModalBackdrop) {
+      settingsModalBackdrop.addEventListener('click', (e) => {
+        if (e.target === settingsModalBackdrop) settingsModalBackdrop.classList.remove('is-active');
+      });
+    }
+
+    document.getElementById('unlock-all-btn').addEventListener('click', () => setAllLock(false));
+    document.getElementById('lock-all-btn').addEventListener('click', () => setAllLock(true));
 
     document.getElementById('language-ja').addEventListener('click', () => setLanguage('ja'));
     document.getElementById('language-en').addEventListener('click', () => setLanguage('en'));
@@ -1246,9 +1440,10 @@
       syncInspector();
       updateEditedCount();
       saveDraft();
-      announce('Selected card reset');
+      announce('Selected card reset to default');
     });
-    document.getElementById('copy-all').addEventListener('click', () => copyText(serializePositions(positionMap, roleIds), 'All 26 positions copied'));
+
+    document.getElementById('copy-all').addEventListener('click', () => copyText(serializePositions(positionMap, roleIds), `All ${roleIds.length} positions copied`));
     document.getElementById('copy-selected').addEventListener('click', () => {
       const one = serializePositions(positionMap, [selectedRoleId]);
       copyText(one, 'Selected position copied');
