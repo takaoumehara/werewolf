@@ -241,3 +241,47 @@ export const dispatchWerewolfCommand = onCall(async (req) => {
   }
   return outcome ?? { ok: true };
 });
+
+/**
+ * サーバー内部専用: AIプレイヤーの actorId でコマンドを1つ適用する。
+ * dispatchWerewolfCommand と同じ権威トランザクションだが、actorId を引数で受け、
+ * req.auth / roomMembers ゲートを持たない(Admin SDK からのみ呼ぶ・onCallにしない)。
+ */
+export async function applyServerCommand(roomId, actorId, type, payload = {}) {
+  let outcome = null;
+  let domainError = null;
+  const commandId = `ai-${actorId}-${type}-${Date.now()}`;
+  const gameRef = db().ref(`rooms/${roomId}/game`);
+  const txn = await gameRef.transaction((game) => {
+    if (!game || !game.authoritative) return game;
+    try {
+      const command = createCommandEnvelope({
+        id: commandId,
+        actorId, // ← AIのid。サーバーが信頼して指定する。
+        type,
+        payload,
+        expectedRevision: game.authoritative.revision,
+        now: Date.now(),
+      });
+      const processed = game.processedCommands || {};
+      const result = applyCommandOnce({ state: game.authoritative, command, dispatch, processedCommands: processed });
+      const patch = buildPersistencePatch({ state: result.state, events: result.events, toPublicView, toPlayerView });
+      game.authoritative = patch.authoritative;
+      game.public = patch.public;
+      game.privateViews = patch.privateViews;
+      game.processedCommands = processed;
+      game.events = game.events || {};
+      for (const ev of patch.events) game.events[ev.id] = ev;
+      game.publicEvents = game.publicEvents || {};
+      for (const ev of patch.publicEvents) game.publicEvents[ev.id] = ev;
+      outcome = { revision: patch.authoritative.revision, phase: patch.public.phase, finished: !!patch.public.winner };
+      return game;
+    } catch (error) {
+      domainError = error;
+      return; // abort
+    }
+  });
+  if (domainError) throw domainError;
+  if (!txn.committed) return null;
+  return outcome;
+}
