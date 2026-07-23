@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeTrust, decideVote } from "../src/ai-brain.mjs";
+import { computeTrust, decideVote, decideNightAction } from "../src/ai-brain.mjs";
 
 const base = {
   selfId: "p1",
@@ -79,4 +79,31 @@ test("同じ入力・同じseedなら決定は再現する（決定論）", () =
 test("投票可能な生存者がいなければ targetId は null", () => {
   const out = decideVote({ ...base, alivePlayerIds: ["p1"] });
   assert.equal(out.targetId, null);
+});
+
+test("村人は夜行動を持たない（null）", () => {
+  assert.equal(decideNightAction(base), null);
+});
+
+test("人狼の襲撃先は仲間・自分を含まない生存者", () => {
+  const out = decideNightAction({
+    ...base, roleId: "werewolf", team: "werewolf", allyIds: ["p2"],
+  });
+  assert.equal(out.kind, "attack");
+  assert.ok(["p3", "p4"].includes(out.targetId));
+});
+
+test("占い師の占い先は自分・既占い者を除く生存者", () => {
+  const out = decideNightAction({
+    ...base, roleId: "prophet",
+    divineResults: [{ targetId: "p2", result: "human" }],
+  });
+  assert.equal(out.kind, "divine");
+  assert.ok(["p3", "p4"].includes(out.targetId)); // p2は既占いなので除外
+});
+
+test("夜行動は同seedで再現する", () => {
+  const a = decideNightAction({ ...base, roleId: "werewolf", team: "werewolf", allyIds: ["p2"], seed: 3 });
+  const b = decideNightAction({ ...base, roleId: "werewolf", team: "werewolf", allyIds: ["p2"], seed: 3 });
+  assert.deepEqual(a, b);
 });

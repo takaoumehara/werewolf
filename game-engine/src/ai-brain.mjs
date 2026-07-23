@@ -62,3 +62,45 @@ export function decideVote(input) {
   }
   return { targetId: choice };
 }
+
+export function decideNightAction(input) {
+  const allySet = new Set(input.allyIds);
+  if (input.roleId === "werewolf") {
+    const targets = input.alivePlayerIds.filter(
+      (id) => id !== input.selfId && !allySet.has(id),
+    );
+    if (targets.length === 0) return null;
+    // 脅威度が高い順＝trustが低い（疑っている）順。同値はid昇順。ノイズはlogic連動。
+    const trust = computeTrust(input);
+    const sorted = [...targets].sort(
+      (a, b) => (trust[a] ?? 0) - (trust[b] ?? 0) || a.localeCompare(b),
+    );
+    let choice = sorted[0];
+    const noiseChance = (100 - input.personality.logic) / 200;
+    if (seededUnit(input.seed + 11) < noiseChance) {
+      const idx = Math.floor(seededUnit(input.seed + 12) * targets.length);
+      choice = targets[Math.min(idx, targets.length - 1)];
+    }
+    return { kind: "attack", targetId: choice };
+  }
+  if (input.roleId === "prophet") {
+    const divined = new Set(input.divineResults.map((r) => r.targetId));
+    const targets = input.alivePlayerIds.filter(
+      (id) => id !== input.selfId && !divined.has(id),
+    );
+    if (targets.length === 0) return null;
+    // 最も不確実な相手（|trust|が小さい）を占う。同値はid昇順。
+    const trust = computeTrust(input);
+    const sorted = [...targets].sort(
+      (a, b) => Math.abs(trust[a] ?? 0) - Math.abs(trust[b] ?? 0) || a.localeCompare(b),
+    );
+    let choice = sorted[0];
+    const noiseChance = (100 - input.personality.logic) / 200;
+    if (seededUnit(input.seed + 21) < noiseChance) {
+      const idx = Math.floor(seededUnit(input.seed + 22) * targets.length);
+      choice = targets[Math.min(idx, targets.length - 1)];
+    }
+    return { kind: "divine", targetId: choice };
+  }
+  return null;
+}
