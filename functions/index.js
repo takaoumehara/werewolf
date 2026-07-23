@@ -30,6 +30,12 @@ import {
   applyCommandOnce,
   buildPersistencePatch,
 } from "../game-engine/src/firebase-adapter-contract.mjs";
+import { defineSecret } from "firebase-functions/params";
+import { pickRoster } from "./ai/roster.mjs";
+import { runAiPhase } from "./ai/orchestrator.mjs";
+import { generateSpeech } from "./ai/llm.mjs";
+
+const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 
 initializeApp();
 
@@ -285,3 +291,53 @@ export async function applyServerCommand(roomId, actorId, type, payload = {}) {
   if (!txn.committed) return null;
   return outcome;
 }
+
+/** ホストがソロ卓に count 体のAIを着席させる。役職は startWerewolfGame が既存ロジックで配る。 */
+export const seatAiPlayers = onCall(async (req) => {
+  const uid = requireUid(req);
+  const roomId = String(req.data?.roomId ?? "");
+  const count = Math.max(0, Math.min(11, Number(req.data?.count ?? 0)));
+
+  const metaSnap = await db().ref(`rooms/${roomId}/meta`).get();
+  const meta = metaSnap.val();
+  if (!meta) throw new HttpsError("not-found", "部屋が存在しません。");
+  if (meta.hostId !== uid) throw new HttpsError("permission-denied", "ホストのみが実行できます。");
+  if (meta.status !== "waiting") throw new HttpsError("failed-precondition", "開始前のみ着席できます。");
+
+  const roster = pickRoster(count);
+  const updates = {};
+  const seated = [];
+  const now = Date.now();
+  roster.forEach((persona, i) => {
+    const aiId = `ai_${i + 1}`;
+    seated.push(aiId);
+    updates[`roomMembers/${roomId}/${aiId}`] = true;
+    updates[`rooms/${roomId}/players/${aiId}`] = { id: aiId, name: persona.name, role: "ai", connected: true, joinedAt: now, lastSeenAt: now };
+    updates[`rooms/${roomId}/aiPlayers/${aiId}`] = {
+      name: persona.name, pronoun: persona.pronoun, toneSamples: persona.toneSamples,
+      verbalTic: persona.verbalTic, personality: persona.personality,
+    };
+  });
+  await db().ref().update(updates);
+  return { seated };
+});
+
+/** 指定フェーズのAI行動(夜行動 / 投票 / 発話)を一括実行する。member限定。 */
+export const advanceAiTurn = onCall({ secrets: [ANTHROPIC_API_KEY] }, async (req) => {
+  const uid = requireUid(req);
+  const roomId = String(req.data?.roomId ?? "");
+  const phase = String(req.data?.phase ?? "");
+  const memberSnap = await db().ref(`roomMembers/${roomId}/${uid}`).get();
+  if (memberSnap.val() !== true) throw new HttpsError("permission-denied", "この部屋のメンバーではありません。");
+
+  const apiKey = ANTHROPIC_API_KEY.value();
+  const deps = {
+    readAuthoritative: async (rid) => (await db().ref(`rooms/${rid}/game/authoritative`).get()).val(),
+    readAiPlayers: async (rid) => (await db().ref(`rooms/${rid}/aiPlayers`).get()).val() || {},
+    applyCommand: (rid, actorId, type, payload) => applyServerCommand(rid, actorId, type, payload),
+    pushChat: async (rid, m) => { await db().ref(`rooms/${rid}/game/chat`).push(m); },
+    generate: ({ system, user }) => generateSpeech({ system, user, apiKey }),
+    now: () => Date.now(),
+  };
+  return runAiPhase(deps, { roomId, phase });
+});

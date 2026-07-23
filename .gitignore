@@ -20,3 +20,7 @@ tmp/ui-shots/
 _archive/
 _archieve/
 
+# Cloud Functions local secrets (never commit real or dummy API keys)
+functions/.secret.local
+**/.secret.local
+
