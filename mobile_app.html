@@ -2465,7 +2465,9 @@
        day フェーズで deadlineAt を更新しないため、公開ビューだけでは判別できない)。
      =================================================================== */
   const ROLE_REVEAL_GRACE_MS = 10000;
-  const hostDriver = { lastSentType: null, roleRevealEnteredAt: null, inFlight: false, lastRevisionAtSend: -1 };
+  const hostDriver = { lastSentType: null, roleRevealEnteredAt: null, inFlight: false, lastRevisionAtSend: -1,
+    // ソロモード: フェーズ(round+phase)ごとに1回だけAIの行動を駆動するための追跡状態。
+    aiTurnKey: null, aiTurnDone: {} };
 
   function computeNextHostCommand(pub, opts) {
     const force = !!(opts && opts.force);
@@ -2486,6 +2488,9 @@
       return null;
     }
     if (pub.phase === 'night') {
+      // ソロモード: AIの夜行動(SUBMIT_NIGHT_ACTION)が完了するまで RESOLVE_NIGHT を
+      // 保留する(force による手動進行も含む)。取りこぼし防止のためここで一律ガード。
+      if (appState.solo && !hostDriver.aiTurnDone[(pub.round || 0) + ':' + pub.phase]) return null;
       if (force) return 'RESOLVE_NIGHT';
       if (gmMode === 'ai' && pub.deadlineAt != null && now >= pub.deadlineAt) return 'RESOLVE_NIGHT';
       return null;
@@ -2498,6 +2503,8 @@
       return null;
     }
     if (pub.phase === 'vote') {
+      // ソロモード: AIの投票(CAST_VOTE)が完了するまで RESOLVE_VOTE を保留する。
+      if (appState.solo && !hostDriver.aiTurnDone[(pub.round || 0) + ':' + pub.phase]) return null;
       if (force) return 'RESOLVE_VOTE';
       if (gmMode === 'ai' && pub.deadlineAt != null && now >= pub.deadlineAt) return 'RESOLVE_VOTE';
       return null;
@@ -2523,8 +2530,28 @@
   }
 
   function hostDriverTick() {
-    if (MODE !== 'live' || appState.view !== 'host' || gmMode !== 'ai') return;
+    if (MODE !== 'live' || appState.view !== 'host') return;
     const pub = latestPublic;
+    // ソロモードのAIプレイヤーのフェーズ行動を1回だけ駆動する。gmMode(自動/手動)を
+    // 問わず実行する — 人間GMの場合でも、AIが行動しなければ computeNextHostCommand の
+    // resolve ガード(下記)が解除されず、手動「進める」も永久にブロックされてしまうため。
+    if (appState.solo && pub && !pub.winner && pub.players) {
+      const aiPhase = pub.phase;
+      const aiKey = (pub.round || 0) + ':' + aiPhase;
+      if (['night', 'vote', 'day'].includes(aiPhase) && hostDriver.aiTurnKey !== aiKey) {
+        hostDriver.aiTurnKey = aiKey;
+        getLiveClient().then(function (client) {
+          return client.advanceAiTurn({ phase: aiPhase });
+        }).then(function () {
+          hostDriver.aiTurnDone[aiKey] = true;
+        }).catch(function (e) {
+          console.error('advanceAiTurn failed', e);
+          // 再試行を許可する(ただし別tickで既に次のkeyへ進んでいたら上書きしない)。
+          if (hostDriver.aiTurnKey === aiKey) hostDriver.aiTurnKey = null;
+        });
+      }
+    }
+    if (gmMode !== 'ai') return;
     if (!pub || pub.winner || hostDriver.inFlight) return;
     if (pub.revision === hostDriver.lastRevisionAtSend) return;
     const type = computeNextHostCommand(pub, { force: false });
