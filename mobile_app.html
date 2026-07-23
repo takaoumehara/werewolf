@@ -1728,6 +1728,18 @@
             <div class="field-eyebrow" style="margin-bottom:5px;">前夜の記録</div>
             <div id="s14PrevRecord" style="font-size:14px;color:rgba(237,233,220,0.8);">健太 が失われた</div>
           </div>
+          <div class="chat" id="chatPanel">
+            <div class="chat-log" id="chatLog" aria-live="polite" aria-label="議論ログ"></div>
+            <div class="chat-quick">
+              <button type="button" class="chat-chip" onclick="handleChatQuick('suspect')">怪しい</button>
+              <button type="button" class="chat-chip" onclick="handleChatQuick('agree')">賛成</button>
+            </div>
+            <form class="chat-input-bar" id="chatForm" onsubmit="return handleChatSend(event)">
+              <input type="text" class="chat-input" id="chatInput" maxlength="120"
+                     placeholder="発言を入力…" autocomplete="off" aria-label="発言を入力" />
+              <button type="submit" class="btn btn--primary chat-send" aria-label="送信">送信</button>
+            </form>
+          </div>
         </div>
         <button type="button" class="btn btn--primary" onclick="handleLiveHostSkip('s15')">投票へ進む</button>
         <p class="center-note">時間が来ると、自動で投票に移ります。</p>
@@ -3602,6 +3614,54 @@
   }
 
   /* ===================================================================
+     s14: AI議論チャット
+     =================================================================== */
+  let chatMessages = [];
+  let chatUnsub = null;
+  function renderChatLog() {
+    const log = document.getElementById('chatLog');
+    if (!log) return;
+    log.innerHTML = '';
+    for (const m of chatMessages) {
+      const b = document.createElement('div');
+      b.className = 'chat-bubble ' + (m.kind === 'human' ? 'chat-bubble--human' : 'chat-bubble--ai');
+      const who = document.createElement('span'); who.className = 'chat-author'; who.textContent = m.authorName || '';
+      const body = document.createElement('span'); body.textContent = m.text || '';
+      b.appendChild(who); b.appendChild(body); log.appendChild(b);
+    }
+    log.scrollTop = log.scrollHeight;
+  }
+  function renderS14Chat() {
+    if (MODE !== 'live') return;
+    getLiveClient().then(function (client) {
+      if (chatUnsub) return; // 二重購読防止
+      chatUnsub = client.onChat(function (val) {
+        chatMessages = val ? Object.values(val).sort(function (a, b) { return (a.at || 0) - (b.at || 0); }) : [];
+        renderChatLog();
+      });
+    });
+  }
+  function handleChatSend(ev) {
+    ev.preventDefault();
+    const input = document.getElementById('chatInput');
+    const text = input ? input.value : '';
+    if (input) input.value = '';
+    getLiveClient().then(function (client) { return client.postChat(text); }).catch(function (e) { console.error(e); });
+    return false;
+  }
+  function handleChatQuick(kind) {
+    const suspectName = (latestPublic && latestPublic.players)
+      ? (Object.values(latestPublic.players).find(function (p) { return p.alive && p.id !== (window.liveClient && window.liveClient.uid); }) || {}).displayName
+      : null;
+    const text = kind === 'suspect'
+      ? (suspectName || 'あの人') + 'が怪しいと思う'
+      : 'それに賛成';
+    getLiveClient().then(function (client) { return client.postChat(text); }).catch(function (e) { console.error(e); });
+  }
+  window.handleChatSend = handleChatSend;
+  window.handleChatQuick = handleChatQuick;
+
+  /* ===================================================================
      s15: 投票
      =================================================================== */
   let liveVoteSelectedId = null;
@@ -3811,7 +3871,7 @@
     if (id === 's11') { setPhase('night'); renderS11(); }
     if (id === 's12') setPhase('night'); /* 全員共通の待機画面。役職に依存しない */
     if (id === 's13') { setPhase('dawn'); if (MODE === 'live') renderS13Live(); }
-    if (id === 's14') { setPhase('day'); renderS14(); }
+    if (id === 's14') { setPhase('day'); renderS14(); renderS14Chat(); }
     if (id === 's15') renderS15();
     if (id === 's16') { if (MODE === 'live') renderS16Live(); }
     if (id === 's17') { setPhase('verdict'); if (MODE === 'live') renderS17Live(); }

@@ -1509,6 +1509,26 @@ body {
   display: block;
 }
 
+/* チャット（AI議論） */
+.chat { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-3); flex: 1; min-height: 0; }
+.chat-log { flex: 1; min-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-2); }
+.chat-bubble { max-width: 82%; padding: 10px 12px; border-radius: 14px; font-size: 15px; line-height: 1.55;
+  background: var(--sem-bg-elevated, var(--p-surface)); color: var(--sem-text, var(--p-text));
+  border: 1px solid var(--sem-line, var(--p-line)); animation: chatIn var(--t-micro, 160ms) var(--ease-standard, ease); }
+.chat-bubble--ai { align-self: flex-start; border-color: var(--sem-accent, var(--p-moonlight)); }
+.chat-bubble--human { align-self: flex-end; background: var(--sem-accent, var(--p-moonlight)); color: var(--p-soot); }
+.chat-bubble .chat-author { display: block; font-size: 12px; font-weight: 700; margin-bottom: 2px; color: var(--sem-accent, var(--p-moonlight)); }
+.chat-bubble--human .chat-author { color: var(--p-soot); }
+.chat-quick { display: flex; gap: var(--sp-2); }
+.chat-chip { min-height: var(--tap-min); padding: 8px 16px; border-radius: 20px; font-weight: 700;
+  background: transparent; color: var(--sem-text, var(--p-text)); border: 1px solid var(--sem-accent, var(--p-moonlight)); cursor: pointer; }
+.chat-input-bar { display: flex; gap: var(--sp-2); }
+.chat-input { flex: 1; min-height: var(--tap-min); padding: var(--sp-3); border-radius: var(--r-control, 10px);
+  background: var(--sem-bg, var(--p-charcoal)); color: var(--sem-text, var(--p-text)); border: 1px solid var(--sem-line, var(--p-line)); }
+.chat-send { min-width: 72px; }
+@keyframes chatIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .chat-bubble { animation: none; } }
+
 /* =========================================================================
    4. ANIMATIONS
    ========================================================================= */
