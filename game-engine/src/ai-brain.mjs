@@ -38,3 +38,27 @@ export function computeTrust(input) {
   }
   return trust;
 }
+
+// 投票可能な候補（自分と狼仲間を除く生存者）
+function voteCandidates(input) {
+  const allySet = new Set(input.allyIds);
+  return input.alivePlayerIds.filter((id) => id !== input.selfId && !allySet.has(id));
+}
+
+export function decideVote(input) {
+  const candidates = voteCandidates(input);
+  if (candidates.length === 0) return { targetId: null };
+  const trust = computeTrust(input);
+  // 最も疑う相手（trust最小）。同値は id 昇順で決定論的に。
+  const sorted = [...candidates].sort(
+    (a, b) => (trust[a] ?? 0) - (trust[b] ?? 0) || a.localeCompare(b),
+  );
+  let choice = sorted[0];
+  // logicが低いほどノイズで最適から外す（難易度スライダー）
+  const noiseChance = (100 - input.personality.logic) / 200; // logic=0→0.5, 100→0
+  if (seededUnit(input.seed) < noiseChance) {
+    const idx = Math.floor(seededUnit(input.seed + 1) * candidates.length);
+    choice = candidates[Math.min(idx, candidates.length - 1)];
+  }
+  return { targetId: choice };
+}
