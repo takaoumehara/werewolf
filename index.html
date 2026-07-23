@@ -573,6 +573,106 @@
     font-weight: 700;
   }
 
+  /* -----------------------------------------------------------------
+     i18n: top-bar の言語トグル(常設) + s01 の言語セグメント(補助)
+     ----------------------------------------------------------------- */
+  /* ── Top-bar language toggle (globe) ───────────────────────────── */
+  .lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    font-family: var(--font-heading);
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
+    border: 1px solid rgba(237, 233, 220, 0.14);
+    border-radius: 999px;
+    background: rgba(237, 233, 220, 0.03);
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.22s ease, background 0.22s ease, transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .lang-toggle:hover { border-color: rgba(224, 200, 126, 0.4); background: rgba(224, 200, 126, 0.06); }
+  .lang-toggle:active { transform: scale(0.94); }
+  .lang-toggle-opt {
+    position: relative;
+    opacity: 0.4;
+    font-weight: 500;
+    transition: opacity 0.22s ease, color 0.22s ease;
+  }
+  .lang-toggle-opt.is-active {
+    opacity: 1;
+    color: var(--p-gold-hi, #E0C87E);
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(224, 200, 126, 0.35);
+  }
+  .lang-toggle-sep {
+    opacity: 0.25;
+    margin: 0 4px;
+    font-weight: 300;
+  }
+
+  /* ── s01 language segment ──────────────────────────────────────── */
+  .lang-segment {
+    width: 100%;
+    margin-top: var(--sp-4, 16px);
+    padding-top: var(--sp-4, 16px);
+    border-top: 1px solid rgba(237, 233, 220, 0.12);
+    text-align: center;
+  }
+  .lang-segment-label {
+    font-family: var(--font-eyebrow);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: rgba(237, 233, 220, 0.5);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .lang-segment-track {
+    display: inline-flex;
+    position: relative;
+    border: 1px solid rgba(237, 233, 220, 0.18);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+    background: rgba(12, 14, 20, 0.35);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+  .lang-segment-btn {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 18px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: rgba(237, 233, 220, 0.5);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.28s ease, background 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.32s ease, transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .lang-segment-btn:hover:not(.is-active) { color: rgba(237, 233, 220, 0.78); }
+  .lang-segment-btn:active { transform: scale(0.95); }
+  .lang-segment-btn.is-active {
+    color: #1a150a;
+    font-weight: 700;
+    background: linear-gradient(180deg, #E7D08A 0%, #C9A84C 100%);
+    box-shadow: 0 1px 6px rgba(201, 168, 76, 0.4), 0 0 0 1px rgba(224, 200, 126, 0.25);
+  }
+  .lang-segment-note {
+    margin: 10px auto 0;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: rgba(237, 233, 220, 0.45);
+    max-width: 260px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lang-toggle, .lang-toggle-opt, .lang-toggle:active,
+    .lang-segment-btn, .lang-segment-btn:active { transition: none; transform: none; }
+  }
+
   .dev-hotspot {
     position: fixed;
     top: env(safe-area-inset-top, 0px);
@@ -1433,12 +1533,12 @@
       <div class="desktop-brand-sub">GEKKA — SHADOWS</div>
     </div>
     <div class="desktop-info-panel">
-      <h3>WORLD &amp; STORY</h3>
-      <p>崩壊した2026年現代都市の遺構を城壁とする最後の街。人々の中に紛れ込んだ人狼の影を暴け。</p>
+      <h3 data-i18n="desktop_world_header">WORLD &amp; STORY</h3>
+      <p data-i18n="desktop_world_body">崩壊した2026年現代都市の遺構を城壁とする最後の街。人々の中に紛れ込んだ人狼の影を暴け。</p>
     </div>
     <div class="desktop-info-panel">
-      <h3>HOW TO PLAY</h3>
-      <p style="margin:0;">① 進行役が部屋をつくる<br>② 各自スマホでQR / 合言葉から参加<br>③ 夜・昼・投票を進行し人狼を暴く<br><span style="color:#8f8878;">この画面はホスト卓・大画面用。プレイは各自の端末で。</span></p>
+      <h3 data-i18n="desktop_howto_header">HOW TO PLAY</h3>
+      <p style="margin:0;" data-i18n-html="desktop_howto_body">① 進行役が部屋をつくる<br>② 各自スマホでQR / 合言葉から参加<br>③ 夜・昼・投票を進行し人狼を暴く<br><span style="color:#8f8878;">この画面はホスト卓・大画面用。プレイは各自の端末で。</span></p>
     </div>
   </div>
 
@@ -1454,23 +1554,26 @@
     <div class="top-bar">
       <span class="top-bar-title">月下ノ影</span>
       <div class="top-bar-actions">
-        <button type="button" class="top-bar-link" id="opReplayBtn" onclick="playOpeningAnimation()">映像</button>
-        <button type="button" class="top-bar-link" onclick="openMakingModal()">制作</button>
-        <button type="button" class="top-bar-link u-hidden" id="hostAdvanceBtn" onclick="handleHostManualAdvance()">進める</button>
-        <button type="button" class="top-bar-link top-bar-link--rules" id="rulesBtn">ルール</button>
+        <button type="button" class="top-bar-link lang-toggle" id="langToggleBtn" aria-label="言語 / Language" data-i18n-aria="topbar_lang_aria" onclick="toggleLang()">
+          <span class="lang-toggle-opt" data-lang="ja">日</span><span class="lang-toggle-sep">/</span><span class="lang-toggle-opt" data-lang="en">EN</span>
+        </button>
+        <button type="button" class="top-bar-link" id="opReplayBtn" onclick="playOpeningAnimation()" data-i18n="topbar_video">映像</button>
+        <button type="button" class="top-bar-link" onclick="openMakingModal()" data-i18n="topbar_making">制作</button>
+        <button type="button" class="top-bar-link u-hidden" id="hostAdvanceBtn" onclick="handleHostManualAdvance()" data-i18n="topbar_advance">進める</button>
+        <button type="button" class="top-bar-link top-bar-link--rules" id="rulesBtn" data-i18n="topbar_rules">ルール</button>
       </div>
     </div>
 
-    <div class="conn-banner u-hidden" id="connBanner">接続状態を確認しています。</div>
+    <div class="conn-banner u-hidden" id="connBanner" data-i18n="conn_checking">接続状態を確認しています。</div>
 
     <div class="phase-header u-hidden" id="globalPhaseHeader">
       <div>
-        <div class="phase-title" id="phTitle">フェーズ</div>
-        <div class="center-note" id="phTask" style="text-align:left;">すべきこと</div>
+        <div class="phase-title" id="phTitle" data-i18n="phase_label">フェーズ</div>
+        <div class="center-note" id="phTask" style="text-align:left;" data-i18n="phase_task_default">すべきこと</div>
       </div>
       <div style="text-align:right;">
         <div class="countdown" id="phCountdown" style="font-size: var(--fs-heading);">--:--</div>
-        <div class="sync-indicator" id="phSync">同期済み</div>
+        <div class="sync-indicator" id="phSync" data-i18n="phase_sync">同期済み</div>
       </div>
     </div>
 
@@ -1480,32 +1583,40 @@
       <section class="screen" id="s01">
         <div class="splash">
           <span class="splash-mark" aria-hidden="true"></span>
-          <div class="app-title-en">〔 GEKKA — SHADOWS 〕</div>
-          <h1 class="app-title">月下ノ影</h1>
+          <div class="app-title-en" data-i18n="s01_brand">〔 GEKKA — SHADOWS 〕</div>
+          <h1 class="app-title" data-i18n="s01_title">月下ノ影</h1>
           <span class="splash-rule" aria-hidden="true"></span>
-          <p class="app-subtitle">文明が途絶えた夜に、卓を囲む。<br>人狼の進行と記録を、ひとつの台帳へ。</p>
+          <p class="app-subtitle" data-i18n-html="s01_kicker">文明が途絶えた夜に、卓を囲む。<br>人狼の進行と記録を、ひとつの台帳へ。</p>
+          <div class="lang-segment" role="group" aria-label="表示言語 / Language">
+            <div class="lang-segment-label" data-i18n="s01_lang">表示言語</div>
+            <div class="lang-segment-track">
+              <button type="button" class="lang-segment-btn" data-lang="ja" onclick="applyLang('ja')">日本語</button>
+              <button type="button" class="lang-segment-btn" data-lang="en" onclick="applyLang('en')">English</button>
+            </div>
+            <p class="lang-segment-note" data-i18n="s01_langnote">この端末だけの設定です。日本語と英語のプレイヤーが同じ卓で遊べます。</p>
+          </div>
         </div>
         <div class="stack" style="width:100%;">
-          <button type="button" class="btn btn--primary" onclick="showScreen('s02')">はじめる</button>
-          <button type="button" class="btn btn--secondary" onclick="openMakingModal()" style="margin-top: 8px;">🎨 メイキング / カードギャラリー</button>
+          <button type="button" class="btn btn--primary" onclick="showScreen('s02')" data-i18n="s01_cta">はじめる</button>
+          <button type="button" class="btn btn--secondary" onclick="openMakingModal()" style="margin-top: 8px;" data-i18n="s01_gallery_btn">🎨 メイキング / カードギャラリー</button>
           <div class="app-version">REC. 0.4.1</div>
         </div>
       </section>
 
       <!-- s02: つくる/入る選択 -->
       <section class="screen" id="s02">
-        <h2 class="screen-title">部屋を選ぶ</h2>
-        <p class="screen-sub">進行役として新しく始めるか、配られた合言葉で参加するか。</p>
+        <h2 class="screen-title" data-i18n="s02_title">部屋を選ぶ</h2>
+        <p class="screen-sub" data-i18n="s02_sub">進行役として新しく始めるか、配られた合言葉で参加するか。</p>
         <div class="opt-cards">
           <button type="button" class="opt-card is-selected" onclick="handleChooseHost()">
-            <span class="opt-card-tag"><i></i>進行役 / ホスト</span>
-            <span class="opt-card-title">新しくゲームを始める</span>
-            <span class="opt-card-desc">あなたが部屋をつくり、みんなを招待します。</span>
+            <span class="opt-card-tag"><i></i><span data-i18n="s02_o1tag">進行役 / ホスト</span></span>
+            <span class="opt-card-title" data-i18n="s02_o1t">新しくゲームを始める</span>
+            <span class="opt-card-desc" data-i18n="s02_o1s">あなたが部屋をつくり、みんなを招待します。</span>
           </button>
           <button type="button" class="opt-card" onclick="handleChoosePlayer()">
-            <span class="opt-card-tag"><i></i>プレイヤー</span>
-            <span class="opt-card-title">友達の部屋に参加する</span>
-            <span class="opt-card-desc">配られた合言葉を入力して入ります。</span>
+            <span class="opt-card-tag"><i></i><span data-i18n="s02_o2tag">プレイヤー</span></span>
+            <span class="opt-card-title" data-i18n="s02_o2t">友達の部屋に参加する</span>
+            <span class="opt-card-desc" data-i18n="s02_o2s">配られた合言葉を入力して入ります。</span>
           </button>
         </div>
       </section>
@@ -1517,23 +1628,23 @@
         <div id="s03Body" class="splash"></div>
         <div class="stack" id="s03Footer">
           <div id="s03CountLine"></div>
-          <button type="button" class="btn btn--primary" onclick="handleS03Next()">次へ</button>
+          <button type="button" class="btn btn--primary" onclick="handleS03Next()" data-i18n="s03_next">次へ</button>
         </div>
       </section>
 
       <!-- s04: 表示名入力 -->
       <section class="screen" id="s04">
-        <h2 class="screen-title">表示名</h2>
-        <p class="screen-sub">卓に表示される名前を決めてください。</p>
+        <h2 class="screen-title" data-i18n="s04_title">表示名</h2>
+        <p class="screen-sub" data-i18n="s04_sub">卓に表示される名前を決めてください。</p>
         <div class="field-block" style="margin-top:var(--sp-6);">
-          <div class="field-eyebrow">表示名</div>
+          <div class="field-eyebrow" data-i18n="s04_field">表示名</div>
           <div class="text-field name-field">
             <input type="text" id="displayNameInput" placeholder="あかり" value="あかり" maxlength="12">
           </div>
         </div>
         <div class="field-block" style="margin-top:var(--sp-6);">
-          <div class="field-eyebrow">目印</div>
-          <div class="marker-row" id="markerRow" role="radiogroup" aria-label="目印">
+          <div class="field-eyebrow" data-i18n="s04_marker">目印</div>
+          <div class="marker-row" id="markerRow" role="radiogroup" aria-label="目印" data-i18n-aria="s04_marker_aria">
             <span class="marker is-selected" role="radio" aria-checked="true"></span>
             <span class="marker" role="radio" aria-checked="false"></span>
             <span class="marker" role="radio" aria-checked="false"></span>
@@ -1541,13 +1652,13 @@
             <span class="marker" role="radio" aria-checked="false"></span>
           </div>
         </div>
-        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="handleS04Next()">この名前で進む</button>
+        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="handleS04Next()" data-i18n="s04_cta">この名前で進む</button>
       </section>
 
       <!-- s05: ロビー -->
       <section class="screen" id="s05">
-        <h2 class="screen-title">待合の間</h2>
-        <p class="screen-sub">全員の準備が整うのを待っています。</p>
+        <h2 class="screen-title" data-i18n="s05_title">待合の間</h2>
+        <p class="screen-sub" data-i18n="s05_sub">全員の準備が整うのを待っています。</p>
         <span class="num u-hidden" id="lobbyRoomCode" aria-hidden="true"></span>
         <div class="ledger-list player-list" id="lobbyPlayerList" style="margin-top:var(--sp-3);"></div>
         <div id="lobbyControls" style="margin-top:auto;"></div>
@@ -1555,81 +1666,81 @@
 
       <!-- s06: GM モード選択 -->
       <section class="screen" id="s06">
-        <h2 class="screen-title">進行の担い手</h2>
-        <p class="screen-sub">この卓の記録者を選んでください。</p>
+        <h2 class="screen-title" data-i18n="s06_title">進行の担い手</h2>
+        <p class="screen-sub" data-i18n="s06_sub">この卓の記録者を選んでください。</p>
         <div class="gm-panel" id="gmSeg">
           <button type="button" data-gm="ai" class="gm-row is-selected">
             <span class="gm-row-head">
               <span class="gm-row-diamond" aria-hidden="true"></span>
-              <span class="gm-row-title">記録者AI</span>
+              <span class="gm-row-title" data-i18n="s06_ai_title">記録者AI</span>
             </span>
-            <span class="gm-row-desc">進行・判定・夜の記録を、すべて担います。</span>
+            <span class="gm-row-desc" data-i18n="s06_ai_desc">進行・判定・夜の記録を、すべて担います。</span>
           </button>
           <button type="button" data-gm="human" class="gm-row">
             <span class="gm-row-head">
               <span class="gm-row-diamond" aria-hidden="true"></span>
-              <span class="gm-row-title">人間の進行役</span>
+              <span class="gm-row-title" data-i18n="s06_human_title">人間の進行役</span>
             </span>
-            <span class="gm-row-desc">進行は自分で行い、記録だけを任せます。</span>
+            <span class="gm-row-desc" data-i18n="s06_human_desc">進行は自分で行い、記録だけを任せます。</span>
           </button>
         </div>
         <p class="center-note u-hidden" id="gmDesc" style="text-align:left;"></p>
-        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="showScreen('s07')">この記録者で開く</button>
+        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="showScreen('s07')" data-i18n="s06_cta">この記録者で開く</button>
       </section>
 
       <!-- s07: 役職構成 -->
       <section class="screen" id="s07">
-        <h2 class="screen-title">役職構成</h2>
-        <p class="screen-sub">卓のバランスを調整します。</p>
+        <h2 class="screen-title" data-i18n="s07_title">役職構成</h2>
+        <p class="screen-sub" data-i18n="s07_sub">卓のバランスを調整します。</p>
         <div class="ledger-list" id="compositionList"></div>
         <div class="composition-total" id="compositionTotal"></div>
-        <button type="button" class="btn btn--primary" onclick="handleS07Next()">配役を確定する</button>
+        <button type="button" class="btn btn--primary" onclick="handleS07Next()" data-i18n="s07_cta">配役を確定する</button>
       </section>
 
       <!-- s08: 配役通知 -->
       <section class="screen" id="s08" style="--sem-accent:#9FB4CE;">
         <div class="reveal">
-          <div class="reveal-eyebrow">記録者</div>
-          <h2 class="reveal-title">あなたの役職が
+          <div class="reveal-eyebrow" data-i18n="s08_eyebrow">記録者</div>
+          <h2 class="reveal-title" data-i18n="s08_msg">あなたの役職が
 決定しました</h2>
           <div class="reveal-diamonds" aria-hidden="true"><span></span><span></span><span></span></div>
           <span class="waiting-count u-hidden" id="s08Waiting"><span class="num">3</span></span>
         </div>
-        <p class="center-note">そろい次第、自動で役職確認へ進みます。</p>
-        <button type="button" class="btn btn--secondary" onclick="showScreen('s09')">役職を確認する</button>
+        <p class="center-note" data-i18n="s08_note">そろい次第、自動で役職確認へ進みます。</p>
+        <button type="button" class="btn btn--secondary" onclick="showScreen('s09')" data-i18n="s08_cta">役職を確認する</button>
       </section>
 
       <!-- s09: 役職確認 -->
       <section class="screen" id="s09">
-        <h2 class="screen-title">役職の確認</h2>
-        <p class="screen-sub">カードを長押ししている間だけ開きます。</p>
+        <h2 class="screen-title" data-i18n="s09_title">役職の確認</h2>
+        <p class="screen-sub" data-i18n="s09_sub">カードを長押ししている間だけ開きます。</p>
         <div class="hold-to-reveal" id="roleHold">
           <div class="card-slot card-slot--hero" id="roleCardSlot"></div>
           <div class="role-secret-info" id="roleSecretInfo"></div>
           <div class="privacy-cover">
             <div class="privacy-cover-inner">
-              <div class="privacy-cover-seal">封蝋の機密記録</div>
-              <p>長押ししている間だけ、役職が表示されます。</p>
+              <div class="privacy-cover-seal" data-i18n="s09_privacy_seal">封蝋の機密記録</div>
+              <p data-i18n="s09_privacy_note">長押ししている間だけ、役職が表示されます。</p>
             </div>
           </div>
         </div>
-        <button type="button" class="btn btn--primary" id="roleConfirmBtn" disabled onclick="confirmRoleSeen()">確認して閉じる</button>
-        <p class="center-note">画面を伏せると、記録は自動で隠されます。</p>
-        <div class="inline-notice u-hidden" id="roleConfirmedNotice">確認しました。もう一度確認するには、上のカードを長押ししてください。</div>
-        <button type="button" class="btn btn--secondary" onclick="handleLiveHostSkip('s10')">夜へ進む</button>
+        <button type="button" class="btn btn--primary" id="roleConfirmBtn" disabled onclick="confirmRoleSeen()" data-i18n="s09_cta">確認して閉じる</button>
+        <p class="center-note" data-i18n="s09_note">画面を伏せると、記録は自動で隠されます。</p>
+        <div class="inline-notice u-hidden" id="roleConfirmedNotice" data-i18n="s09_confirmed_notice">確認しました。もう一度確認するには、上のカードを長押ししてください。</div>
+        <button type="button" class="btn btn--secondary" onclick="handleLiveHostSkip('s10')" data-i18n="s09_next_btn">夜へ進む</button>
       </section>
 
       <!-- s10: 夜の訪れ -->
       <section class="screen" id="s10" style="--sem-accent:#9FB4CE;">
         <div class="reveal">
           <div class="reveal-moon" aria-hidden="true"></div>
-          <div class="reveal-eyebrow">一斉消灯</div>
-          <h2 class="reveal-title" style="font-weight:600;font-size:32px;">夜が訪れました</h2>
-          <p class="reveal-line">記録網が、卓の灯を落とします。
+          <div class="reveal-eyebrow" data-i18n="s10_eyebrow">一斉消灯</div>
+          <h2 class="reveal-title" style="font-weight:600;font-size:32px;" data-i18n="s10_msg">夜が訪れました</h2>
+          <p class="reveal-line" data-i18n="s10_line">記録網が、卓の灯を落とします。
 まもなく夜の行動が始まります。</p>
         </div>
-        <p class="center-note">記録者の合図で、自動で進みます。</p>
-        <button type="button" class="btn btn--secondary" onclick="handleInterstitialSkip('s11')">夜の行動へ</button>
+        <p class="center-note" data-i18n="s10_note">記録者の合図で、自動で進みます。</p>
+        <button type="button" class="btn btn--secondary" onclick="handleInterstitialSkip('s11')" data-i18n="s10_cta">夜の行動へ</button>
       </section>
 
       <!-- s11: 夜の行動 -->
@@ -1640,121 +1751,121 @@
       <!-- s12: 夜の行動完了 -->
       <section class="screen" id="s12" style="--sem-accent:#9FB4CE;">
         <div class="reveal">
-          <div class="reveal-eyebrow">記録者</div>
-          <h2 class="reveal-title" style="font-weight:600;">全員の行動を
+          <div class="reveal-eyebrow" data-i18n="s12_eyebrow">記録者</div>
+          <h2 class="reveal-title" style="font-weight:600;" data-i18n="s12_msg">全員の行動を
 待っています</h2>
           <div class="reveal-count" id="s12Waiting">
-            <span class="reveal-count-num num">5</span><span class="reveal-count-unit">人</span>
+            <span class="reveal-count-num num">5</span><span class="reveal-count-unit" data-i18n="s12_unit">人</span>
           </div>
-          <div class="reveal-line" style="margin-top:10px;">が、まだ行動しています</div>
+          <div class="reveal-line" style="margin-top:10px;" data-i18n="s12_waiting_suffix">が、まだ行動しています</div>
         </div>
-        <p class="center-note">端末を伏せて、静かにお待ちください。</p>
-        <button type="button" class="btn btn--secondary" onclick="handleLiveHostSkip('s13')">朝を待つ</button>
+        <p class="center-note" data-i18n="s12_note">端末を伏せて、静かにお待ちください。</p>
+        <button type="button" class="btn btn--secondary" onclick="handleLiveHostSkip('s13')" data-i18n="s12_cta">朝を待つ</button>
       </section>
 
       <!-- s13: 朝の訪れ -->
       <section class="screen" id="s13">
         <div class="reveal">
-          <div class="reveal-eyebrow">朝の記録</div>
-          <h2 class="reveal-title" style="font-size:34px;">夜が明けました</h2>
+          <div class="reveal-eyebrow" data-i18n="s13_eyebrow">朝の記録</div>
+          <h2 class="reveal-title" style="font-size:34px;" data-i18n="s13_title">夜が明けました</h2>
           <span class="reveal-rule" aria-hidden="true"></span>
           <div class="reveal-result" id="eliminatedName">健太 が、失われました。</div>
-          <p class="reveal-line">村は静まり返っている。誰の仕業か、まだ分からない。</p>
+          <p class="reveal-line" data-i18n="s13_desc">村は静まり返っている。誰の仕業か、まだ分からない。</p>
         </div>
-        <button type="button" class="btn btn--primary" onclick="handleInterstitialSkip('s14')">議論へ</button>
+        <button type="button" class="btn btn--primary" onclick="handleInterstitialSkip('s14')" data-i18n="s13_cta">議論へ</button>
       </section>
 
       <!-- s14: 昼の議論 -->
       <section class="screen" id="s14">
         <div class="council">
-          <h2 class="screen-title" style="text-align:center;">評議</h2>
-          <p class="screen-sub" style="text-align:center;">昨夜の出来事を話し合ってください。</p>
+          <h2 class="screen-title" style="text-align:center;" data-i18n="s14_title">評議</h2>
+          <p class="screen-sub" style="text-align:center;" data-i18n="s14_sub">昨夜の出来事を話し合ってください。</p>
           <div class="council-timer" id="discussionCountdown">03:00</div>
           <div class="council-track"><span id="discussionBar" style="width:76%;"></span></div>
-          <div class="council-remain"><span>残り時間</span><span class="council-remain-num">03:00</span></div>
+          <div class="council-remain"><span data-i18n="s14_remain">残り時間</span><span class="council-remain-num">03:00</span></div>
           <div class="council-prev">
-            <div class="field-eyebrow" style="margin-bottom:5px;">前夜の記録</div>
+            <div class="field-eyebrow" style="margin-bottom:5px;" data-i18n="s14_prevnote">前夜の記録</div>
             <div id="s14PrevRecord" style="font-size:14px;color:rgba(237,233,220,0.8);">健太 が失われた</div>
           </div>
         </div>
-        <button type="button" class="btn btn--primary" onclick="handleLiveHostSkip('s15')">投票へ進む</button>
-        <p class="center-note">時間が来ると、自動で投票に移ります。</p>
+        <button type="button" class="btn btn--primary" onclick="handleLiveHostSkip('s15')" data-i18n="s14_cta">投票へ進む</button>
+        <p class="center-note" data-i18n="s14_note">時間が来ると、自動で投票に移ります。</p>
       </section>
 
       <!-- s15: 投票 -->
       <section class="screen" id="s15">
         <div style="display:flex;justify-content:space-between;align-items:flex-end;">
           <div>
-            <h2 class="screen-title" style="margin:0;">投票</h2>
-            <p class="screen-sub">処刑する対象に投票してください。</p>
+            <h2 class="screen-title" style="margin:0;" data-i18n="s15_title">投票</h2>
+            <p class="screen-sub" data-i18n="s15_sub">処刑する対象に投票してください。</p>
           </div>
           <div class="countdown" style="font-size:18px;" aria-hidden="true">00:48</div>
         </div>
         <hr class="engraved-rule">
-        <div class="inline-notice" style="background:transparent;border:none;padding:0;">一度確定すると、投票を変更できません。</div>
+        <div class="inline-notice" style="background:transparent;border:none;padding:0;" data-i18n="s15_notice">一度確定すると、投票を変更できません。</div>
         <div class="vote-ballot" style="border:none;background:transparent;padding:0;">
           <div class="target-selector ledger-list" id="voteTargetList"></div>
-          <div class="center-note" style="letter-spacing:0.1em;">投票済み <span style="font-family:var(--font-mono);color:var(--sem-text);">3</span> / 7</div>
-          <button type="button" class="btn btn--primary" id="voteDecideBtn" disabled onclick="openVoteConfirm()">この人に投票する</button>
+          <div class="center-note" style="letter-spacing:0.1em;"><span data-i18n="s15_voted_label">投票済み</span> <span style="font-family:var(--font-mono);color:var(--sem-text);">3</span> / 7</div>
+          <button type="button" class="btn btn--primary" id="voteDecideBtn" disabled onclick="openVoteConfirm()" data-i18n="s15_cta">この人に投票する</button>
         </div>
-        <div class="status-badge u-hidden" id="voteCompletedBadge" style="justify-content:center;">投票しました</div>
+        <div class="status-badge u-hidden" id="voteCompletedBadge" style="justify-content:center;" data-i18n="s15_badge_completed">投票しました</div>
         <div class="stack-row u-hidden" id="voteBranchButtons">
-          <button type="button" class="btn btn--secondary" onclick="showScreen('s16')">同票の場合を見る</button>
-          <button type="button" class="btn btn--secondary" onclick="showScreen('s17')">処刑結果を見る</button>
+          <button type="button" class="btn btn--secondary" onclick="showScreen('s16')" data-i18n="s15_branch1">同票の場合を見る</button>
+          <button type="button" class="btn btn--secondary" onclick="showScreen('s17')" data-i18n="s15_branch2">処刑結果を見る</button>
         </div>
       </section>
 
       <!-- s16: 同票決選 -->
       <section class="screen" id="s16">
         <div class="reveal">
-          <div class="reveal-eyebrow">記録者</div>
-          <h2 class="reveal-title" style="font-weight:600;font-size:29px;">得票が同数でした</h2>
+          <div class="reveal-eyebrow" data-i18n="s16_eyebrow">記録者</div>
+          <h2 class="reveal-title" style="font-weight:600;font-size:29px;" data-i18n="s16_title">得票が同数でした</h2>
           <div class="stack-row" style="justify-content:center;margin-top:34px;">
             <span class="vote-pill">沙耶 <span class="vote-pill-count">3</span></span>
             <span class="vote-pill">アキラ <span class="vote-pill-count">3</span></span>
           </div>
           <p class="reveal-line">この 2 人のみで、決選投票を行います。</p>
         </div>
-        <button type="button" class="btn btn--primary" onclick="handleInterstitialSkip('s15')">決選投票へ</button>
+        <button type="button" class="btn btn--primary" onclick="handleInterstitialSkip('s15')" data-i18n="s16_cta">決選投票へ</button>
       </section>
 
       <!-- s17: 評決・処刑 -->
       <section class="screen" id="s17">
         <div class="reveal">
-          <div class="reveal-eyebrow">評決の記録</div>
-          <h2 class="reveal-title" style="font-size:32px;line-height:1.4;">追放が決まりました</h2>
+          <div class="reveal-eyebrow" data-i18n="s17_eyebrow">評決の記録</div>
+          <h2 class="reveal-title" style="font-size:32px;line-height:1.4;" data-i18n="s17_title">追放が決まりました</h2>
           <span class="reveal-rule" aria-hidden="true"></span>
           <div class="reveal-box" style="max-width:270px;">
-            <div class="field-eyebrow" style="margin-bottom:7px;">評決</div>
+            <div class="field-eyebrow" style="margin-bottom:7px;" data-i18n="s17_last_label">評決</div>
             <div style="font-family:var(--font-heading);font-size:16px;line-height:1.7;color:rgba(237,233,220,0.85);" id="executedName">沙耶 が、処刑されました。</div>
           </div>
-          <p class="reveal-line">卓は静かに頷いた。真偽は、まだ誰にも分からない。</p>
+          <p class="reveal-line" data-i18n="s17_desc">卓は静かに頷いた。真偽は、まだ誰にも分からない。</p>
         </div>
-        <button type="button" class="btn btn--primary" onclick="showScreen('s18')">結果を見る</button>
+        <button type="button" class="btn btn--primary" onclick="showScreen('s18')" data-i18n="s17_cta">結果を見る</button>
       </section>
 
       <!-- s18: ゲーム終了・全役職開示 -->
       <section class="screen" id="s18">
         <div style="text-align:center;">
-          <div class="reveal-eyebrow" style="margin-bottom:14px;">終幕の記録</div>
-          <h2 class="reveal-title victory-banner" id="s18Title" style="font-size:30px;">市民陣営の勝利</h2>
-          <p class="screen-sub" id="s18Sub" style="text-align:center;margin-top:9px;">すべての正体が明かされます。</p>
+          <div class="reveal-eyebrow" style="margin-bottom:14px;" data-i18n="s18_eyebrow">終幕の記録</div>
+          <h2 class="reveal-title victory-banner" id="s18Title" style="font-size:30px;" data-i18n="s18_banner_citizen">市民陣営の勝利</h2>
+          <p class="screen-sub" id="s18Sub" style="text-align:center;margin-top:9px;" data-i18n="s18_sub">すべての正体が明かされます。</p>
         </div>
         <div class="roster-grid" id="rosterGrid" style="margin-top:24px;"></div>
-        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="showScreen('s19')">終幕へ</button>
+        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="showScreen('s19')" data-i18n="s18_cta">終幕へ</button>
       </section>
 
       <!-- s19: 再戦 -->
       <section class="screen" id="s19">
         <div class="reveal">
-          <div class="reveal-eyebrow">次の卓へ</div>
-          <h2 class="reveal-title" style="font-weight:600;font-size:29px;">もう一度、囲む</h2>
-          <p class="reveal-line">同じ顔ぶれで、もう一度
+          <div class="reveal-eyebrow" data-i18n="s19_eyebrow">次の卓へ</div>
+          <h2 class="reveal-title" style="font-weight:600;font-size:29px;" data-i18n="s19_title">もう一度、囲む</h2>
+          <p class="reveal-line" data-i18n="s19_line">同じ顔ぶれで、もう一度
 記録を始めますか。</p>
         </div>
         <div class="stack" style="width:100%;">
-          <button type="button" class="btn btn--primary" onclick="handleS19Rematch()">同じメンバーで再戦</button>
-          <button type="button" class="btn btn--secondary" onclick="handleS19Lobby()">ロビーに戻る</button>
+          <button type="button" class="btn btn--primary" onclick="handleS19Rematch()" data-i18n="s19_cta1">同じメンバーで再戦</button>
+          <button type="button" class="btn btn--secondary" onclick="handleS19Lobby()" data-i18n="s19_cta2">ロビーに戻る</button>
         </div>
       </section>
 
@@ -1762,20 +1873,20 @@
       <section class="screen" id="s20" style="--sem-accent:#9FB4CE;">
         <div class="reconnect-banner">
           <span class="reconnect-diamond" aria-hidden="true"></span>
-          <span>接続を復旧しています</span>
+          <span data-i18n="s20_conn">接続を復旧しています</span>
         </div>
         <div class="reveal">
-          <h2 class="reveal-title" style="font-weight:600;font-size:28px;">再接続中</h2>
+          <h2 class="reveal-title" style="font-weight:600;font-size:28px;" data-i18n="s20_title">再接続中</h2>
           <div class="reveal-box">
-            <div class="field-eyebrow" style="margin-bottom:8px;">最後に確認した状態</div>
+            <div class="field-eyebrow" style="margin-bottom:8px;" data-i18n="s20_state_label">最後に確認した状態</div>
             <div style="display:flex;align-items:center;gap:10px;">
               <span class="diamond" style="background:#9FB4CE;" aria-hidden="true"></span>
               <span style="font-size:13.5px;color:rgba(237,233,220,0.85);">昼の議論：残り 02:14 を記録済み</span>
             </div>
           </div>
         </div>
-        <p class="center-note">このまま、少しお待ちください。</p>
-        <button type="button" class="btn btn--secondary" onclick="showScreen('s14')">復旧して合流する</button>
+        <p class="center-note" data-i18n="s20_note">このまま、少しお待ちください。</p>
+        <button type="button" class="btn btn--secondary" onclick="showScreen('s14')" data-i18n="s20_cta">復旧して合流する</button>
       </section>
 
     </div>
@@ -1785,13 +1896,13 @@
   <!-- PC大画面用 右サイドバー -->
   <div class="desktop-sidebar desktop-sidebar--right">
     <div class="desktop-info-panel">
-      <h3>JOIN BY MOBILE</h3>
-      <p>スマートフォンのカメラでアプリ内のQRコードをスキャンすると、各プレイヤーの端末から手軽に参加・プレイできます。</p>
+      <h3 data-i18n="desktop_join_header">JOIN BY MOBILE</h3>
+      <p data-i18n="desktop_join_body">スマートフォンのカメラでアプリ内のQRコードをスキャンすると、各プレイヤーの端末から手軽に参加・プレイできます。</p>
     </div>
     <div class="desktop-info-panel">
-      <h3>SHORTCUTS</h3>
-      <p><a href="making.html" style="color:#cfa83c; text-decoration:none; display:inline-block; margin-bottom:6px;">📜 カード制作メイキングを読む</a><br>
-      <a href="card_gallery.html" style="color:#cfa83c; text-decoration:none;">🖼 全カードギャラリーを見る</a></p>
+      <h3 data-i18n="desktop_shortcuts_header">SHORTCUTS</h3>
+      <p><a href="making.html" style="color:#cfa83c; text-decoration:none; display:inline-block; margin-bottom:6px;" data-i18n="desktop_shortcuts_making">📜 カード制作メイキングを読む</a><br>
+      <a href="card_gallery.html" style="color:#cfa83c; text-decoration:none;" data-i18n="desktop_shortcuts_gallery">🖼 全カードギャラリーを見る</a></p>
     </div>
   </div>
 </div>
@@ -1799,65 +1910,65 @@
 <!-- RulesDrawer -->
 <div class="rules-drawer" id="rulesDrawer">
   <div class="rules-drawer-header">
-    <h2 class="screen-title" style="color:var(--sem-accent);margin:0;font-size:18px;">📜 ルール & 役職ガイド</h2>
-    <button type="button" class="btn btn--quiet" id="rulesCloseBtn" style="min-height:36px;padding:4px 12px;">閉じる</button>
+    <h2 class="screen-title" style="color:var(--sem-accent);margin:0;font-size:18px;" data-i18n="rules_header">📜 ルール & 役職ガイド</h2>
+    <button type="button" class="btn btn--quiet" id="rulesCloseBtn" style="min-height:36px;padding:4px 12px;" data-i18n="btn_close">閉じる</button>
   </div>
 
   <div class="rules-tab-nav">
-    <button type="button" class="rules-tab-btn is-active" data-tab="rules">進行・ルール</button>
-    <button type="button" class="rules-tab-btn" data-tab="myrole">自分の役職</button>
-    <button type="button" class="rules-tab-btn" data-tab="roles">役職図鑑</button>
+    <button type="button" class="rules-tab-btn is-active" data-tab="rules" data-i18n="rules_tab_rules">進行・ルール</button>
+    <button type="button" class="rules-tab-btn" data-tab="myrole" data-i18n="rules_tab_myrole">自分の役職</button>
+    <button type="button" class="rules-tab-btn" data-tab="roles" data-i18n="rules_tab_roles">役職図鑑</button>
   </div>
 
   <!-- Tab 1: 進行・ルール -->
   <div class="rules-tab-panel is-active" id="rulesTabPanelRules">
     <div class="rules-card-box" style="border-color:var(--sem-accent);">
-      <div class="rules-phase-badge">現在の状況</div>
-      <div style="font-weight:700;font-size:14px;color:var(--sem-text);" id="rulesCurrentPhaseGuide">
+      <div class="rules-phase-badge" data-i18n="rules_current_status_label">現在の状況</div>
+      <div style="font-weight:700;font-size:14px;color:var(--sem-text);" id="rulesCurrentPhaseGuide" data-i18n="rules_guide_default">
         ゲームの進行状況に合わせてガイドが表示されます。
       </div>
     </div>
 
-    <div class="rules-section-title">🌙 1. 夜の行動 (能力行使)</div>
+    <div class="rules-section-title" data-i18n="rules_sec1_title">🌙 1. 夜の行動 (能力行使)</div>
     <div class="rules-card-box">
-      <p style="font-size:14px;margin:0;line-height:1.5;color:var(--sem-text-dim);">
+      <p style="font-size:14px;margin:0;line-height:1.5;color:var(--sem-text-dim);" data-i18n-html="rules_sec1_body">
         全プレイヤーが一斉にスマートフォンを操作します。<br>
         能力者（予言者・騎士・人狼など）は対象を選んで行動を決定します。<br>
         特別な能力がない市民も「待機」操作を行い、周囲に役職がバレないようにします。
       </p>
     </div>
 
-    <div class="rules-section-title">☀️ 2. 昼の評議 & 投票</div>
+    <div class="rules-section-title" data-i18n="rules_sec2_title">☀️ 2. 昼の評議 & 投票</div>
     <div class="rules-card-box">
-      <p style="font-size:14px;margin:0;line-height:1.5;color:var(--sem-text-dim);">
+      <p style="font-size:14px;margin:0;line-height:1.5;color:var(--sem-text-dim);" data-i18n-html="rules_sec2_body">
         タイマーに合わせて全員で自由議論を行います。<br>
         議論終了後、生存者全員で追放したい一人を選び投票します。<br>
         最多票を得たプレイヤーが村から追放されます。
       </p>
     </div>
 
-    <div class="rules-section-title">🏆 3. 陣営の勝利条件</div>
+    <div class="rules-section-title" data-i18n="rules_sec3_title">🏆 3. 陣営の勝利条件</div>
     <div class="rules-card-box">
       <div style="margin-bottom:8px;">
-        <span class="role-card-badge faction-citizen">市民陣営</span>
-        <span style="font-size:13.5px;color:var(--sem-text);margin-left:8px;font-weight:bold;">全ての人狼を追放する</span>
+        <span class="role-card-badge faction-citizen" data-i18n="rules_faction_citizen_badge">市民陣営</span>
+        <span style="font-size:13.5px;color:var(--sem-text);margin-left:8px;font-weight:bold;" data-i18n="rules_faction_citizen_win">全ての人狼を追放する</span>
       </div>
       <div style="margin-bottom:8px;">
-        <span class="role-card-badge faction-werewolf">人狼陣営</span>
-        <span style="font-size:13.5px;color:var(--sem-text);margin-left:8px;font-weight:bold;">人狼の人数 ≥ 人間の人数 にする</span>
+        <span class="role-card-badge faction-werewolf" data-i18n="rules_faction_werewolf_badge">人狼陣営</span>
+        <span style="font-size:13.5px;color:var(--sem-text);margin-left:8px;font-weight:bold;" data-i18n="rules_faction_werewolf_win">人狼の人数 ≥ 人間の人数 にする</span>
       </div>
       <div>
-        <span class="role-card-badge faction-third">第三陣営 (妖狐/狐/他)</span>
-        <span style="font-size:13.5px;color:var(--sem-text);margin-left:8px;font-weight:bold;">ゲーム終了時に自分が生き残る</span>
+        <span class="role-card-badge faction-third" data-i18n="rules_faction_third_badge">第三陣営 (妖狐/狐/他)</span>
+        <span style="font-size:13.5px;color:var(--sem-text);margin-left:8px;font-weight:bold;" data-i18n="rules_faction_third_win">ゲーム終了時に自分が生き残る</span>
       </div>
     </div>
 
-    <div class="rules-section-title">❓ よくある質問</div>
+    <div class="rules-section-title" data-i18n="rules_faq_title">❓ よくある質問</div>
     <div class="rules-card-box">
-      <div class="rules-faq-q">Q. 投票が同数になったら？</div>
-      <div class="rules-faq-a">再投票、または処刑なしで次の夜へ進みます。</div>
-      <div class="rules-faq-q" style="margin-top:10px;">Q. 追放された人は喋れる？</div>
-      <div class="rules-faq-a">死亡したプレイヤーは「遺言」を残した後は議論に参加できません（狼の亡霊を除く）。</div>
+      <div class="rules-faq-q" data-i18n="rules_faq_q1">Q. 投票が同数になったら？</div>
+      <div class="rules-faq-a" data-i18n="rules_faq_a1">再投票、または処刑なしで次の夜へ進みます。</div>
+      <div class="rules-faq-q" style="margin-top:10px;" data-i18n="rules_faq_q2">Q. 追放された人は喋れる？</div>
+      <div class="rules-faq-a" data-i18n="rules_faq_a2">死亡したプレイヤーは「遺言」を残した後は議論に参加できません（狼の亡霊を除く）。</div>
     </div>
   </div>
 
@@ -1866,8 +1977,8 @@
     <div class="myrole-card-container" id="myroleContainer">
       <div class="myrole-cover hold-to-reveal" id="myroleCoverArea">
         <div style="font-size:32px;margin-bottom:8px;">🔒</div>
-        <div style="font-weight:700;font-size:15px;color:var(--sem-text);margin-bottom:4px;">あなたの役職カード</div>
-        <div style="font-size:12px;color:var(--sem-accent);">【長押し】して確認（放すと隠れます）</div>
+        <div style="font-weight:700;font-size:15px;color:var(--sem-text);margin-bottom:4px;" data-i18n="rules_myrole_cover_title">あなたの役職カード</div>
+        <div style="font-size:12px;color:var(--sem-accent);" data-i18n="rules_myrole_cover_note">【長押し】して確認（放すと隠れます）</div>
       </div>
       <div id="myroleRevealedContent" style="display:none;padding-top:10px;">
         <div style="font-size:11px;color:var(--sem-text-dim);" id="myroleFactionLabel">市民陣営</div>
@@ -1889,12 +2000,12 @@
 
   <!-- Tab 3: 役職図鑑 (Rolepedia) -->
   <div class="rules-tab-panel" id="rulesTabPanelRoles">
-    <input type="text" class="role-search-box" id="roleSearchInput" placeholder="🔍 役職名や能力名で検索..." />
+    <input type="text" class="role-search-box" id="roleSearchInput" placeholder="🔍 役職名や能力名で検索..." data-i18n-ph="rules_role_search_ph" />
     <div class="role-filter-chips" id="roleFilterChips">
-      <button type="button" class="role-chip is-selected" data-filter="all">すべて</button>
-      <button type="button" class="role-chip" data-filter="citizen">市民陣営</button>
-      <button type="button" class="role-chip" data-filter="werewolf">人狼陣営</button>
-      <button type="button" class="role-chip" data-filter="third">第三陣営</button>
+      <button type="button" class="role-chip is-selected" data-filter="all" data-i18n="rules_filter_all">すべて</button>
+      <button type="button" class="role-chip" data-filter="citizen" data-i18n="rules_filter_citizen">市民陣営</button>
+      <button type="button" class="role-chip" data-filter="werewolf" data-i18n="rules_filter_werewolf">人狼陣営</button>
+      <button type="button" class="role-chip" data-filter="third" data-i18n="rules_filter_third">第三陣営</button>
     </div>
     <div class="role-card-grid" id="roleCardGrid">
       <!-- JSで全26役職が生成されます -->
@@ -1905,26 +2016,26 @@
 <!-- Making Modal (Making / Gallery / Editor Hub) -->
 <div class="bottom-sheet" id="makingModal">
   <div style="display:flex;justify-content:space-between;align-items:center;">
-    <h2 class="screen-title" style="color:var(--sem-accent);margin:0;font-size:18px;">🎨 メイキング & カードデザイン</h2>
-    <button type="button" class="btn btn--quiet" onclick="closeMakingModal()">閉じる</button>
+    <h2 class="screen-title" style="color:var(--sem-accent);margin:0;font-size:18px;" data-i18n="making_header">🎨 メイキング & カードデザイン</h2>
+    <button type="button" class="btn btn--quiet" onclick="closeMakingModal()" data-i18n="btn_close">閉じる</button>
   </div>
-  <p class="screen-sub" style="margin-top:6px;">カードイラストの閲覧・レイヤー調整・ポジショニングエディターを開きます。</p>
+  <p class="screen-sub" style="margin-top:6px;" data-i18n="making_desc">カードイラストの閲覧・レイヤー調整・ポジショニングエディターを開きます。</p>
   <hr class="engraved-rule">
   <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;max-height:60dvh;overflow-y:auto;">
     <a href="card_gallery.html" target="_blank" class="opt-card" style="text-decoration:none;">
-      <span class="opt-card-tag"><i></i>正本ギャラリー</span>
+      <span class="opt-card-tag"><i></i><span data-i18n="making_card1_tag">正本ギャラリー</span></span>
       <span class="opt-card-title">🎴 カードギャラリー (Card Gallery)</span>
-      <span class="opt-card-desc">全25役職のカードデザイン・正本調整データを全画面グリッド一覧で閲覧できます。</span>
+      <span class="opt-card-desc" data-i18n="making_card1_desc">全25役職のカードデザイン・正本調整データを全画面グリッド一覧で閲覧できます。</span>
     </a>
     <a href="card_position_editor.html" target="_blank" class="opt-card" style="text-decoration:none;">
-      <span class="opt-card-tag"><i></i>レイヤー調整ツール</span>
+      <span class="opt-card-tag"><i></i><span data-i18n="making_card2_tag">レイヤー調整ツール</span></span>
       <span class="opt-card-title">🎛 ポジションエディター (Position Editor)</span>
-      <span class="opt-card-desc">人物・背景レイヤーの移動、拡大縮小、カラーティント調整を行い、JSONパラメータを出力できます。</span>
+      <span class="opt-card-desc" data-i18n="making_card2_desc">人物・背景レイヤーの移動、拡大縮小、カラーティント調整を行い、JSONパラメータを出力できます。</span>
     </a>
     <a href="card_viewer.html" target="_blank" class="opt-card" style="text-decoration:none;">
-      <span class="opt-card-tag"><i></i>詳細ビューア</span>
+      <span class="opt-card-tag"><i></i><span data-i18n="making_card3_tag">詳細ビューア</span></span>
       <span class="opt-card-title">👁 カードビューア (Card Viewer)</span>
-      <span class="opt-card-desc">各役職カードの解説・ルビ・詳細画像を1枚ずつ実寸大で確認できます。</span>
+      <span class="opt-card-desc" data-i18n="making_card3_desc">各役職カードの解説・ルビ・詳細画像を1枚ずつ実寸大で確認できます。</span>
     </a>
   </div>
 </div>
@@ -1985,11 +2096,11 @@
 <!-- 退出確認ダイアログ -->
 <div class="dialog" id="exitDialog" hidden>
   <div class="dialog-panel">
-    <h2 class="screen-title" style="color:var(--sem-accent);margin-top:0;">退出しますか</h2>
-    <p class="center-note" style="text-align:left;">現在の記録は失われます。よろしいですか。</p>
+    <h2 class="screen-title" style="color:var(--sem-accent);margin-top:0;" data-i18n="exit_dialog_title">退出しますか</h2>
+    <p class="center-note" style="text-align:left;" data-i18n="exit_dialog_note">現在の記録は失われます。よろしいですか。</p>
     <div class="stack-row">
-      <button type="button" class="btn btn--quiet" onclick="closeExitDialog()">キャンセル</button>
-      <button type="button" class="btn btn--danger" onclick="confirmExit()">退出する</button>
+      <button type="button" class="btn btn--quiet" onclick="closeExitDialog()" data-i18n="exit_dialog_cancel">キャンセル</button>
+      <button type="button" class="btn btn--danger" onclick="confirmExit()" data-i18n="exit_dialog_confirm">退出する</button>
     </div>
   </div>
 </div>
@@ -1997,20 +2108,20 @@
 <!-- 投票確認ダイアログ -->
 <div class="dialog" id="voteConfirmDialog" hidden>
   <div class="dialog-panel">
-    <h2 class="screen-title" style="color:var(--sem-accent);margin-top:0;" id="voteConfirmTitle">投票しますか</h2>
-    <p class="center-note" style="text-align:left;">確定すると、あとから変更できません。</p>
+    <h2 class="screen-title" style="color:var(--sem-accent);margin-top:0;" id="voteConfirmTitle" data-i18n="s15_confirm_title">投票しますか</h2>
+    <p class="center-note" style="text-align:left;" data-i18n="s15_confirm_note">確定すると、あとから変更できません。</p>
     <div class="stack-row">
-      <button type="button" class="btn btn--quiet" onclick="closeVoteConfirm()">やめる</button>
-      <button type="button" class="btn btn--primary" onclick="finalizeVote()">投票する</button>
+      <button type="button" class="btn btn--quiet" onclick="closeVoteConfirm()" data-i18n="s15_confirm_cancel">やめる</button>
+      <button type="button" class="btn btn--primary" onclick="finalizeVote()" data-i18n="s15_confirm_submit">投票する</button>
     </div>
   </div>
 </div>
 
 <!-- 再接続オーバーレイ(任意の画面上に重ねる) -->
 <div class="reconnect-overlay" id="globalReconnectOverlay" hidden>
-  <p class="sync-indicator is-reconnecting">接続を復旧しています。</p>
-  <p class="center-note" id="globalReconnectState">最後に確認した状態を保持しています。</p>
-  <button type="button" class="btn btn--secondary" onclick="closeReconnectOverlay()">再試行</button>
+  <p class="sync-indicator is-reconnecting" data-i18n="reconnect_overlay_line">接続を復旧しています。</p>
+  <p class="center-note" id="globalReconnectState" data-i18n="reconnect_overlay_state">最後に確認した状態を保持しています。</p>
+  <button type="button" class="btn btn--secondary" onclick="closeReconnectOverlay()" data-i18n="reconnect_overlay_retry">再試行</button>
 </div>
 
 <!-- トースト -->
@@ -2019,6 +2130,434 @@
 <script>
 (function () {
   'use strict';
+
+  /* ===================================================================
+     i18n — 日本語 ⇄ English 端末ローカル言語切替
+     - デフォルトは 'ja'。既存の日本語インライン文字列は一切変更せず、
+       ja 辞書はその文言を「そのまま」保持する(フォールバック兼テスト互換)。
+     - data-i18n / data-i18n-html / data-i18n-ph / data-i18n-aria を持つ
+       要素は applyLang() で一括更新される。
+     =================================================================== */
+  const I18N = {
+    ja: {
+      topbar_video: '映像', topbar_making: '制作', topbar_advance: '進める', topbar_rules: 'ルール',
+      topbar_lang_aria: '言語 / Language',
+      conn_checking: '接続状態を確認しています。',
+      phase_label: 'フェーズ', phase_task_default: 'すべきこと', phase_sync: '同期済み',
+
+      s01_title: '月下ノ影', s01_brand: '〔 GEKKA — SHADOWS 〕',
+      s01_kicker: '文明が途絶えた夜に、卓を囲む。<br>人狼の進行と記録を、ひとつの台帳へ。',
+      s01_cta: 'はじめる', s01_gallery_btn: '🎨 メイキング / カードギャラリー',
+      s01_lang: '表示言語', s01_langnote: 'この端末だけの設定です。日本語と英語のプレイヤーが同じ卓で遊べます。',
+
+      s02_title: '部屋を選ぶ', s02_sub: '進行役として新しく始めるか、配られた合言葉で参加するか。',
+      s02_o1tag: '進行役 / ホスト', s02_o1t: '新しくゲームを始める', s02_o1s: 'あなたが部屋をつくり、みんなを招待します。',
+      s02_o2tag: 'プレイヤー', s02_o2t: '友達の部屋に参加する', s02_o2s: '配られた合言葉を入力して入ります。',
+
+      s03_next: '次へ',
+      s03_host_title: '合言葉', s03_host_sub: 'この画面を、卓の全員に見せてください。',
+      s03_host_qrnote: 'QRを読み取っても参加できます', s03_host_codelabel: '合言葉',
+      s03_host_sharebtn: '共有リンクをコピー', s03_host_toast_copied: 'リンクをコピーしました。',
+      s03_joined_label: '人 が参加',
+      s03_player_title: '合言葉を入力',
+      s03_player_sub: '受け取った6桁の合言葉を入力してください。1マスに1文字、貼り付け(ペースト)も使えます。',
+      s03_player_note: '合言葉を貼り付けると自動で入力されます',
+      s03_char_aria: '合言葉 {n} 文字目',
+
+      s04_title: '表示名', s04_sub: '卓に表示される名前を決めてください。',
+      s04_field: '表示名', s04_marker: '目印', s04_cta: 'この名前で進む', s04_marker_aria: '目印',
+
+      s05_title: '待合の間', s05_sub: '全員の準備が整うのを待っています。',
+      s05_you_tag: 'あなた',
+      s05_status_host: 'ホスト', s05_status_joined: '参加中', s05_status_notconnected: '未接続',
+      s05_status_ready: '準備完了', s05_status_waiting: '準備中',
+      s05_mock_count_label: '人 が準備しています', s05_live_count_label: '人 が参加しています',
+      s05_host_ready_label: 'あなたの準備', s05_host_ready_done: '完了',
+      s05_host_start_cta: '全員そろい次第、開始する',
+      s05_live_start_need: '{n}人以上そろうと開始できます',
+      s05_live_player_wait: 'ホストが開始するまでお待ちください。',
+      s05_player_ready_btn: '準備完了にする', s05_player_ready_undone: '未完了', s05_player_ready_done: '完了',
+
+      s06_title: '進行の担い手', s06_sub: 'この卓の記録者を選んでください。',
+      s06_ai_title: '記録者AI', s06_ai_desc: '進行・判定・夜の記録を、すべて担います。',
+      s06_human_title: '人間の進行役', s06_human_desc: '進行は自分で行い、記録だけを任せます。',
+      s06_cta: 'この記録者で開く',
+      s06_gmdesc_ai: '記録者(コンピューターGM)が進行・判定・夜の記録をすべて担います。',
+      s06_gmdesc_human: '進行役を務める一人が、実況・判定・記録を担当します。',
+
+      s07_title: '役職構成', s07_sub: '卓のバランスを調整します。',
+      s07_total: '合計', s07_total_suffix: ' 人 / 参加 {n} 人', s07_cta: '配役を確定する',
+
+      s08_eyebrow: '記録者', s08_msg: 'あなたの役職が\n決定しました',
+      s08_note: 'そろい次第、自動で役職確認へ進みます。', s08_cta: '役職を確認する',
+
+      s09_title: '役職の確認', s09_sub: 'カードを長押ししている間だけ開きます。',
+      s09_win_label: '勝利条件', s09_cta: '確認して閉じる',
+      s09_note: '画面を伏せると、記録は自動で隠されます。',
+      s09_confirmed_notice: '確認しました。もう一度確認するには、上のカードを長押ししてください。',
+      s09_next_btn: '夜へ進む',
+      s09_privacy_seal: '封蝋の機密記録', s09_privacy_note: '長押ししている間だけ、役職が表示されます。',
+      s09_toast_confirmed: '確認しました。',
+      s09_state_waiting: '状態', s09_state_waiting_msg: '役職の到着を待っています。',
+
+      s10_eyebrow: '一斉消灯', s10_msg: '夜が訪れました',
+      s10_line: '記録網が、卓の灯を落とします。\nまもなく夜の行動が始まります。',
+      s10_note: '記録者の合図で、自動で進みます。', s10_cta: '夜の行動へ',
+
+      s11_title: '夜の行動',
+      s11_target_single: '対象を 1 人選んでください。', s11_target_double: '対象を 2 人選んでください。',
+      s11_confirm_note: '確定すると、この夜の選択を変更できません。',
+      s11_live_note: '選択は記録者にのみ伝わります。', s11_mock_note: '選択は、同じ人狼とだけ共有されます。',
+      s11_recorded_notice: '選択を記録しました。',
+      s11_no_action_msg: '今夜、あなたが行うべき特別な行動はありません。',
+      s11_waiting_label: '記録者が夜を記録するまで', s11_sync_label: '同期済み',
+      s11_status_alive: '生存',
+      night_q_divine: '誰を占いますか。', night_v_divine: '占う',
+      night_q_attack: '誰を襲撃しますか。', night_v_attack: '襲撃する',
+      night_q_protect: '誰を守りますか。', night_v_protect: '守る',
+      night_q_medium: '降霊の対象を1人選んでください。', night_v_medium: '降霊する',
+      night_q_trap: '誰に罠を仕掛けますか。', night_v_trap: '罠を仕掛ける',
+      night_q_swap: '入れ替える2人を選んでください。', night_v_swap: '交換する',
+      night_q_calm: '誰を鎮めますか。', night_v_calm: '鎮める',
+      night_q_oracle: '見届ける対象を1人選んでください。', night_v_oracle: '神託を受ける',
+
+      s12_eyebrow: '記録者', s12_msg: '全員の行動を\n待っています',
+      s12_unit: '人', s12_waiting_suffix: 'が、まだ行動しています',
+      s12_note: '端末を伏せて、静かにお待ちください。', s12_cta: '朝を待つ',
+
+      s13_eyebrow: '朝の記録', s13_title: '夜が明けました',
+      s13_desc: '村は静まり返っている。誰の仕業か、まだ分からない。', s13_cta: '議論へ',
+      s13_none_died: '今夜、誰も命を落としませんでした。', s13_died_suffix: ' が、命を落としました。',
+
+      s14_title: '評議', s14_sub: '昨夜の出来事を話し合ってください。',
+      s14_remain: '残り時間', s14_prevnote: '前夜の記録', s14_cta: '投票へ進む',
+      s14_note: '時間が来ると、自動で投票に移ります。',
+
+      s15_title: '投票', s15_sub: '処刑する対象に投票してください。',
+      s15_notice: '一度確定すると、投票を変更できません。', s15_voted_label: '投票済み',
+      s15_cta: 'この人に投票する', s15_badge_completed: '投票しました',
+      s15_branch1: '同票の場合を見る', s15_branch2: '処刑結果を見る',
+      s15_self_tag: '(あなた)', s15_status_novote: '投票不可', s15_status_eliminated: '脱落',
+      s15_confirm_title: '投票しますか', s15_confirm_target_fallback: '対象', s15_confirm_suffix: ' に投票しますか',
+      s15_confirm_note: '確定すると、あとから変更できません。',
+      s15_confirm_cancel: 'やめる', s15_confirm_submit: '投票する',
+
+      s16_eyebrow: '記録者', s16_title: '得票が同数でした', s16_cta: '決選投票へ',
+      s16_live_msg: '得票が同数だったため、<br>処刑は行われませんでした。',
+
+      s17_eyebrow: '評決の記録', s17_title: '追放が決まりました', s17_last_label: '評決',
+      s17_desc: '卓は静かに頷いた。真偽は、まだ誰にも分からない。', s17_cta: '結果を見る',
+      s17_executed_suffix: ' が、処刑されました。', s17_none_executed: '処刑は行われませんでした。',
+
+      s18_eyebrow: '終幕の記録', s18_sub: 'すべての正体が明かされます。', s18_cta: '終幕へ',
+      s18_banner_citizen: '市民陣営の勝利', s18_banner_werewolf: '人狼陣営の勝利',
+      s18_banner_fox: '妖狐陣営の勝利', s18_banner_android: 'アンドロイドの単独勝利', s18_banner_fallback: '決着',
+
+      s19_eyebrow: '次の卓へ', s19_title: 'もう一度、囲む',
+      s19_line: '同じ顔ぶれで、もう一度\n記録を始めますか。',
+      s19_cta1: '同じメンバーで再戦', s19_cta2: 'ロビーに戻る',
+
+      s20_conn: '接続を復旧しています', s20_title: '再接続中', s20_state_label: '最後に確認した状態',
+      s20_cta: '復旧して合流する', s20_note: 'このまま、少しお待ちください。',
+      reconnect_overlay_line: '接続を復旧しています。', reconnect_overlay_state: '最後に確認した状態を保持しています。',
+      reconnect_overlay_retry: '再試行',
+
+      btn_close: '閉じる',
+
+      rules_header: '📜 ルール & 役職ガイド',
+      rules_tab_rules: '進行・ルール', rules_tab_myrole: '自分の役職', rules_tab_roles: '役職図鑑',
+      rules_current_status_label: '現在の状況', rules_guide_default: 'ゲームの進行状況に合わせてガイドが表示されます。',
+      rules_sec1_title: '🌙 1. 夜の行動 (能力行使)',
+      rules_sec1_body: '全プレイヤーが一斉にスマートフォンを操作します。<br>能力者（予言者・騎士・人狼など）は対象を選んで行動を決定します。<br>特別な能力がない市民も「待機」操作を行い、周囲に役職がバレないようにします。',
+      rules_sec2_title: '☀️ 2. 昼の評議 & 投票',
+      rules_sec2_body: 'タイマーに合わせて全員で自由議論を行います。<br>議論終了後、生存者全員で追放したい一人を選び投票します。<br>最多票を得たプレイヤーが村から追放されます。',
+      rules_sec3_title: '🏆 3. 陣営の勝利条件',
+      rules_faq_title: '❓ よくある質問',
+      rules_faq_q1: 'Q. 投票が同数になったら？', rules_faq_a1: '再投票、または処刑なしで次の夜へ進みます。',
+      rules_faq_q2: 'Q. 追放された人は喋れる？',
+      rules_faq_a2: '死亡したプレイヤーは「遺言」を残した後は議論に参加できません（狼の亡霊を除く）。',
+      rules_faction_citizen_badge: '市民陣営', rules_faction_citizen_win: '全ての人狼を追放する',
+      rules_faction_werewolf_badge: '人狼陣営', rules_faction_werewolf_win: '人狼の人数 ≥ 人間の人数 にする',
+      rules_faction_third_badge: '第三陣営 (妖狐/狐/他)', rules_faction_third_win: 'ゲーム終了時に自分が生き残る',
+      rules_myrole_cover_title: 'あなたの役職カード',
+      rules_myrole_cover_note: '【長押し】して確認（放すと隠れます）',
+      rules_myrole_unknown_faction: '役職情報',
+      rules_role_search_ph: '🔍 役職名や能力名で検索...',
+      rules_filter_all: 'すべて', rules_filter_citizen: '市民陣営', rules_filter_werewolf: '人狼陣営', rules_filter_third: '第三陣営',
+      rules_role_no_result: '該当する役職が見つかりませんでした',
+      rules_role_advice_heading: '💡 立ち回りアドバイス',
+
+      making_header: '🎨 メイキング & カードデザイン',
+      making_desc: 'カードイラストの閲覧・レイヤー調整・ポジショニングエディターを開きます。',
+      making_card1_tag: '正本ギャラリー',
+      making_card1_desc: '全25役職のカードデザイン・正本調整データを全画面グリッド一覧で閲覧できます。',
+      making_card2_tag: 'レイヤー調整ツール',
+      making_card2_desc: '人物・背景レイヤーの移動、拡大縮小、カラーティント調整を行い、JSONパラメータを出力できます。',
+      making_card3_tag: '詳細ビューア',
+      making_card3_desc: '各役職カードの解説・ルビ・詳細画像を1枚ずつ実寸大で確認できます。',
+
+      desktop_howto_header: 'HOW TO PLAY',
+      desktop_howto_body: '① 進行役が部屋をつくる<br>② 各自スマホでQR / 合言葉から参加<br>③ 夜・昼・投票を進行し人狼を暴く<br><span style="color:#8f8878;">この画面はホスト卓・大画面用。プレイは各自の端末で。</span>',
+      desktop_world_header: 'WORLD &amp; STORY',
+      desktop_world_body: '崩壊した2026年現代都市の遺構を城壁とする最後の街。人々の中に紛れ込んだ人狼の影を暴け。',
+      desktop_join_header: 'スマホから参加',
+      desktop_join_body: 'スマートフォンのカメラでアプリ内のQRコードをスキャンすると、各プレイヤーの端末から手軽に参加・プレイできます。',
+      desktop_shortcuts_header: 'ショートカット',
+      desktop_shortcuts_making: '📜 カード制作メイキングを読む',
+      desktop_shortcuts_gallery: '🖼 全カードギャラリーを見る',
+
+      exit_dialog_title: '退出しますか', exit_dialog_note: '現在の記録は失われます。よろしいですか。',
+      exit_dialog_cancel: 'キャンセル', exit_dialog_confirm: '退出する',
+
+      card_camp_citizen: '市民チーム', card_camp_werewolf: '人狼チーム', card_camp_third: '第三陣営',
+
+      toast_recorded: '選択を記録しました。',
+      toast_night_failed: '行動を記録できませんでした。もう一度お試しください。',
+      toast_vote_failed: '投票を記録できませんでした。もう一度お試しください。',
+      toast_left: '退出しました。',
+      toast_host_cmd_failed: '進行コマンドが失敗しました。',
+      toast_nothing_to_advance: '現在、進行できる操作はありません。',
+      toast_wait_for_host: '記録係の合図をお待ちください。',
+      toast_room_create_failed: '部屋を作成できませんでした。',
+      toast_join_failed: '入室できませんでした。合言葉を確認してください。',
+      toast_composition_mismatch: '人数({playerCount})と構成の合計({total})が一致していません。',
+      toast_start_failed: '開始できませんでした。',
+      toast_rematch_host_only: '記録係が再戦を開始します。',
+      toast_rematch_failed: 'この部屋では再戦できませんでした。ロビーへ戻ってください。'
+    },
+    en: {
+      topbar_video: 'Video', topbar_making: 'Making', topbar_advance: 'Advance', topbar_rules: 'Rules',
+      topbar_lang_aria: 'Language / 言語',
+      conn_checking: 'Checking connection status.',
+      phase_label: 'Phase', phase_task_default: 'To do', phase_sync: 'Synced',
+
+      s01_title: 'GEKKA — SHADOWS', s01_brand: '〔 月下ノ影 〕',
+      s01_kicker: 'When the world goes dark, gather at the table.<br>One ledger to run the wolves and keep the record.',
+      s01_cta: 'Begin', s01_gallery_btn: '🎨 Making / Card Gallery',
+      s01_lang: 'Language', s01_langnote: 'This device only. Japanese and English players can share one table.',
+
+      s02_title: 'Choose a Room', s02_sub: 'Start a new game as host, or join with a passcode.',
+      s02_o1tag: 'Host', s02_o1t: 'Start a new game', s02_o1s: 'You create the room and invite everyone.',
+      s02_o2tag: 'Player', s02_o2t: 'Join a friend’s game', s02_o2s: 'Enter with the passcode you were given.',
+
+      s03_next: 'Next',
+      s03_host_title: 'Passcode', s03_host_sub: 'Show this screen to everyone at the table.',
+      s03_host_qrnote: 'Scan the code to join', s03_host_codelabel: 'Passcode',
+      s03_host_sharebtn: 'Copy invite link', s03_host_toast_copied: 'Link copied.',
+      s03_joined_label: 'joined',
+      s03_player_title: 'Enter Passcode',
+      s03_player_sub: 'Enter the 6-character passcode you were given. One character per box; pasting works too.',
+      s03_player_note: 'Paste the passcode to fill it in automatically',
+      s03_char_aria: 'Passcode character {n}',
+
+      s04_title: 'Display Name', s04_sub: 'The name shown to others at the table.',
+      s04_field: 'Display name', s04_marker: 'Marker', s04_cta: 'Continue', s04_marker_aria: 'Marker',
+
+      s05_title: 'The Lobby', s05_sub: 'Waiting for everyone to be ready.',
+      s05_you_tag: 'you',
+      s05_status_host: 'Host', s05_status_joined: 'Joined', s05_status_notconnected: 'Not connected',
+      s05_status_ready: 'Ready', s05_status_waiting: 'Getting ready',
+      s05_mock_count_label: 'still getting ready', s05_live_count_label: 'have joined',
+      s05_host_ready_label: 'Your status', s05_host_ready_done: 'Ready',
+      s05_host_start_cta: 'Begin when all ready',
+      s05_live_start_need: 'Need {n} more to begin',
+      s05_live_player_wait: 'Please wait for the host to begin.',
+      s05_player_ready_btn: 'Mark yourself ready', s05_player_ready_undone: 'Not ready', s05_player_ready_done: 'Ready',
+
+      s06_title: 'Who Runs It', s06_sub: 'Choose the recorder for this table.',
+      s06_ai_title: 'Recorder AI', s06_ai_desc: 'Handles progression, judging and the night record.',
+      s06_human_title: 'Human host', s06_human_desc: 'You run the table; it only keeps the record.',
+      s06_cta: 'Open with this recorder',
+      s06_gmdesc_ai: 'The recorder (computer GM) handles progression, judging and the night record.',
+      s06_gmdesc_human: 'One player acting as host handles narration, judging and the record.',
+
+      s07_title: 'Role Composition', s07_sub: 'Balance the roles for this table.',
+      s07_total: 'Total', s07_total_suffix: ' / {n} joined', s07_cta: 'Lock the composition',
+
+      s08_eyebrow: 'Recorder', s08_msg: 'Your role has\nbeen assigned',
+      s08_note: 'Role check begins automatically once everyone is ready.', s08_cta: 'Check your role',
+
+      s09_title: 'Your Role', s09_sub: 'Revealed only while you press and hold.',
+      s09_win_label: 'Win condition', s09_cta: 'Confirm and close',
+      s09_note: 'Hiding the screen automatically hides the record.',
+      s09_confirmed_notice: 'Confirmed. Press and hold the card above to check again.',
+      s09_next_btn: 'Go to night',
+      s09_privacy_seal: 'Sealed confidential record', s09_privacy_note: 'Your role is shown only while you press and hold.',
+      s09_toast_confirmed: 'Confirmed.',
+      s09_state_waiting: 'State', s09_state_waiting_msg: 'Waiting for your role to arrive.',
+
+      s10_eyebrow: 'Lights Out', s10_msg: 'Night has fallen',
+      s10_line: 'The ledger dims the lights of the table.\nThe night action begins shortly.',
+      s10_note: 'It proceeds automatically on the recorder’s cue.', s10_cta: 'To the night action',
+
+      s11_title: 'Night Action',
+      s11_target_single: 'Choose 1 target.', s11_target_double: 'Choose 2 targets.',
+      s11_confirm_note: 'Once confirmed, tonight’s choice cannot be changed.',
+      s11_live_note: 'Your choice is shared only with the recorder.', s11_mock_note: 'Your choice is shared only with the other wolves.',
+      s11_recorded_notice: 'Your choice has been recorded.',
+      s11_no_action_msg: 'You have no special action to take tonight.',
+      s11_waiting_label: 'Until the recorder records the night', s11_sync_label: 'Synced',
+      s11_status_alive: 'Alive',
+      night_q_divine: 'Choose one to divine.', night_v_divine: 'Divine',
+      night_q_attack: 'Choose one to attack.', night_v_attack: 'Attack',
+      night_q_protect: 'Choose one to protect.', night_v_protect: 'Protect',
+      night_q_medium: 'Choose one target for the séance.', night_v_medium: 'Commune',
+      night_q_trap: 'Choose one to set a trap for.', night_v_trap: 'Set trap',
+      night_q_swap: 'Choose 2 to swap.', night_v_swap: 'Swap',
+      night_q_calm: 'Choose one to calm.', night_v_calm: 'Calm',
+      night_q_oracle: 'Choose one to watch over.', night_v_oracle: 'Receive oracle',
+
+      s12_eyebrow: 'Recorder', s12_msg: 'Waiting for\neveryone to act',
+      s12_unit: '', s12_waiting_suffix: 'still to act',
+      s12_note: 'Set your device face-down and wait quietly.', s12_cta: 'Wait for morning',
+
+      s13_eyebrow: 'Morning Record', s13_title: 'Dawn breaks',
+      s13_desc: 'The village is silent. No one knows whose hand it was.', s13_cta: 'To discussion',
+      s13_none_died: 'No one lost their life tonight.', s13_died_suffix: ' lost their life.',
+
+      s14_title: 'The Council', s14_sub: 'Discuss what happened last night.',
+      s14_remain: 'Time left', s14_prevnote: 'Last night', s14_cta: 'Proceed to vote',
+      s14_note: 'It moves to voting automatically when time is up.',
+
+      s15_title: 'Vote', s15_sub: 'Vote for the one to execute.',
+      s15_notice: 'Once confirmed, you cannot change your vote.', s15_voted_label: 'Voted',
+      s15_cta: 'Cast this vote', s15_badge_completed: 'Vote cast',
+      s15_branch1: 'See a tied vote', s15_branch2: 'See the execution result',
+      s15_self_tag: '(you)', s15_status_novote: 'Cannot vote', s15_status_eliminated: 'Eliminated',
+      s15_confirm_title: 'Cast a vote?', s15_confirm_target_fallback: 'this target', s15_confirm_suffix: '?',
+      s15_confirm_note: 'Once confirmed, it cannot be changed.',
+      s15_confirm_cancel: 'Cancel', s15_confirm_submit: 'Vote',
+
+      s16_eyebrow: 'Recorder', s16_title: 'The vote was tied', s16_cta: 'To the runoff vote',
+      s16_live_msg: 'Since the vote was tied,<br>no one was executed.',
+
+      s17_eyebrow: 'The Verdict', s17_title: 'Banishment decided', s17_last_label: 'Verdict',
+      s17_desc: 'The table nods in silence. The truth is still unknown.', s17_cta: 'See the result',
+      s17_executed_suffix: ' was executed.', s17_none_executed: 'No one was executed.',
+
+      s18_eyebrow: 'The Final Record', s18_sub: 'Every identity is now revealed.', s18_cta: 'To the finale',
+      s18_banner_citizen: 'Citizen Faction Victory', s18_banner_werewolf: 'Werewolf Faction Victory',
+      s18_banner_fox: 'Fox Faction Victory', s18_banner_android: 'Android’s Solo Victory', s18_banner_fallback: 'Game Over',
+
+      s19_eyebrow: 'To the Next Table', s19_title: 'Gather Once More',
+      s19_line: 'Begin the record again,\nwith the same faces?',
+      s19_cta1: 'Rematch, same players', s19_cta2: 'Back to lobby',
+
+      s20_conn: 'Reconnecting…', s20_title: 'Reconnecting', s20_state_label: 'Last confirmed state',
+      s20_cta: 'Reconnect and rejoin', s20_note: 'Please wait a moment.',
+      reconnect_overlay_line: 'Reconnecting…', reconnect_overlay_state: 'Holding the last confirmed state.',
+      reconnect_overlay_retry: 'Retry',
+
+      btn_close: 'Close',
+
+      rules_header: '📜 Rules & Role Guide',
+      rules_tab_rules: 'Progress & Rules', rules_tab_myrole: 'Your Role', rules_tab_roles: 'Role Encyclopedia',
+      rules_current_status_label: 'Current status', rules_guide_default: 'A guide is shown according to the game’s progress.',
+      rules_sec1_title: '🌙 1. Night action (using abilities)',
+      rules_sec1_body: 'All players operate their phones at the same time.<br>Ability holders (prophet, knight, werewolf, etc.) choose a target and decide their action.<br>Citizens with no special ability also perform a "wait" action, so their role is not exposed to others.',
+      rules_sec2_title: '☀️ 2. Day council & vote',
+      rules_sec2_body: 'Everyone discusses freely for the duration of the timer.<br>After discussion ends, all survivors vote for the one they want to banish.<br>The player with the most votes is banished from the village.',
+      rules_sec3_title: '🏆 3. Faction win conditions',
+      rules_faq_title: '❓ Frequently asked questions',
+      rules_faq_q1: 'Q. What if the vote is tied?', rules_faq_a1: 'It proceeds to a revote, or to the next night with no execution.',
+      rules_faq_q2: 'Q. Can a banished player still speak?',
+      rules_faq_a2: 'A dead player cannot join the discussion after leaving their "last words" (except the werewolf ghost).',
+      rules_faction_citizen_badge: 'Citizen Faction', rules_faction_citizen_win: 'Banish all the werewolves',
+      rules_faction_werewolf_badge: 'Werewolf Faction', rules_faction_werewolf_win: 'Make werewolves ≥ humans in number',
+      rules_faction_third_badge: 'Third Faction (fox / others)', rules_faction_third_win: 'Survive until the game ends',
+      rules_myrole_cover_title: 'Your role card',
+      rules_myrole_cover_note: 'Press and hold to check (release to hide)',
+      rules_myrole_unknown_faction: 'Role info',
+      rules_role_search_ph: '🔍 Search by role or ability name...',
+      rules_filter_all: 'All', rules_filter_citizen: 'Citizen Faction', rules_filter_werewolf: 'Werewolf Faction', rules_filter_third: 'Third Faction',
+      rules_role_no_result: 'No matching roles found',
+      rules_role_advice_heading: '💡 Play advice',
+
+      making_header: '🎨 Making & Card Design',
+      making_desc: 'Open the card illustration viewer, layer adjustment tool, and positioning editor.',
+      making_card1_tag: 'Master Gallery',
+      making_card1_desc: 'Browse the master card design and positioning data for all 25 roles in a full-screen grid.',
+      making_card2_tag: 'Layer Adjustment Tool',
+      making_card2_desc: 'Move, scale, and color-tint the character/background layers, and export JSON parameters.',
+      making_card3_tag: 'Detail Viewer',
+      making_card3_desc: 'View each role card’s description, ruby text, and detail art at full size, one at a time.',
+
+      desktop_howto_header: 'HOW TO PLAY',
+      desktop_howto_body: '① The host creates the room<br>② Everyone joins from their own phone via QR / passcode<br>③ Progress through night, day and vote to expose the werewolves<br><span style="color:#8f8878;">This screen is for the host table / big screen. Play happens on each device.</span>',
+      desktop_world_header: 'WORLD &amp; STORY',
+      desktop_world_body: 'The last city, walled by the ruins of a collapsed 2026 metropolis. Expose the shadow of the werewolves hiding among its people.',
+      desktop_join_header: 'JOIN BY MOBILE',
+      desktop_join_body: 'Scan the in-app QR code with a smartphone camera so each player can easily join and play from their own device.',
+      desktop_shortcuts_header: 'SHORTCUTS',
+      desktop_shortcuts_making: '📜 Read the card-making feature',
+      desktop_shortcuts_gallery: '🖼 View the full card gallery',
+
+      exit_dialog_title: 'Leave the table?', exit_dialog_note: 'Your current record will be lost. Are you sure?',
+      exit_dialog_cancel: 'Cancel', exit_dialog_confirm: 'Leave',
+
+      card_camp_citizen: 'Citizen Team', card_camp_werewolf: 'Werewolf Team', card_camp_third: 'Third Faction',
+
+      toast_recorded: 'Your choice has been recorded.',
+      toast_night_failed: 'Could not record your action. Please try again.',
+      toast_vote_failed: 'Could not record your vote. Please try again.',
+      toast_left: 'You have left the table.',
+      toast_host_cmd_failed: 'The progression command failed.',
+      toast_nothing_to_advance: 'There is nothing to advance right now.',
+      toast_wait_for_host: 'Please wait for the recorder’s cue.',
+      toast_room_create_failed: 'Could not create the room.',
+      toast_join_failed: 'Could not join. Please check the passcode.',
+      toast_composition_mismatch: 'Player count ({playerCount}) and composition total ({total}) do not match.',
+      toast_start_failed: 'Could not start the game.',
+      toast_rematch_host_only: 'The recorder will start the rematch.',
+      toast_rematch_failed: 'Could not start a rematch in this room. Please return to the lobby.'
+    }
+  };
+  let currentLang = localStorage.getItem('gekka_lang') === 'en' ? 'en' : 'ja';
+  function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) ?? I18N.ja[key] ?? ''; }
+
+  function rerenderCurrentDynamic() {
+    try {
+      const id = (typeof appState !== 'undefined') ? appState.screen : null;
+      if (id === 's03' && typeof renderS03 === 'function') renderS03();
+      else if (id === 's05' && typeof renderS05 === 'function') renderS05();
+      else if (id === 's06' && typeof renderS06 === 'function') renderS06();
+      else if (id === 's07' && typeof renderComposition === 'function') renderComposition();
+      else if (id === 's09' && typeof renderS09 === 'function') renderS09();
+      else if (id === 's11') {
+        if (typeof MODE !== 'undefined' && MODE === 'live') { if (typeof renderS11Live === 'function') renderS11Live(); }
+        else if (typeof renderS11 === 'function') renderS11();
+      } else if (id === 's13' && typeof MODE !== 'undefined' && MODE === 'live' && typeof renderS13Live === 'function') renderS13Live();
+      else if (id === 's15') {
+        if (typeof MODE !== 'undefined' && MODE === 'live') { if (typeof renderS15Live === 'function') renderS15Live(); }
+        else if (typeof renderS15 === 'function') renderS15();
+      } else if (id === 's16' && typeof MODE !== 'undefined' && MODE === 'live' && typeof renderS16Live === 'function') renderS16Live();
+      else if (id === 's17' && typeof MODE !== 'undefined' && MODE === 'live' && typeof renderS17Live === 'function') renderS17Live();
+      else if (id === 's18' && typeof renderS18 === 'function') renderS18();
+    } catch (e) { console.error('rerenderCurrentDynamic: screen render failed', e); }
+    try {
+      const drawer = document.getElementById('rulesDrawer');
+      if (drawer && drawer.classList.contains('is-open')) {
+        if (typeof updateRulesDrawerState === 'function') updateRulesDrawerState();
+        if (typeof renderRolepedia === 'function') renderRolepedia();
+      }
+    } catch (e) { console.error('rerenderCurrentDynamic: rules drawer refresh failed', e); }
+  }
+
+  function applyLang(lang) {
+    currentLang = (lang === 'en') ? 'en' : 'ja';
+    localStorage.setItem('gekka_lang', currentLang);
+    document.documentElement.lang = currentLang;
+    document.querySelectorAll('[data-i18n]').forEach(function (el) { const v = t(el.getAttribute('data-i18n')); if (v) el.textContent = v; });
+    document.querySelectorAll('[data-i18n-html]').forEach(function (el) { const v = t(el.getAttribute('data-i18n-html')); if (v) el.innerHTML = v; });
+    document.querySelectorAll('[data-i18n-ph]').forEach(function (el) { const v = t(el.getAttribute('data-i18n-ph')); if (v) el.placeholder = v; });
+    document.querySelectorAll('[data-i18n-aria]').forEach(function (el) { const v = t(el.getAttribute('data-i18n-aria')); if (v) el.setAttribute('aria-label', v); });
+    document.querySelectorAll('.lang-toggle-opt').forEach(function (el) { el.classList.toggle('is-active', el.getAttribute('data-lang') === currentLang); });
+    document.querySelectorAll('.lang-segment-btn').forEach(function (el) { el.classList.toggle('is-active', el.getAttribute('data-lang') === currentLang); });
+    rerenderCurrentDynamic();
+  }
+
+  window.toggleLang = function () { applyLang(currentLang === 'en' ? 'ja' : 'en'); };
+  window.applyLang = applyLang;
 
   /* ===================================================================
      カードデータ移植 — card_viewer.html 447〜675 行 相当。値は変更しない。
@@ -2279,17 +2818,34 @@
     { id: 'knights', label: '騎士団', count: 1 },
     { id: 'citizen', label: '市民', count: 4 }
   ];
+  const ROLE_COMPOSITION_LABELS_EN = { werewolf: 'Werewolf', prophet: 'Seer', knights: 'Knight', citizen: 'Citizen' };
 
   const NIGHT_ACTIONS = {
     prophet: { question: '誰を占いますか。', verb: '占う' },
     werewolf: { question: '誰を襲撃しますか。', verb: '襲撃する' }
   };
+  function nightActionText(roleId, field) {
+    // field: 'question' | 'verb'。currentLang==='en' のときは t() で用意した英訳を返す。
+    const kindMap = { prophet: 'divine', werewolf: 'attack' };
+    const kind = kindMap[roleId];
+    if (currentLang === 'en' && kind) return t('night_' + (field === 'question' ? 'q_' : 'v_') + kind);
+    return (NIGHT_ACTIONS[roleId] || {})[field];
+  }
 
   const VICTORY_TEXT_BY_CAMP = {
     citizen: '人狼をすべて追放すると勝利する。',
     werewolf: '生存者の均衡が崩れ、人狼陣営が上回ると勝利する。',
     fox: '最後まで生き残ると、単独で勝利する。'
   };
+  const VICTORY_TEXT_BY_CAMP_EN = {
+    citizen: 'Wins by banishing all the werewolves.',
+    werewolf: 'Wins once survivors are reduced so the werewolves equal or outnumber the humans.',
+    fox: 'Wins alone by surviving to the very end.'
+  };
+  function victoryTextFor(camp) {
+    const table = currentLang === 'en' ? VICTORY_TEXT_BY_CAMP_EN : VICTORY_TEXT_BY_CAMP;
+    return table[camp] || table.fox;
+  }
 
   /* ===================================================================
      ライブモード(Firebase 接続)
@@ -2385,6 +2941,10 @@
     counselor: { kind: 'calm', verb: '鎮める', question: '誰を鎮めますか。' },
     god: { kind: 'oracle', verb: '神託を受ける', question: '見届ける対象を1人選んでください。' }
   };
+  function liveNightActionTextFor(kind, field) {
+    if (currentLang === 'en' && kind) return t('night_' + (field === 'question' ? 'q_' : 'v_') + kind);
+    return null;
+  }
 
   function liveAliveOthers() {
     const pub = latestPublic;
@@ -2454,7 +3014,7 @@
     }).catch(function (err) {
       hostDriver.inFlight = false;
       console.error('host command failed', type, err);
-      showToast('進行コマンドが失敗しました。');
+      showToast(t('toast_host_cmd_failed'));
     });
   }
 
@@ -2471,13 +3031,13 @@
     const pub = latestPublic;
     const type = computeNextHostCommand(pub, { force: true });
     if (type) sendHostCommand(type);
-    else showToast('現在、進行できる操作はありません。');
+    else showToast(t('toast_nothing_to_advance'));
   };
 
   window.handleLiveHostSkip = function (demoTarget) {
     if (MODE !== 'live') { showScreen(demoTarget); return; }
     if (appState.view === 'host') { window.handleHostManualAdvance(); }
-    else { showToast('記録係の合図をお待ちください。'); }
+    else { showToast(t('toast_wait_for_host')); }
   };
 
   function updateHostAdvanceButton() {
@@ -2590,7 +3150,7 @@
       attachLiveSubscriptions();
       if (appState.screen === 's03') renderS03();
     }).catch(function () {
-      showToast('部屋を作成できませんでした。');
+      showToast(t('toast_room_create_failed'));
     });
   };
 
@@ -2623,7 +3183,7 @@
     }).then(function () {
       showScreen('s05');
     }).catch(function () {
-      showToast('入室できませんでした。合言葉を確認してください。');
+      showToast(t('toast_join_failed'));
     });
   };
 
@@ -2632,7 +3192,7 @@
     const total = composition.reduce(function (sum, c) { return sum + c.count; }, 0);
     const playerCount = latestPlayers.length;
     if (total !== playerCount) {
-      showToast('人数(' + playerCount + ')と構成の合計(' + total + ')が一致していません。');
+      showToast(t('toast_composition_mismatch').replace('{playerCount}', String(playerCount)).replace('{total}', String(total)));
       return;
     }
     const roleIds = [];
@@ -2643,13 +3203,13 @@
     }).then(function () {
       showScreen('s08');
     }).catch(function () {
-      showToast('開始できませんでした。');
+      showToast(t('toast_start_failed'));
     });
   };
 
   window.handleS19Rematch = function () {
     if (MODE !== 'live') { showScreen('s05'); return; }
-    if (appState.view !== 'host') { showToast('記録係が再戦を開始します。'); return; }
+    if (appState.view !== 'host') { showToast(t('toast_rematch_host_only')); return; }
     getLiveClient().then(function (client) {
       return client.startGame({ roleIds: lastRoleIds || [], seed: Date.now() % 2147483647 });
     }).then(function () {
@@ -2659,7 +3219,7 @@
       liveMorningShownForRound = -1;
       showScreen('s08');
     }).catch(function () {
-      showToast('この部屋では再戦できませんでした。ロビーへ戻ってください。');
+      showToast(t('toast_rematch_failed'));
       showScreen('s05');
     });
   };
@@ -2712,9 +3272,9 @@
   }
 
   function campLabel(camp) {
-    if (camp === 'citizen') return '市民チーム';
-    if (camp === 'werewolf') return '人狼チーム';
-    return '第三陣営';
+    if (camp === 'citizen') return t('card_camp_citizen');
+    if (camp === 'werewolf') return t('card_camp_werewolf');
+    return t('card_camp_third');
   }
 
   function campIconName(camp) {
@@ -2766,7 +3326,7 @@
             '<img class="camp-icon" src="icons/camp/' + campIconName(role.camp) + '.png" alt="陣営アイコン">' +
             '<div class="camp-label">' + campLabel(role.camp) + '</div>' +
           '</div>' +
-          '<div class="description-text">' + role.desc_ja + '</div>' +
+          '<div class="description-text">' + (currentLang === 'en' ? (role.desc_en || role.desc_ja) : role.desc_ja) + '</div>' +
         '</div>' +
       '</div>';
     return wrapper;
@@ -2977,25 +3537,25 @@
     const body = document.getElementById('s03Body');
     const countLine = document.getElementById('s03CountLine');
     if (appState.view === 'host') {
-      title.textContent = '合言葉';
-      sub.textContent = 'この画面を、卓の全員に見せてください。';
+      title.textContent = t('s03_host_title');
+      sub.textContent = t('s03_host_sub');
       const codeForDisplay = MODE === 'live' ? (liveCode || '------') : roomCode;
       body.innerHTML =
         '<div class="qr-wrap">' +
           '<div class="qr-panel">' + buildFakeQrSvg(codeForDisplay) + '</div>' +
-          '<p class="qr-note">QRを読み取っても参加できます</p>' +
+          '<p class="qr-note">' + t('s03_host_qrnote') + '</p>' +
           '<div class="code-block">' +
-            '<div class="field-eyebrow" style="text-align:center;margin-bottom:8px;">合言葉</div>' +
+            '<div class="field-eyebrow" style="text-align:center;margin-bottom:8px;">' + t('s03_host_codelabel') + '</div>' +
             '<div class="room-code">' + codeForDisplay.split('').join(' ') + '</div>' +
           '</div>' +
-          '<button type="button" class="btn btn--secondary" id="shareLinkBtn" style="min-height:46px;">共有リンクをコピー</button>' +
+          '<button type="button" class="btn btn--secondary" id="shareLinkBtn" style="min-height:46px;">' + t('s03_host_sharebtn') + '</button>' +
         '</div>';
       const joinedNum = MODE === 'live' ? (latestPlayers.length || 1) : 1;
-      countLine.innerHTML = '<div class="lobby-count"><span class="lobby-count-num" id="joinCountNum">' + joinedNum + '</span><span class="lobby-count-unit">/ ' + PLAYERS.length + '</span><span class="lobby-count-label">人 が参加</span></div>';
+      countLine.innerHTML = '<div class="lobby-count"><span class="lobby-count-num" id="joinCountNum">' + joinedNum + '</span><span class="lobby-count-unit">/ ' + PLAYERS.length + '</span><span class="lobby-count-label">' + t('s03_joined_label') + '</span></div>';
       const shareBtn = document.getElementById('shareLinkBtn');
       shareBtn.addEventListener('click', function () {
         try { navigator.clipboard && navigator.clipboard.writeText('https://example.invalid/join/' + codeForDisplay); } catch (e) { /* file:// では失敗して良い */ }
-        showToast('リンクをコピーしました。');
+        showToast(t('s03_host_toast_copied'));
       });
       if (MODE === 'live') {
         clearIntervalIfAny();
@@ -3003,12 +3563,12 @@
         startJoinCountMock();
       }
     } else {
-      title.textContent = '合言葉を入力';
-      sub.textContent = '受け取った6桁の合言葉を入力してください。1マスに1文字、貼り付け(ペースト)も使えます。';
+      title.textContent = t('s03_player_title');
+      sub.textContent = t('s03_player_sub');
       body.innerHTML =
         '<div class="qr-wrap">' +
           '<div class="code-input" id="roomCodeInput"></div>' +
-          '<p class="qr-note" style="margin-top:14px;">合言葉を貼り付けると自動で入力されます</p>' +
+          '<p class="qr-note" style="margin-top:14px;">' + t('s03_player_note') + '</p>' +
         '</div>';
       countLine.innerHTML = '';
       const codeInput = document.getElementById('roomCodeInput');
@@ -3020,7 +3580,7 @@
         inp.setAttribute('inputmode', 'latin');
         inp.setAttribute('autocapitalize', 'characters');
         inp.setAttribute('autocomplete', 'off');
-        inp.setAttribute('aria-label', '合言葉 ' + (i + 1) + ' 文字目');
+        inp.setAttribute('aria-label', t('s03_char_aria').replace('{n}', String(i + 1)));
         if (MODE !== 'live') inp.value = roomCode[i];
         else if (prefillJoinCode) inp.value = (prefillJoinCode[i] || '');
         codeInput.appendChild(inp);
@@ -3099,22 +3659,22 @@
         row.className = 'player-row' + (p.connected ? ' is-completed' : '');
         row.innerHTML =
           '<span class="idx">' + String(idx + 1).padStart(2, '0') + '</span>' +
-          '<span class="name">' + p.name + (p.id === myUid ? ' <span style="color:rgba(237,233,220,0.4);font-size:11px;">あなた</span>' : '') + '</span>' +
+          '<span class="name">' + p.name + (p.id === myUid ? ' <span style="color:rgba(237,233,220,0.4);font-size:11px;">' + t('s05_you_tag') + '</span>' : '') + '</span>' +
           '<span class="diamond' + (isHost ? '' : ' diamond--outline') + '" aria-hidden="true"></span>' +
-          '<span class="status-badge' + (p.connected ? ' is-completed' : '') + '">' + (isHost ? 'ホスト' : (p.connected ? '参加中' : '未接続')) + '</span>';
+          '<span class="status-badge' + (p.connected ? ' is-completed' : '') + '">' + (isHost ? t('s05_status_host') : (p.connected ? t('s05_status_joined') : t('s05_status_notconnected'))) + '</span>';
         liveList.appendChild(row);
       });
       const liveControls = document.getElementById('lobbyControls');
       const count = latestPlayers.length;
-      const liveCountLine = '<div class="lobby-count"><span class="lobby-count-num">' + count + '</span><span class="lobby-count-unit">人</span><span class="lobby-count-label">が参加しています</span></div>';
+      const liveCountLine = '<div class="lobby-count"><span class="lobby-count-num">' + count + '</span><span class="lobby-count-unit">' + t('s12_unit') + '</span><span class="lobby-count-label">' + t('s05_live_count_label') + '</span></div>';
       if (appState.view === 'host') {
         const canStart = count >= MIN_PLAYERS;
         liveControls.innerHTML =
           liveCountLine +
           '<button type="button" class="btn btn--primary" style="margin-top:var(--sp-3);width:100%;"' + (canStart ? '' : ' disabled') + ' onclick="showScreen(\'s06\')">' +
-          (canStart ? '全員そろい次第、開始する' : (MIN_PLAYERS - count) + '人以上そろうと開始できます') + '</button>';
+          (canStart ? t('s05_host_start_cta') : t('s05_live_start_need').replace('{n}', String(MIN_PLAYERS - count))) + '</button>';
       } else {
-        liveControls.innerHTML = liveCountLine + '<div class="center-note" style="margin-top:var(--sp-3);">ホストが開始するまでお待ちください。</div>';
+        liveControls.innerHTML = liveCountLine + '<div class="center-note" style="margin-top:var(--sp-3);">' + t('s05_live_player_wait') + '</div>';
       }
       return;
     }
@@ -3130,29 +3690,29 @@
       row.className = 'player-row' + (isReady ? ' is-completed' : '');
       row.innerHTML =
         '<span class="idx">' + String(idx + 1).padStart(2, '0') + '</span>' +
-        '<span class="name">' + p.name + (p.id === SELF_ID ? ' <span style="color:rgba(237,233,220,0.4);font-size:11px;">あなた</span>' : '') + '</span>' +
+        '<span class="name">' + p.name + (p.id === SELF_ID ? ' <span style="color:rgba(237,233,220,0.4);font-size:11px;">' + t('s05_you_tag') + '</span>' : '') + '</span>' +
         '<span class="diamond' + (isReady ? '' : ' diamond--outline') + '" aria-hidden="true"></span>' +
-        '<span class="status-badge' + (isReady ? ' is-completed' : '') + '">' + (isReady ? '準備完了' : '準備中') + '</span>';
+        '<span class="status-badge' + (isReady ? ' is-completed' : '') + '">' + (isReady ? t('s05_status_ready') : t('s05_status_waiting')) + '</span>';
       list.appendChild(row);
     });
 
     const controls = document.getElementById('lobbyControls');
-    const countLine = '<div class="lobby-count"><span class="lobby-count-num">' + readyCount + '</span><span class="lobby-count-unit">人</span><span class="lobby-count-label">が準備しています</span></div>';
+    const countLine = '<div class="lobby-count"><span class="lobby-count-num">' + readyCount + '</span><span class="lobby-count-unit">' + t('s12_unit') + '</span><span class="lobby-count-label">' + t('s05_mock_count_label') + '</span></div>';
     if (appState.view === 'host') {
       controls.innerHTML =
         countLine +
-        '<div class="ready-control is-selected" style="margin-top:var(--sp-3);"><span>あなたの準備</span><span>完了</span></div>' +
-        '<button type="button" class="btn btn--primary" style="margin-top:var(--sp-3);width:100%;" onclick="showScreen(\'s06\')">全員そろい次第、開始する</button>';
+        '<div class="ready-control is-selected" style="margin-top:var(--sp-3);"><span>' + t('s05_host_ready_label') + '</span><span>' + t('s05_host_ready_done') + '</span></div>' +
+        '<button type="button" class="btn btn--primary" style="margin-top:var(--sp-3);width:100%;" onclick="showScreen(\'s06\')">' + t('s05_host_start_cta') + '</button>';
     } else {
       controls.innerHTML =
         countLine +
-        '<div class="ready-control" id="readyControl" onclick="toggleReady(this)" style="margin-top:var(--sp-3);"><span>準備完了にする</span><span id="readyMark">未完了</span></div>';
+        '<div class="ready-control" id="readyControl" onclick="toggleReady(this)" style="margin-top:var(--sp-3);"><span>' + t('s05_player_ready_btn') + '</span><span id="readyMark">' + t('s05_player_ready_undone') + '</span></div>';
     }
   }
 
   window.toggleReady = function (el) {
     const on = el.classList.toggle('is-selected');
-    document.getElementById('readyMark').textContent = on ? '完了' : '未完了';
+    document.getElementById('readyMark').textContent = on ? t('s05_player_ready_done') : t('s05_player_ready_undone');
   };
 
   /* ===================================================================
@@ -3165,7 +3725,7 @@
   let gmMode = 'ai';
 
   function renderS06() {
-    document.getElementById('gmDesc').textContent = GM_DESC[gmMode];
+    document.getElementById('gmDesc').textContent = t(gmMode === 'human' ? 's06_gmdesc_human' : 's06_gmdesc_ai') || GM_DESC[gmMode];
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -3207,7 +3767,7 @@
       row.className = 'composition-row';
       row.innerHTML =
         '<span class="comp-diamond" aria-hidden="true"></span>' +
-        '<span class="role-label">' + c.label + '</span>' +
+        '<span class="role-label">' + (currentLang === 'en' ? (ROLE_COMPOSITION_LABELS_EN[c.id] || c.label) : c.label) + '</span>' +
         '<div class="stepper">' +
           '<button type="button" class="btn btn--secondary" data-role="' + c.id + '" data-delta="-1">−</button>' +
           '<span class="count">' + c.count + '</span>' +
@@ -3215,7 +3775,7 @@
         '</div>';
       list.appendChild(row);
     });
-    document.getElementById('compositionTotal').innerHTML = '<span>合計</span><span><span class="num">' + total + '</span> 人 / 参加 ' + PLAYERS.length + ' 人</span>';
+    document.getElementById('compositionTotal').innerHTML = '<span>' + t('s07_total') + '</span><span><span class="num">' + total + '</span>' + t('s07_total_suffix').replace('{n}', String(PLAYERS.length)) + '</span>';
     list.querySelectorAll('button').forEach(function (btn) {
       btn.addEventListener('click', function () {
         adjustComposition(btn.dataset.role, parseInt(btn.dataset.delta, 10));
@@ -3240,7 +3800,7 @@
       if (!latestSelf) {
         const slot = document.getElementById('roleCardSlot');
         slot.innerHTML = '';
-        document.getElementById('roleSecretInfo').innerHTML = '<span class="label">状態</span>役職の到着を待っています。';
+        document.getElementById('roleSecretInfo').innerHTML = '<span class="label">' + t('s09_state_waiting') + '</span>' + t('s09_state_waiting_msg');
         document.getElementById('roleConfirmBtn').disabled = true;
         document.getElementById('roleConfirmedNotice').classList.add('u-hidden');
         return;
@@ -3252,7 +3812,7 @@
       liveHold.classList.remove('faction-citizen', 'faction-werewolf', 'faction-third');
       liveHold.classList.add(liveTeam === 'citizen' ? 'faction-citizen' : liveTeam === 'werewolf' ? 'faction-werewolf' : 'faction-third');
       document.getElementById('roleSecretInfo').innerHTML =
-        '<span class="label">勝利条件</span>' + (VICTORY_TEXT_BY_CAMP[liveTeam] || VICTORY_TEXT_BY_CAMP.fox);
+        '<span class="label">' + t('s09_win_label') + '</span>' + victoryTextFor(liveTeam);
       roleRevealedOnce = false;
       document.getElementById('roleConfirmBtn').disabled = true;
       document.getElementById('roleConfirmedNotice').classList.add('u-hidden');
@@ -3266,7 +3826,7 @@
     hold.classList.remove('faction-citizen', 'faction-werewolf', 'faction-third');
     hold.classList.add(camp === 'citizen' ? 'faction-citizen' : camp === 'werewolf' ? 'faction-werewolf' : 'faction-third');
     document.getElementById('roleSecretInfo').innerHTML =
-      '<span class="label">勝利条件</span>' + (VICTORY_TEXT_BY_CAMP[camp] || VICTORY_TEXT_BY_CAMP.fox);
+      '<span class="label">' + t('s09_win_label') + '</span>' + victoryTextFor(camp);
     roleRevealedOnce = false;
     document.getElementById('roleConfirmBtn').disabled = true;
     document.getElementById('roleConfirmedNotice').classList.add('u-hidden');
@@ -3274,7 +3834,7 @@
 
   window.confirmRoleSeen = function () {
     document.getElementById('roleConfirmedNotice').classList.remove('u-hidden');
-    showToast('確認しました。');
+    showToast(t('s09_toast_confirmed'));
   };
 
   /* ===================================================================
@@ -3295,35 +3855,37 @@
     if (!cfg) {
       panel.innerHTML =
         '<div class="splash">' +
-          '<p class="recorder-msg">今夜、あなたが行うべき特別な行動はありません。</p>' +
-          '<div class="waiting-count waiting-dot"><span>記録者が夜を記録するまで</span></div>' +
-          '<div class="sync-indicator">同期済み</div>' +
+          '<p class="recorder-msg">' + t('s11_no_action_msg') + '</p>' +
+          '<div class="waiting-count waiting-dot"><span>' + t('s11_waiting_label') + '</span></div>' +
+          '<div class="sync-indicator">' + t('s11_sync_label') + '</div>' +
         '</div>';
       return;
     }
     const targets = liveAliveOthers();
     let optionsHtml = '';
     targets.forEach(function (p) {
-      optionsHtml += '<div class="target-option" data-pid="' + p.id + '" onclick="selectLiveNightTarget(this)"><span>' + p.displayName + '</span><span class="status-badge">生存</span></div>';
+      optionsHtml += '<div class="target-option" data-pid="' + p.id + '" onclick="selectLiveNightTarget(this)"><span>' + p.displayName + '</span><span class="status-badge">' + t('s11_status_alive') + '</span></div>';
     });
+    const cfgQuestion = liveNightActionTextFor(cfg.kind, 'question') || cfg.question;
+    const cfgVerb = liveNightActionTextFor(cfg.kind, 'verb') || cfg.verb;
     panel.innerHTML =
       '<div style="display:flex;justify-content:space-between;align-items:flex-end;">' +
-        '<div><h2 class="screen-title" style="margin:0;">夜の行動</h2><p class="screen-sub">対象を' + (cfg.kind === 'swap' ? ' 2 人' : ' 1 人') + '選んでください。</p></div>' +
+        '<div><h2 class="screen-title" style="margin:0;">' + t('s11_title') + '</h2><p class="screen-sub">' + (cfg.kind === 'swap' ? t('s11_target_double') : t('s11_target_single')) + '</p></div>' +
       '</div>' +
       '<hr class="engraved-rule">' +
       '<div style="padding:0 0 var(--sp-2);">' +
-        '<p class="recorder-msg" style="text-align:left;">' + cfg.question + '</p>' +
-        '<p class="center-note" style="text-align:left;margin-top:var(--sp-2);">確定すると、この夜の選択を変更できません。</p>' +
+        '<p class="recorder-msg" style="text-align:left;">' + cfgQuestion + '</p>' +
+        '<p class="center-note" style="text-align:left;margin-top:var(--sp-2);">' + t('s11_confirm_note') + '</p>' +
       '</div>' +
       '<div class="target-selector ledger-list" id="liveNightTargetList">' + optionsHtml + '</div>' +
-      '<button type="button" class="btn btn--primary" id="liveNightDecideBtn" disabled style="margin-top:var(--sp-3);width:100%;" onclick="confirmLiveNightAction()">' + cfg.verb + '</button>' +
-      '<p class="center-note">選択は記録者にのみ伝わります。</p>' +
+      '<button type="button" class="btn btn--primary" id="liveNightDecideBtn" disabled style="margin-top:var(--sp-3);width:100%;" onclick="confirmLiveNightAction()">' + cfgVerb + '</button>' +
+      '<p class="center-note">' + t('s11_live_note') + '</p>' +
       '<div class="inline-notice u-hidden" id="liveNightRecordedNotice" style="margin-top:var(--sp-3);"></div>';
     if (liveNightLocked) {
       document.querySelectorAll('#liveNightTargetList .target-option').forEach(function (o) { o.setAttribute('disabled', 'disabled'); });
       document.getElementById('liveNightDecideBtn').classList.add('u-hidden');
       const notice = document.getElementById('liveNightRecordedNotice');
-      notice.textContent = '選択を記録しました。';
+      notice.textContent = t('s11_recorded_notice');
       notice.classList.remove('u-hidden');
     }
   }
@@ -3359,13 +3921,13 @@
     document.querySelectorAll('#liveNightTargetList .target-option').forEach(function (o) { o.setAttribute('disabled', 'disabled'); });
     document.getElementById('liveNightDecideBtn').classList.add('u-hidden');
     const notice = document.getElementById('liveNightRecordedNotice');
-    notice.textContent = '選択を記録しました。';
+    notice.textContent = t('s11_recorded_notice');
     notice.classList.remove('u-hidden');
     getLiveClient().then(function (client) {
       return client.send({ type: 'SUBMIT_NIGHT_ACTION', payload: payload });
     }).catch(function () {
       liveNightLocked = false;
-      showToast('行動を記録できませんでした。もう一度お試しください。');
+      showToast(t('toast_night_failed'));
       renderS11Live();
     });
   };
@@ -3378,15 +3940,15 @@
       return p.death && p.death.round === pub.round;
     });
     if (deaths.length === 0) {
-      el.textContent = '今夜、誰も命を落としませんでした。';
+      el.textContent = t('s13_none_died');
     } else {
-      el.textContent = deaths.map(function (p) { return p.displayName; }).join('、') + ' が、命を落としました。';
+      el.textContent = deaths.map(function (p) { return p.displayName; }).join('、') + t('s13_died_suffix');
     }
   }
 
   function renderS16Live() {
     const msg = document.querySelector('#s16 .recorder-msg');
-    if (msg) msg.innerHTML = '得票が同数だったため、<br>処刑は行われませんでした。';
+    if (msg) msg.innerHTML = t('s16_live_msg');
     const pillRow = document.querySelector('#s16 .stack-row');
     if (pillRow) pillRow.innerHTML = '';
   }
@@ -3399,8 +3961,8 @@
       return p.death && p.death.round === pub.round && p.death.cause === 'execution';
     });
     el.textContent = executed.length > 0
-      ? (executed.map(function (p) { return p.displayName; }).join('、') + ' が、処刑されました。')
-      : '処刑は行われませんでした。';
+      ? (executed.map(function (p) { return p.displayName; }).join('、') + t('s17_executed_suffix'))
+      : t('s17_none_executed');
   }
 
   function renderS11() {
@@ -3423,20 +3985,20 @@
       });
       panel.innerHTML =
         '<div style="display:flex;justify-content:space-between;align-items:flex-end;">' +
-          '<div><h2 class="screen-title" style="margin:0;">夜の行動</h2></div>' +
+          '<div><h2 class="screen-title" style="margin:0;">' + t('s11_title') + '</h2></div>' +
           '<div class="countdown" style="font-size:18px;color:var(--p-moonlight);" aria-hidden="true">01:24</div>' +
         '</div>' +
-        '<p style="margin:12px 0 0;font-size:15px;line-height:1.7;color:rgba(237,233,220,0.88);">' + action.question + '</p>' +
+        '<p style="margin:12px 0 0;font-size:15px;line-height:1.7;color:rgba(237,233,220,0.88);">' + (nightActionText(roleId, 'question') || action.question) + '</p>' +
         '<div class="night-grid">' + optionsHtml + '</div>' +
-        '<p class="center-note" style="margin-top:var(--sp-3);">選択は、同じ人狼とだけ共有されます。</p>' +
-        '<button type="button" class="btn btn--secondary night-cta" id="nightDecideBtn" disabled style="width:100%;" onclick="confirmNightAction()">' + action.verb + '</button>' +
+        '<p class="center-note" style="margin-top:var(--sp-3);">' + t('s11_mock_note') + '</p>' +
+        '<button type="button" class="btn btn--secondary night-cta" id="nightDecideBtn" disabled style="width:100%;" onclick="confirmNightAction()">' + (nightActionText(roleId, 'verb') || action.verb) + '</button>' +
         '<div class="inline-notice u-hidden" id="nightRecordedNotice" style="margin-top:var(--sp-3);"></div>';
     } else {
       panel.innerHTML =
         '<div class="splash">' +
-          '<p class="recorder-msg">今夜、あなたが行うべき特別な行動はありません。</p>' +
-          '<div class="waiting-count waiting-dot"><span>記録者が夜を記録するまで</span></div>' +
-          '<div class="sync-indicator">同期済み</div>' +
+          '<p class="recorder-msg">' + t('s11_no_action_msg') + '</p>' +
+          '<div class="waiting-count waiting-dot"><span>' + t('s11_waiting_label') + '</span></div>' +
+          '<div class="sync-indicator">' + t('s11_sync_label') + '</div>' +
         '</div>';
     }
   }
@@ -3459,7 +4021,7 @@
     document.querySelectorAll('#nightPanel .night-target, #nightPanel .target-option').forEach(function (o) { o.classList.add('is-locked'); });
     document.getElementById('nightDecideBtn').disabled = true;
     const notice = document.getElementById('nightRecordedNotice');
-    notice.textContent = '選択を記録しました。';
+    notice.textContent = t('s11_recorded_notice');
     notice.classList.remove('u-hidden');
   };
 
@@ -3531,7 +4093,7 @@
         const num = '<span class="vote-num">' + String((idx || 0) + 1).padStart(2, '0') + '</span>';
         if (isSelf || !p.alive) {
           opt.setAttribute('disabled', 'disabled');
-          opt.innerHTML = num + '<span class="vote-name">' + p.displayName + (isSelf ? '(あなた)' : '') + '</span><span class="status-badge">' + (isSelf ? '投票不可' : '脱落') + '</span>';
+          opt.innerHTML = num + '<span class="vote-name">' + p.displayName + (isSelf ? t('s15_self_tag') : '') + '</span><span class="status-badge">' + (isSelf ? t('s15_status_novote') : t('s15_status_eliminated')) + '</span>';
         } else {
           opt.innerHTML = num + '<span class="vote-name">' + p.displayName + '</span><span class="vote-mark" aria-hidden="true"></span>';
           opt.addEventListener('click', function () { selectLiveVoteTarget(opt); });
@@ -3567,7 +4129,7 @@
       const num = '<span class="vote-num">' + String(i + 1).padStart(2, '0') + '</span>';
       if (isSelf) {
         opt.setAttribute('disabled', 'disabled');
-        opt.innerHTML = num + '<span class="vote-name">' + p.name + '(あなた)</span><span class="status-badge">投票不可</span>';
+        opt.innerHTML = num + '<span class="vote-name">' + p.name + t('s15_self_tag') + '</span><span class="status-badge">' + t('s15_status_novote') + '</span>';
       } else {
         opt.innerHTML = num + '<span class="vote-name">' + p.name + '</span><span class="vote-mark" aria-hidden="true"></span>';
         opt.addEventListener('click', function () { selectVoteTarget(opt); });
@@ -3593,13 +4155,13 @@
       if (!liveVoteSelectedId || liveVoteLocked) return;
       const pub = latestPublic;
       const target = pub && pub.players ? pub.players[liveVoteSelectedId] : null;
-      document.getElementById('voteConfirmTitle').textContent = (target ? target.displayName : '対象') + ' に投票しますか';
+      document.getElementById('voteConfirmTitle').textContent = (target ? target.displayName : t('s15_confirm_target_fallback')) + t('s15_confirm_suffix');
       document.getElementById('voteConfirmDialog').removeAttribute('hidden');
       return;
     }
     if (!voteSelectedId || voteLocked) return;
     const target = PLAYERS.filter(function (p) { return p.id === voteSelectedId; })[0];
-    document.getElementById('voteConfirmTitle').textContent = target.name + ' に投票しますか';
+    document.getElementById('voteConfirmTitle').textContent = target.name + t('s15_confirm_suffix');
     document.getElementById('voteConfirmDialog').removeAttribute('hidden');
   };
 
@@ -3616,13 +4178,13 @@
       document.querySelectorAll('#voteTargetList .target-option').forEach(function (o) { o.setAttribute('disabled', 'disabled'); });
       document.getElementById('voteDecideBtn').classList.add('u-hidden');
       document.getElementById('voteCompletedBadge').classList.remove('u-hidden');
-      showToast('選択を記録しました。');
+      showToast(t('toast_recorded'));
       const targetId = liveVoteSelectedId;
       getLiveClient().then(function (client) {
         return client.send({ type: 'CAST_VOTE', payload: { targetId: targetId } });
       }).catch(function () {
         liveVoteLocked = false;
-        showToast('投票を記録できませんでした。もう一度お試しください。');
+        showToast(t('toast_vote_failed'));
         renderS15Live();
       });
       return;
@@ -3633,7 +4195,7 @@
     document.getElementById('voteDecideBtn').classList.add('u-hidden');
     document.getElementById('voteCompletedBadge').classList.remove('u-hidden');
     document.getElementById('voteBranchButtons').classList.remove('u-hidden');
-    showToast('選択を記録しました。');
+    showToast(t('toast_recorded'));
   };
 
   /* ===================================================================
@@ -3642,6 +4204,9 @@
   const WINNER_BANNER_BY_TEAM = {
     citizen: '市民陣営の勝利', werewolf: '人狼陣営の勝利', fox: '妖狐陣営の勝利', android: 'アンドロイドの単独勝利'
   };
+  const WINNER_BANNER_BY_TEAM_EN = {
+    citizen: 'Citizen Faction Victory', werewolf: 'Werewolf Faction Victory', fox: 'Fox Faction Victory', android: 'Android’s Solo Victory'
+  };
 
   function renderS18Live() {
     const pub = latestPublic;
@@ -3649,8 +4214,9 @@
     const teams = (pub.winner && pub.winner.teams) || [];
     const banner = document.getElementById('s18Title');
     const sub = document.getElementById('s18Sub');
-    if (banner) banner.textContent = teams.map(function (t) { return WINNER_BANNER_BY_TEAM[t] || t; }).join(' / ') || '決着';
-    if (sub) sub.textContent = VICTORY_TEXT_BY_CAMP[teams[0]] || '';
+    const bannerTable = currentLang === 'en' ? WINNER_BANNER_BY_TEAM_EN : WINNER_BANNER_BY_TEAM;
+    if (banner) banner.textContent = teams.map(function (teamId) { return bannerTable[teamId] || teamId; }).join(' / ') || t('s18_banner_fallback');
+    if (sub) sub.textContent = victoryTextFor(teams[0]) || '';
     const grid = document.getElementById('rosterGrid');
     grid.innerHTML = '';
     Object.values(pub.players)
@@ -3675,15 +4241,16 @@
   function buildRosterCell(roleId, playerName, dead) {
     const info = roleInfoById(roleId);
     const fc = rosterFactionColor(info.camp);
+    const displayRoleName = (currentLang === 'en' ? (info.en || info.jp) : info.jp) || '';
     const cell = document.createElement('div');
     cell.className = 'roster-cell';
     cell.innerHTML =
       '<div class="roster-thumb">' +
-        (roleId ? '<img src="' + rosterImgSrc(roleId) + '" alt="' + (info.jp || '') + '" loading="lazy">' : '') +
+        (roleId ? '<img src="' + rosterImgSrc(roleId) + '" alt="' + displayRoleName + '" loading="lazy">' : '') +
       '</div>' +
       '<div class="roster-info" style="border-top-color:' + fc + ';">' +
         '<div class="roster-name">' + (playerName || '') + '</div>' +
-        '<div class="roster-role">' + (info.jp || '') + (dead ? '' : '') + '</div>' +
+        '<div class="roster-role">' + displayRoleName + (dead ? '' : '') + '</div>' +
       '</div>';
     return cell;
   }
@@ -3914,8 +4481,20 @@
       if (enEl) enEl.textContent = roleData.en;
       if (descEl) descEl.textContent = roleData.desc;
       if (adviceEl) adviceEl.textContent = roleData.advice;
-      if (factionEl) factionEl.textContent = roleData.campName || "役職情報";
+      if (factionEl) factionEl.textContent = factionBadgeText(roleData.campName) || t('rules_myrole_unknown_faction');
     }
+  }
+
+  // 陣営バッジの日本語ラベルを、既存の文言に対応する英訳へ差し替える(データ捏造せず既存値のみ変換)
+  function factionBadgeText(campNameJa) {
+    if (currentLang !== 'en') return campNameJa;
+    const map = {
+      '市民陣営': t('rules_faction_citizen_badge'),
+      '人狼陣営': t('rules_faction_werewolf_badge'),
+      '第三陣営': t('rules_filter_third'),
+      '第三陣営/市民': t('rules_filter_third') + ' / ' + t('card_camp_citizen')
+    };
+    return map[campNameJa] || campNameJa;
   }
 
   function renderRolepedia() {
@@ -3940,7 +4519,7 @@
       });
 
       if (filtered.length === 0) {
-        roleCardGrid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--sem-text-dim);font-size:13px;">該当する役職が見つかりませんでした</div>';
+        roleCardGrid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--sem-text-dim);font-size:13px;">' + t('rules_role_no_result') + '</div>';
         return;
       }
 
@@ -3957,11 +4536,11 @@
           <div class="role-card-main">
             <div class="role-card-header">
               <span class="role-card-name">${role.jp} <span class="role-card-en">${role.en}</span></span>
-              <span class="role-card-badge ${factionClass}">${role.campName}</span>
+              <span class="role-card-badge ${factionClass}">${factionBadgeText(role.campName)}</span>
             </div>
             <div class="role-card-summary">${role.desc}</div>
             <div class="role-card-detail">
-              <div style="font-weight:700;color:var(--sem-accent);margin-bottom:4px;">💡 立ち回りアドバイス</div>
+              <div style="font-weight:700;color:var(--sem-accent);margin-bottom:4px;">${t('rules_role_advice_heading')}</div>
               <div>${role.advice}</div>
             </div>
           </div>
@@ -4086,6 +4665,12 @@
     showScreen(/^s(0[1-9]|1[0-9]|20)$/.test(hashScreen) ? hashScreen : 's01');
   });
 
+  // i18n: 保存済みの言語設定(またはデフォルトの ja)を、初期描画の後に適用する。
+  // QR/共有リンクで開いた場合も、これで保存済みの en 選択が反映される。
+  document.addEventListener('DOMContentLoaded', function () {
+    try { applyLang(currentLang); } catch (e) { console.error('applyLang on load failed', e); }
+  });
+
   /* ===================================================================
      退出確認ダイアログ
      =================================================================== */
@@ -4098,7 +4683,7 @@
   window.confirmExit = function () {
     document.getElementById('exitDialog').setAttribute('hidden', 'hidden');
     closeDevDrawer();
-    showToast('退出しました。');
+    showToast(t('toast_left'));
     showScreen('s01');
   };
 
@@ -4121,6 +4706,12 @@
     'is-reconnecting': '接続を復旧しています。',
     'is-error': '接続に問題が発生しました。'
   };
+  const CONN_TEXT_EN = {
+    '': 'Connection is good.',
+    'is-offline': 'Offline. Please move somewhere with signal.',
+    'is-reconnecting': 'Reconnecting.',
+    'is-error': 'There was a connection problem.'
+  };
   window.cycleConnBanner = function () {
     connStateIdx = (connStateIdx + 1) % CONN_STATES.length;
     const banner = document.getElementById('connBanner');
@@ -4130,7 +4721,7 @@
       banner.classList.add('u-hidden');
     } else {
       if (state) banner.classList.add(state);
-      banner.textContent = CONN_TEXT[state];
+      banner.textContent = (currentLang === 'en' ? CONN_TEXT_EN : CONN_TEXT)[state];
     }
   };
 
