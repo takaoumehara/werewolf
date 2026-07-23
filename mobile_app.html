@@ -2721,14 +2721,37 @@
 
   window.handleSoloStart = function () {
     if (MODE !== 'live') { showScreen('s06'); return; }
-    getLiveClient().then(function (client) {
-      return client.seatAiPlayers({ count: soloCount - 1 });
-    }).then(function () {
-      showScreen('s06');
-    }).catch(function (e) {
-      console.error('seatAiPlayers failed', e);
-      showToast('AIの着席に失敗しました。');
-    });
+
+    var pollCount = 0;
+    var pollMaxAttempts = 50; // ~5 seconds at 100ms intervals
+    var pollInterval;
+
+    function pollRoomReady() {
+      if (liveCode) {
+        clearInterval(pollInterval);
+        proceedWithSeatAI();
+      } else if (++pollCount >= pollMaxAttempts) {
+        clearInterval(pollInterval);
+        showToast('部屋の準備ができませんでした。やり直してください。');
+      }
+    }
+
+    function proceedWithSeatAI() {
+      getLiveClient().then(function (client) {
+        return client.seatAiPlayers({ count: soloCount - 1 });
+      }).then(function () {
+        showScreen('s06');
+      }).catch(function (e) {
+        console.error('seatAiPlayers failed', e);
+        showToast('AIの着席に失敗しました。');
+      });
+    }
+
+    if (liveCode) {
+      proceedWithSeatAI();
+    } else {
+      pollInterval = setInterval(pollRoomReady, 100);
+    }
   };
 
   window.handleS03Next = function () {
@@ -2787,6 +2810,8 @@
     }).then(function () {
       hostDriver.lastSentType = null;
       hostDriver.roleRevealEnteredAt = null;
+      hostDriver.aiTurnKey = null;
+      hostDriver.aiTurnDone = {};
       liveLastPhase = null;
       liveMorningShownForRound = -1;
       showScreen('s08');
