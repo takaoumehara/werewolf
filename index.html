@@ -509,27 +509,41 @@
     padding-right: 44px; /* dev drawer ホットスポットのための空き */
   }
   .top-bar-title {
-    font-family: var(--font-eyebrow);
-    font-weight: 600;
-    font-size: 11.5px;
-    letter-spacing: 0.38em;
-    color: rgba(237, 233, 220, 0.56);
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: 0.12em;
+    color: var(--sem-text, #EDE9DC);
   }
   .top-bar-actions {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
   }
-  .top-bar-icon {
+  .top-bar-link {
+    font-family: var(--font-body);
+    font-weight: 500;
     font-size: 13px;
-    padding: 4px 7px;
-    min-width: auto;
-    color: rgba(237, 233, 220, 0.4);
-    text-decoration: none;
+    letter-spacing: 0.04em;
+    padding: 8px 12px;
+    min-height: 40px;
+    border-radius: 8px;
+    border: 1px solid rgba(237, 233, 220, 0.18);
+    background: rgba(237, 233, 220, 0.04);
+    color: rgba(237, 233, 220, 0.82);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
     line-height: 1;
   }
-  .top-bar-icon:hover {
-    color: rgba(237, 233, 220, 0.75);
+  .top-bar-link:hover {
+    color: #fff;
+    border-color: rgba(201, 168, 76, 0.5);
+  }
+  .top-bar-link--rules {
+    background: rgba(201, 168, 76, 0.12);
+    border-color: rgba(201, 168, 76, 0.45);
+    color: var(--p-gold-hi, #E0C87E);
+    font-weight: 700;
   }
 
   .dev-hotspot {
@@ -1407,12 +1421,12 @@
     <div class="safe-frame">
 
     <div class="top-bar">
-      <span class="top-bar-title">GEKKA</span>
+      <span class="top-bar-title">月下ノ影</span>
       <div class="top-bar-actions">
-        <button type="button" class="btn btn--quiet top-bar-icon" id="opReplayBtn" onclick="playOpeningAnimation()" title="オープニングを再生" aria-label="オープニングを再生">▷</button>
-        <a href="making.html" class="btn btn--quiet top-bar-icon" title="メイキング" aria-label="メイキング">冊</a>
-        <button type="button" class="btn btn--quiet u-hidden" id="hostAdvanceBtn" onclick="handleHostManualAdvance()">進める</button>
-        <button type="button" class="btn btn--quiet rules-link" id="rulesBtn">ルール</button>
+        <button type="button" class="top-bar-link" id="opReplayBtn" onclick="playOpeningAnimation()">映像</button>
+        <button type="button" class="top-bar-link" onclick="openMakingModal()">制作</button>
+        <button type="button" class="top-bar-link u-hidden" id="hostAdvanceBtn" onclick="handleHostManualAdvance()">進める</button>
+        <button type="button" class="top-bar-link top-bar-link--rules" id="rulesBtn">ルール</button>
       </div>
     </div>
 
@@ -1774,7 +1788,7 @@
 
     <div class="rules-section-title">🌙 1. 夜の行動 (能力行使)</div>
     <div class="rules-card-box">
-      <p style="font-size:13px;margin:0;line-height:1.5;color:var(--sem-text-dim);">
+      <p style="font-size:14px;margin:0;line-height:1.5;color:var(--sem-text-dim);">
         全プレイヤーが一斉にスマートフォンを操作します。<br>
         能力者（予言者・騎士・人狼など）は対象を選んで行動を決定します。<br>
         特別な能力がない市民も「待機」操作を行い、周囲に役職がバレないようにします。
@@ -1783,7 +1797,7 @@
 
     <div class="rules-section-title">☀️ 2. 昼の評議 & 投票</div>
     <div class="rules-card-box">
-      <p style="font-size:13px;margin:0;line-height:1.5;color:var(--sem-text-dim);">
+      <p style="font-size:14px;margin:0;line-height:1.5;color:var(--sem-text-dim);">
         タイマーに合わせて全員で自由議論を行います。<br>
         議論終了後、生存者全員で追放したい一人を選び投票します。<br>
         最多票を得たプレイヤーが村から追放されます。
@@ -1794,15 +1808,15 @@
     <div class="rules-card-box">
       <div style="margin-bottom:8px;">
         <span class="role-card-badge faction-citizen">市民陣営</span>
-        <span style="font-size:12px;color:var(--sem-text);margin-left:6px;font-weight:bold;">全ての人狼を追放する</span>
+        <span style="font-size:13.5px;color:var(--sem-text);margin-left:8px;font-weight:bold;">全ての人狼を追放する</span>
       </div>
       <div style="margin-bottom:8px;">
         <span class="role-card-badge faction-werewolf">人狼陣営</span>
-        <span style="font-size:12px;color:var(--sem-text);margin-left:6px;font-weight:bold;">人狼の人数 ≥ 人間の人数 にする</span>
+        <span style="font-size:13.5px;color:var(--sem-text);margin-left:8px;font-weight:bold;">人狼の人数 ≥ 人間の人数 にする</span>
       </div>
       <div>
         <span class="role-card-badge faction-third">第三陣営 (妖狐/狐/他)</span>
-        <span style="font-size:12px;color:var(--sem-text);margin-left:6px;font-weight:bold;">ゲーム終了時に自分が生き残る</span>
+        <span style="font-size:13.5px;color:var(--sem-text);margin-left:8px;font-weight:bold;">ゲーム終了時に自分が生き残る</span>
       </div>
     </div>
 
@@ -1828,7 +1842,7 @@
         <div style="font-size:22px;font-weight:800;color:var(--sem-text);margin:4px 0;" id="myroleNameLabel">市民</div>
         <div style="font-size:12px;color:var(--sem-accent);margin-bottom:12px;" id="myroleEnLabel">Citizen</div>
         <hr class="engraved-rule">
-        <div style="text-align:left;font-size:13px;line-height:1.5;color:var(--sem-text);margin-bottom:12px;" id="myroleDescLabel">
+        <div style="text-align:left;font-size:14px;line-height:1.5;color:var(--sem-text);margin-bottom:12px;" id="myroleDescLabel">
           特別な能力は持たないが、お互いの信頼と鋭い議論によって人狼の正体を見破る主役。
         </div>
         <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:10px;text-align:left;">
@@ -2271,6 +2285,8 @@
 
   let liveCode = null;
   let pendingJoinCode = '';
+  // QR/共有リンク(?room=CODE)で開いたときの合言葉。入力欄に自動プリフィルする。
+  let prefillJoinCode = (urlParams.get('room') || '').trim().toUpperCase();
   let latestPlayers = [];
   let latestMeta = null;
   let latestSelf = null;
@@ -2855,6 +2871,17 @@
 
   // アプリ起動時に一度だけ自動再生（一度閉じたらセッション中保持）
   window.addEventListener('DOMContentLoaded', () => {
+    // QR/共有リンクで開いた場合(?room=CODE): オープニングを飛ばして
+    // 直接「合言葉を入力」画面へ進み、コードを自動入力する。
+    if (prefillJoinCode) {
+      sessionStorage.setItem('hasPlayedOpening', 'true');
+      const overlay = document.getElementById('opening-overlay');
+      if (overlay) overlay.classList.add('hidden');
+      appState.view = 'player';
+      pendingJoinCode = prefillJoinCode;
+      setTimeout(function () { showScreen('s03'); }, 60);
+      return;
+    }
     if (!sessionStorage.getItem('hasPlayedOpening')) {
       sessionStorage.setItem('hasPlayedOpening', 'true');
       setTimeout(playOpeningAnimation, 100);
@@ -2944,11 +2971,12 @@
         startJoinCountMock();
       }
     } else {
-      title.textContent = '名簿に加わる';
-      sub.textContent = '受け取った合言葉を入力してください。';
+      title.textContent = '合言葉を入力';
+      sub.textContent = '受け取った6桁の合言葉を入力してください。1マスに1文字、貼り付け(ペースト)も使えます。';
       body.innerHTML =
         '<div class="qr-wrap">' +
           '<div class="code-input" id="roomCodeInput"></div>' +
+          '<p class="qr-note" style="margin-top:14px;">合言葉を貼り付けると自動で入力されます</p>' +
         '</div>';
       countLine.innerHTML = '';
       const codeInput = document.getElementById('roomCodeInput');
@@ -2957,8 +2985,21 @@
         const inp = document.createElement('input');
         inp.type = 'text';
         inp.maxLength = 1;
+        inp.setAttribute('inputmode', 'latin');
+        inp.setAttribute('autocapitalize', 'characters');
+        inp.setAttribute('autocomplete', 'off');
+        inp.setAttribute('aria-label', '合言葉 ' + (i + 1) + ' 文字目');
         if (MODE !== 'live') inp.value = roomCode[i];
+        else if (prefillJoinCode) inp.value = (prefillJoinCode[i] || '');
         codeInput.appendChild(inp);
+      }
+      wireCodeInputs(codeInput);
+      if (MODE === 'live' && prefillJoinCode) {
+        // プリフィル済みなら空きマス(なければ末尾)へフォーカス
+        const empties = codeInput.querySelectorAll('input');
+        let target = empties[empties.length - 1];
+        for (let k = 0; k < empties.length; k += 1) { if (!empties[k].value) { target = empties[k]; break; } }
+        setTimeout(function () { try { target.focus(); } catch (e) {} }, 80);
       }
       clearIntervalIfAny();
     }
@@ -2973,6 +3014,41 @@
       count += 1;
       if (numEl) numEl.textContent = String(count);
     }, 900);
+  }
+
+  /* 合言葉マスの入力補助: 自動送り・Backspace戻り・貼り付け(ペースト)分配 */
+  function wireCodeInputs(container) {
+    const boxes = Array.prototype.slice.call(container.querySelectorAll('input'));
+    boxes.forEach(function (box, i) {
+      box.addEventListener('input', function () {
+        box.value = (box.value || '').toUpperCase().replace(/[^0-9A-Z]/g, '').slice(-1);
+        if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
+      });
+      box.addEventListener('keydown', function (e) {
+        if (e.key === 'Backspace' && !box.value && i > 0) {
+          e.preventDefault();
+          boxes[i - 1].value = '';
+          boxes[i - 1].focus();
+        } else if (e.key === 'ArrowLeft' && i > 0) {
+          boxes[i - 1].focus();
+        } else if (e.key === 'ArrowRight' && i < boxes.length - 1) {
+          boxes[i + 1].focus();
+        }
+      });
+      box.addEventListener('focus', function () { box.select && box.select(); });
+      box.addEventListener('paste', function (e) {
+        e.preventDefault();
+        const cd = e.clipboardData || window.clipboardData;
+        const text = (cd ? cd.getData('text') : '') || '';
+        const chars = text.toUpperCase().replace(/[^0-9A-Z]/g, '').split('');
+        if (!chars.length) return;
+        for (let k = 0; k + i < boxes.length && k < chars.length; k += 1) {
+          boxes[i + k].value = chars[k];
+        }
+        const next = Math.min(boxes.length - 1, i + chars.length);
+        boxes[next].focus();
+      });
+    });
   }
 
   /* ===================================================================
@@ -3841,15 +3917,21 @@
         item.className = 'role-card-item';
 
         const factionClass = `faction-${role.camp}`;
+        const imgSrc = '00_transparent-illustrations-72-a-refined/' + role.id + '_ver_a.png';
         item.innerHTML = `
-          <div class="role-card-header">
-            <span class="role-card-name">${role.jp} <span style="font-size:11px;opacity:0.7;">(${role.en})</span></span>
-            <span class="role-card-badge ${factionClass}">${role.campName}</span>
+          <div class="role-card-thumb ${factionClass}">
+            <img src="${imgSrc}" alt="${role.jp}" loading="lazy" onerror="this.style.display='none'">
           </div>
-          <div class="role-card-summary">${role.desc}</div>
-          <div class="role-card-detail">
-            <div style="font-weight:700;color:var(--sem-accent);margin-bottom:2px;">💡 立ち回りアドバイス:</div>
-            <div>${role.advice}</div>
+          <div class="role-card-main">
+            <div class="role-card-header">
+              <span class="role-card-name">${role.jp} <span class="role-card-en">${role.en}</span></span>
+              <span class="role-card-badge ${factionClass}">${role.campName}</span>
+            </div>
+            <div class="role-card-summary">${role.desc}</div>
+            <div class="role-card-detail">
+              <div style="font-weight:700;color:var(--sem-accent);margin-bottom:4px;">💡 立ち回りアドバイス</div>
+              <div>${role.advice}</div>
+            </div>
           </div>
         `;
 
