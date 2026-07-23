@@ -2840,6 +2840,28 @@
     ];
   }
 
+  // MVP1 solo clamp: remove non-MVP1 roles (knights, etc.) and fold their counts into citizen
+  function clampCompositionToMvp1(comp) {
+    const allowedIds = { werewolf: true, prophet: true, citizen: true };
+    let removedCount = 0;
+    const clamped = [];
+    for (let i = 0; i < comp.length; i++) {
+      if (allowedIds[comp[i].id]) {
+        clamped.push(comp[i]);
+      } else {
+        removedCount += comp[i].count;
+      }
+    }
+    // Fold removed counts into citizen
+    for (let i = 0; i < clamped.length; i++) {
+      if (clamped[i].id === 'citizen') {
+        clamped[i] = Object.assign({}, clamped[i], { count: clamped[i].count + removedCount });
+        break;
+      }
+    }
+    return clamped;
+  }
+
   /* ===================================================================
      JS 契約
      =================================================================== */
@@ -3916,6 +3938,7 @@
     if (id === 's06') renderS06();
     if (id === 's07') {
       if (MODE === 'live') composition = computeDefaultComposition(latestPlayers.length || PLAYERS.length);
+      if (appState.solo) composition = clampCompositionToMvp1(composition);
       renderComposition();
     }
     if (id === 's09') renderS09();
