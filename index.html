@@ -27,19 +27,15 @@
     visibility: hidden;
     pointer-events: none;
   }
-  .op-bg {
+  /* 月下ノ影 オープニング: 生成済みシネマティック mp4 をフルスクリーン再生 */
+  .op-video {
     position: absolute;
     inset: 0;
-    background-size: cover;
-    background-position: center;
-    opacity: 0;
-    transition: opacity 2s ease, transform 8s ease;
-    transform: scale(1.06);
-    filter: brightness(0.7) contrast(1.1);
-  }
-  .op-bg.active {
-    opacity: 0.35;
-    transform: scale(1.0);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #060709;
+    filter: brightness(0.86) contrast(1.05);
   }
   .op-overlay-vignette {
     position: absolute;
@@ -95,13 +91,13 @@
     transform: scale(1.0);
   }
   .op-main-title {
-    font-family: 'Cinzel Decorative', 'LINE Seed JP', serif;
-    font-size: 2.2rem;
-    font-weight: 900;
-    letter-spacing: 0.15em;
-    color: #f8fafc;
-    text-shadow: 0 0 30px rgba(226, 54, 54, 0.6), 0 0 12px rgba(0, 0, 0, 0.9);
-    margin-bottom: 8px;
+    font-family: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    color: #ede9dc;
+    text-shadow: 0 0 34px rgba(201, 168, 76, 0.55), 0 0 12px rgba(0, 0, 0, 0.9);
+    margin-bottom: 10px;
   }
   .op-tagline {
     font-size: 0.9rem;
@@ -209,9 +205,9 @@
     }
 
     .desktop-brand-title {
-      font-family: 'Cinzel Decorative', 'LINE Seed JP', serif;
-      font-size: 2.2rem;
-      font-weight: 900;
+      font-family: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+      font-size: 2.4rem;
+      font-weight: 800;
       color: #f8fafc;
       letter-spacing: 0.12em;
       text-shadow: 0 0 25px rgba(201, 168, 76, 0.5), 0 2px 10px rgba(0,0,0,0.8);
@@ -560,10 +556,10 @@
     margin: 0;
   }
   .app-title-en {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 0.3em;
+    font-family: var(--font-eyebrow);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.34em;
     color: color-mix(in srgb, var(--sem-accent, var(--p-gold)) 80%, transparent);
     margin: 10px 0 0;
   }
@@ -919,20 +915,17 @@
     <a href="making.html" class="op-btn">📜 Making</a>
     <button class="op-btn" id="op-skip-btn">SKIP ✕</button>
   </div>
-  <div class="op-bg active" id="op-bg-1" style="background-image: url('design-development/key-visuals/kv_shadow_ruins.png');"></div>
-  <div class="op-bg" id="op-bg-2" style="background-image: url('design-development/key-visuals/kv_tech_ruins_shadow.png');"></div>
-  <div class="op-bg" id="op-bg-3" style="background-image: url('design-development/key-visuals/kv_ruined_street.png');"></div>
+  <video class="op-video" id="op-video"
+         playsinline muted preload="auto"
+         poster="design-development/opening/opening_poster.jpg">
+    <source src="design-development/opening/opening_gekka.mp4" type="video/mp4">
+  </video>
   <div class="op-overlay-vignette"></div>
-
-  <div class="op-caption-box">
-    <div class="op-text" id="op-caption-text">文明が眠りについて、七年。</div>
-    <div class="op-sub" id="op-caption-sub">ACT I — THE LAST CITADEL</div>
-  </div>
 
   <div class="op-title-box" id="op-title-box">
     <div class="op-main-title">月下ノ影</div>
-    <div class="op-tagline">Shadows Under the Moon</div>
-    <div style="font-size:0.85rem; color:#ef4444; margin-top:8px; letter-spacing:0.15em;">今夜、誰かが嘘をついている。</div>
+    <div class="op-tagline" style="font-family:'Cinzel','Cormorant Garamond',serif; letter-spacing:0.34em; color:#c9a84c;">GEKKA — SHADOWS</div>
+    <div style="font-size:0.85rem; color:#c25b5b; margin-top:10px; letter-spacing:0.16em;">今夜、誰かが嘘をついている。</div>
   </div>
 
   <div class="op-tap-start" id="op-tap-start">TAP TO ENTER THE GAME</div>
@@ -943,7 +936,7 @@
   <div class="desktop-sidebar desktop-sidebar--left">
     <div>
       <div class="desktop-brand-title">月下ノ影</div>
-      <div class="desktop-brand-sub">SHADOWS UNDER THE MOON</div>
+      <div class="desktop-brand-sub">GEKKA — SHADOWS</div>
     </div>
     <div class="desktop-info-panel">
       <h3>WORLD & STORY</h3>
@@ -961,7 +954,7 @@
     <div class="safe-frame">
 
     <div class="top-bar">
-      <span class="top-bar-title">Kirokumō</span>
+      <span class="top-bar-title">GEKKA — SHADOWS</span>
       <button type="button" class="btn btn--quiet" id="opReplayBtn" onclick="playOpeningAnimation()" style="font-size:0.75rem; padding:4px 8px;">🎬 Movie</button>
       <a href="making.html" class="btn btn--quiet" style="font-size:0.75rem; padding:4px 8px; text-decoration:none;">📜 Making</a>
       <button type="button" class="btn btn--quiet u-hidden" id="hostAdvanceBtn" onclick="handleHostManualAdvance()">進める</button>
@@ -988,8 +981,8 @@
         <div class="splash">
           <span class="splash-mark" aria-hidden="true"></span>
           <div>
-            <h1 class="app-title">記録網</h1>
-            <div class="app-title-en">Kirokumō</div>
+            <h1 class="app-title">月下ノ影</h1>
+            <div class="app-title-en">GEKKA — SHADOWS</div>
           </div>
           <p class="app-subtitle">対面のプレイヤーを、<br>記録者が見届ける。</p>
         </div>
@@ -2190,21 +2183,19 @@
   }
 
   /* ===================================================================
-     オープニング・ローディングアニメーション制御 (ストーリーボード全5カット)
+     オープニング演出制御 — 月下ノ影 / GEKKA — SHADOWS
+     生成済みシネマティック mp4 をフルスクリーン再生し、再生完了で
+     タイトルカードを重ねる。skip / tap で即座に閉じる。
+     prefers-reduced-motion では動画を再生せず静止フレーム+タイトルへ縮退。
      =================================================================== */
   let opTimer = null;
-  let opStepIndex = 0;
-  const opScript = [
-    { bgId: 'op-bg-1', text: '文明が眠りについて、七年。', sub: 'ACT I — THE LAST CITADEL', duration: 4500 },
-    { bgId: 'op-bg-2', text: 'それでも、人々は灯りをともす。', sub: 'ACT II — ANCIENT TECHNOLOGY & LIFE', duration: 4500 },
-    { bgId: 'op-bg-1', text: 'だが月だけが、知っている。', sub: 'ACT III — SHADOW OF THE BEAST', duration: 4500 },
-    { bgId: 'op-bg-3', text: '隣人の顔をした、獣がいる。', sub: 'ACT IV — SUSPICION', duration: 5000 },
-    { bgId: 'op-bg-3', showTitle: true, text: '今夜、誰かが嘘をついている。', sub: 'LUNA SECRETA', duration: 6000 }
-  ];
+  let opRevealed = false; // 動画再生が終わり、閉じてよい状態か
 
   function hideOpeningOverlay() {
     clearTimeout(opTimer);
     const overlay = document.getElementById('opening-overlay');
+    const video = document.getElementById('op-video');
+    if (video) { try { video.pause(); } catch (_) {} }
     if (overlay) overlay.classList.add('hidden');
   }
 
@@ -2212,47 +2203,41 @@
     const overlay = document.getElementById('opening-overlay');
     const skipBtn = document.getElementById('op-skip-btn');
     const tapStart = document.getElementById('op-tap-start');
-    const captionText = document.getElementById('op-caption-text');
-    const captionSub = document.getElementById('op-caption-sub');
     const titleBox = document.getElementById('op-title-box');
-    const bgs = document.querySelectorAll('.op-bg');
+    const video = document.getElementById('op-video');
 
     if (!overlay) return;
     overlay.classList.remove('hidden');
+    opRevealed = false;
     if (tapStart) tapStart.style.display = 'none';
+    if (titleBox) titleBox.classList.remove('show');
 
-    function playStep(index) {
-      opStepIndex = index;
-      const step = opScript[index];
+    // 動画終了時にタイトルカードを重ね、閉じられる状態にする
+    function reveal() {
+      if (opRevealed) return;
+      opRevealed = true;
+      if (titleBox) titleBox.classList.add('show');
+      if (tapStart) tapStart.style.display = 'block';
+    }
 
-      // 背景切り替え
-      bgs.forEach(b => b.classList.remove('active'));
-      const activeBg = document.getElementById(step.bgId);
-      if (activeBg) activeBg.classList.add('active');
+    const prefersReduced = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      // テキスト切り替え
-      if (captionText) {
-        captionText.classList.remove('show');
-        setTimeout(() => {
-          captionText.textContent = step.text;
-          if (captionSub) captionSub.textContent = step.sub;
-          captionText.classList.add('show');
-        }, 300);
-      }
+    clearTimeout(opTimer);
 
-      // タイトル表示
-      if (titleBox) {
-        if (step.showTitle) {
-          titleBox.classList.add('show');
-          if (tapStart) tapStart.style.display = 'block';
-        } else {
-          titleBox.classList.remove('show');
-        }
-      }
-
-      clearTimeout(opTimer);
-      if (index < opScript.length - 1) {
-        opTimer = setTimeout(() => playStep(index + 1), step.duration);
+    if (prefersReduced || !video) {
+      // 演出を縮退: 動画を止め、静止フレーム(poster)+タイトルを即時表示
+      if (video) { try { video.pause(); } catch (_) {} }
+      reveal();
+    } else {
+      video.currentTime = 0;
+      video.onended = reveal;
+      // 'ended' が発火しない環境の保険(動画長 7s + 余白)
+      opTimer = setTimeout(reveal, 8000);
+      const p = video.play();
+      if (p && typeof p.catch === 'function') {
+        // 自動再生がブロックされた場合も演出を破綻させず、タイトルへ即遷移
+        p.catch(() => reveal());
       }
     }
 
@@ -2271,12 +2256,8 @@
     }
 
     overlay.onclick = () => {
-      if (opStepIndex >= opScript.length - 1) {
-        hideOpeningOverlay();
-      }
+      if (opRevealed) hideOpeningOverlay();
     };
-
-    playStep(0);
   }
 
   // アプリ起動時に一度だけ自動再生（一度閉じたらセッション中保持）

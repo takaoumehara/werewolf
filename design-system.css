@@ -9,7 +9,7 @@
      3. Component  — 実際に見た目が成立する完全なスタイル。
    ========================================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=LINE+Seed+JP:wght@400;700;800&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Antique+Soft&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=LINE+Seed+JP:wght@400;700;800&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Antique+Soft&display=swap');
 
 /* =========================================================================
    1. PRIMITIVE LAYER — 生の値
@@ -48,11 +48,12 @@
 
   /* type */
   --font-body: 'Zen Kaku Gothic New', sans-serif;
-  --font-heading: 'LINE Seed JP', sans-serif;
-  --font-display: 'Cinzel Decorative', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  /* 月下ノ影 / GEKKA — SHADOWS: 見出しは明朝(Shippori Mincho)の重厚感 */
+  --font-heading: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --font-display: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
   --font-mono: 'IBM Plex Mono', monospace;
-  --font-eyebrow: 'Cinzel', serif;
-  --fs-display: 28px;
+  --font-eyebrow: 'Cinzel', 'Cormorant Garamond', serif;
+  --fs-display: 36px;
   --fs-heading: 20px;
   --fs-body: 15px;
   --fs-label: 13px;
@@ -184,7 +185,10 @@ body {
   position: relative;
   min-height: 100dvh;
   width: 100%;
-  background: var(--sem-bg, var(--p-charcoal));
+  /* 月下ノ影: フェーズ色の上に暖色ラジアルのグローを重ね、ダークファンタジーの温度感を出す */
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(201, 168, 76, 0.08) 0%, transparent 55%),
+    var(--sem-bg, var(--p-charcoal));
   overflow: hidden;
   isolation: isolate;
 }
