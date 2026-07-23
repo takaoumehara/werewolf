@@ -458,21 +458,45 @@
   .roster-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: var(--sp-2);
+    gap: 8px;
   }
-  .roster-grid .card-slot {
+  .roster-cell {
+    background: #14121A;
+    border: 1px solid rgba(237, 233, 220, 0.1);
     border-radius: 8px;
-    background: var(--p-surface);
+    overflow: hidden;
   }
-  .roster-grid .roster-cell {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  .roster-thumb {
+    position: relative;
+    aspect-ratio: 1 / 1.1;
+    background: linear-gradient(180deg, #20191a, #0c0a09);
+    overflow: hidden;
   }
-  .roster-grid .roster-cell .roster-name {
-    font-size: 10px;
-    color: rgba(237, 233, 220, 0.65);
-    text-align: center;
+  .roster-thumb img {
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 130%;
+    object-fit: contain;
+  }
+  .roster-info {
+    padding: 5px 6px;
+    border-top: 2px solid transparent;
+  }
+  .roster-info .roster-name {
+    font-size: 11.5px;
+    color: rgba(237, 233, 220, 0.9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .roster-info .roster-role {
+    font-size: 11px;
+    color: rgba(237, 233, 220, 0.62);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* -----------------------------------------------------------------
@@ -487,9 +511,25 @@
   .top-bar-title {
     font-family: var(--font-eyebrow);
     font-weight: 600;
-    font-size: 10px;
-    letter-spacing: 0.4em;
-    color: rgba(237, 233, 220, 0.45);
+    font-size: 11.5px;
+    letter-spacing: 0.38em;
+    color: rgba(237, 233, 220, 0.56);
+  }
+  .top-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .top-bar-icon {
+    font-size: 13px;
+    padding: 4px 7px;
+    min-width: auto;
+    color: rgba(237, 233, 220, 0.4);
+    text-decoration: none;
+    line-height: 1;
+  }
+  .top-bar-icon:hover {
+    color: rgba(237, 233, 220, 0.75);
   }
 
   .dev-hotspot {
@@ -542,32 +582,50 @@
     display: none;
   }
   .splash-mark {
-    width: 10px;
-    height: 10px;
+    position: relative;
+    width: 16px;
+    height: 16px;
     transform: rotate(45deg);
+    border: 1px solid rgba(201, 168, 76, 0.7);
+    background: transparent;
+    margin-bottom: 14px;
+  }
+  .splash-mark::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
     background: var(--sem-accent, var(--p-gold));
+  }
+  .splash-rule {
+    width: 44px;
+    height: 1px;
+    background: rgba(201, 168, 76, 0.6);
+    margin: 8px 0;
   }
   .app-title {
     font-family: var(--font-heading);
     font-weight: 800;
-    font-size: 36px;
-    letter-spacing: 0.14em;
+    font-size: 42px;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
     color: var(--sem-text, var(--p-text));
     margin: 0;
   }
   .app-title-en {
     font-family: var(--font-eyebrow);
     font-weight: 600;
-    font-size: 12px;
-    letter-spacing: 0.34em;
-    color: color-mix(in srgb, var(--sem-accent, var(--p-gold)) 80%, transparent);
-    margin: 10px 0 0;
+    font-size: 12.5px;
+    letter-spacing: 0.28em;
+    color: rgba(237, 233, 220, 0.6);
+    margin: 0;
+    text-transform: uppercase;
   }
   .app-subtitle {
-    color: rgba(237, 233, 220, 0.55);
-    font-size: 13px;
-    line-height: 1.9;
+    color: rgba(237, 233, 220, 0.66);
+    font-size: 14px;
+    line-height: 1.95;
     margin: 0;
+    max-width: 280px;
   }
   .app-version {
     font-family: var(--font-mono);
@@ -613,40 +671,147 @@
     color: rgba(237, 233, 220, 0.4);
   }
 
-  /* gm-panel: s06 進行役の選択 — 一枚の枠内に2行を積んだ選択パネル */
-  .gm-panel {
-    border: 1px solid rgba(237, 233, 220, 0.16);
-    border-radius: var(--r-sheet);
-    overflow: hidden;
+  /* opt-card: s02 部屋選択 — アイブロウ + 明朝タイトル + 説明の大型カード */
+  .opt-cards {
+    flex: 1;
     display: flex;
     flex-direction: column;
+    gap: 16px;
+    margin: 4px 0 8px;
   }
-  .gm-row {
+  .opt-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 13px;
+    width: 100%;
+    text-align: left;
+    background: rgba(237, 233, 220, 0.03);
+    border: 1px solid rgba(237, 233, 220, 0.18);
+    border-radius: 16px;
+    padding: 26px 24px;
+    cursor: pointer;
+    color: inherit;
+    letter-spacing: normal;
+  }
+  .opt-card.is-selected {
+    background: rgba(201, 168, 76, 0.08);
+    border-color: rgba(201, 168, 76, 0.45);
+  }
+  .opt-card-tag {
     display: flex;
     align-items: center;
-    gap: var(--sp-3);
-    width: 100%;
-    min-height: var(--tap-min);
-    padding: 18px;
+    gap: 9px;
+    font-family: var(--font-eyebrow);
+    font-size: 12.5px;
+    letter-spacing: 0.24em;
+    color: rgba(237, 233, 220, 0.6);
+    text-transform: uppercase;
+  }
+  .opt-card.is-selected .opt-card-tag {
+    color: var(--p-gold-hi);
+  }
+  .opt-card-tag i {
+    width: 8px;
+    height: 8px;
+    transform: rotate(45deg);
+    border: 1px solid rgba(237, 233, 220, 0.66);
+    display: inline-block;
+    flex: none;
+    box-sizing: border-box;
+  }
+  .opt-card.is-selected .opt-card-tag i {
+    background: var(--p-gold);
     border: none;
-    border-radius: 0;
+  }
+  .opt-card-title {
+    font-family: var(--font-heading);
+    font-size: 23px;
+    color: var(--sem-text, var(--p-text));
+    letter-spacing: 0.02em;
+  }
+  .opt-card-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(237, 233, 220, 0.66);
+  }
+
+  /* field-block: s04 表示名/目印 のラベル付きフィールド */
+  .field-eyebrow {
+    font-family: var(--font-eyebrow);
+    font-size: 11.5px;
+    letter-spacing: 0.24em;
+    color: rgba(237, 233, 220, 0.62);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .text-field.name-field input {
+    height: 52px;
+    padding: 0 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(201, 168, 76, 0.4);
+    background: rgba(237, 233, 220, 0.03);
+    font-family: var(--font-heading);
+    font-size: 17px;
+    caret-color: var(--p-gold);
+  }
+  .marker-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .marker {
+    width: 46px;
+    height: 46px;
+    transform: rotate(45deg);
+    border: 1px solid rgba(237, 233, 220, 0.25);
     background: transparent;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: border-color var(--t-micro), background var(--t-micro);
+  }
+  .marker.is-selected {
+    background: rgba(201, 168, 76, 0.14);
+    border-color: transparent;
+    box-shadow: inset 0 0 0 1px rgba(201, 168, 76, 0.6);
+  }
+
+  /* gm-panel: 進行役の選択 — モック s03 準拠の独立2ボックス(明朝タイトル) */
+  .gm-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .gm-row {
+    display: block;
+    width: 100%;
+    padding: 20px 18px;
+    border: 1px solid rgba(237, 233, 220, 0.14);
+    border-radius: var(--r-sheet);
+    background: rgba(237, 233, 220, 0.02);
     text-align: left;
     font-family: var(--font-body);
     letter-spacing: normal;
     cursor: pointer;
   }
   .gm-row.is-selected {
-    background: rgba(201, 168, 76, 0.08);
+    background: rgba(201, 168, 76, 0.07);
+    border-color: transparent;
     box-shadow: inset 0 0 0 1px rgba(201, 168, 76, 0.55);
   }
+  .gm-row-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
   .gm-row-diamond {
-    width: 7px;
-    height: 7px;
+    width: 9px;
+    height: 9px;
     flex: none;
     transform: rotate(45deg);
     background: transparent;
-    border: 1px solid rgba(237, 233, 220, 0.5);
+    border: 1px solid rgba(237, 233, 220, 0.62);
     box-sizing: border-box;
   }
   .gm-row.is-selected .gm-row-diamond {
@@ -654,16 +819,12 @@
     border: none;
   }
   .gm-row-body {
-    flex: 1;
+    display: contents;
   }
   .gm-row-title {
-    display: block;
     font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: 15px;
-    color: rgba(237, 233, 220, 0.7);
-  }
-  .gm-row.is-selected .gm-row-title {
+    font-weight: 600;
+    font-size: 17px;
     color: var(--sem-text, var(--p-text));
   }
   .gm-row-title-sub {
@@ -673,33 +834,51 @@
   }
   .gm-row-desc {
     display: block;
-    font-size: 11.5px;
-    line-height: 1.7;
-    color: rgba(237, 233, 220, 0.4);
-    margin-top: 3px;
-  }
-  .gm-row.is-selected .gm-row-desc {
-    color: rgba(237, 233, 220, 0.5);
+    padding-left: 21px;
+    font-size: 13px;
+    line-height: 1.8;
+    color: rgba(237, 233, 220, 0.6);
+    margin-top: 12px;
   }
 
-  /* vote-pill: s16 同票の得票数表示 */
+  /* vote-pill: s16 得票数ピル(モック準拠) */
   .vote-pill {
     display: inline-flex;
-    align-items: baseline;
-    gap: var(--sp-2);
-    padding: 10px 18px;
-    border-radius: 10px;
-    border: 1px solid rgba(201, 168, 76, 0.5);
-    font-family: var(--font-heading);
-    font-weight: 700;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
+    border-radius: 24px;
+    border: 1px solid rgba(201, 168, 76, 0.4);
+    font-family: var(--font-body);
+    font-weight: 400;
     font-size: 14px;
     color: var(--sem-text, var(--p-text));
   }
   .vote-pill .vote-pill-count {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 500;
     color: var(--sem-accent, var(--p-gold));
+  }
+
+  /* reconnect-banner: s20 上部の接続復旧バー */
+  .reconnect-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 18px;
+    margin: calc(var(--sp-4) * -1) calc(var(--sp-4) * -1) 0;
+    background: rgba(159, 180, 206, 0.08);
+    border-bottom: 1px solid rgba(159, 180, 206, 0.2);
+    font-size: 13.5px;
+    color: #9FB4CE;
+  }
+  .reconnect-diamond {
+    width: 8px;
+    height: 8px;
+    transform: rotate(45deg);
+    background: #9FB4CE;
+    animation: kmMoon 1.6s ease-in-out infinite;
   }
 
   .qr-wrap {
@@ -712,6 +891,23 @@
     width: 176px;
     height: 176px;
   }
+  .qr-note {
+    margin: 0;
+    font-size: 12.5px;
+    letter-spacing: 0.06em;
+    color: rgba(237, 233, 220, 0.55);
+  }
+  .code-block {
+    width: 100%;
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(237, 233, 220, 0.12);
+    text-align: center;
+  }
+  .code-block .room-code {
+    font-size: 30px;
+    justify-content: center;
+  }
 
   .ledger-list {
     display: flex;
@@ -723,17 +919,24 @@
     align-items: center;
     justify-content: flex-start;
     gap: var(--sp-3);
-    min-height: 62px;
+    min-height: 54px;
     padding: 0;
     border-radius: 0;
     border: none;
-    border-bottom: 1px solid rgba(237, 233, 220, 0.07);
+    border-bottom: 1px solid rgba(237, 233, 220, 0.09);
     background: transparent;
+  }
+  .composition-row .comp-diamond {
+    width: 7px;
+    height: 7px;
+    flex: none;
+    transform: rotate(45deg);
+    background: rgba(201, 168, 76, 0.55);
   }
   .composition-row .role-label {
     flex: 1;
     font-family: var(--font-heading);
-    font-size: 14px;
+    font-size: 16px;
     color: var(--sem-text, var(--p-text));
   }
   .composition-row .stepper {
@@ -757,16 +960,266 @@
     font-size: 15px;
   }
   .composition-total {
-    text-align: right;
-    color: rgba(237, 233, 220, 0.45);
-    font-size: 11px;
-    padding: var(--sp-2) 0;
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    color: rgba(237, 233, 220, 0.6);
+    font-size: 14px;
+    padding: 16px 0;
+    border-top: 1px solid rgba(237, 233, 220, 0.12);
   }
   .composition-total .num {
     font-family: var(--font-mono);
-    font-size: 14px;
+    font-size: 20px;
     color: var(--sem-accent, var(--p-gold));
   }
+
+  /* lobby-count: s05 ロビーの「N人 が準備しています」大型カウント */
+  .lobby-count {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 16px;
+    color: rgba(237, 233, 220, 0.66);
+  }
+  .lobby-count-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 30px;
+    color: var(--sem-accent, var(--p-gold));
+    line-height: 1;
+  }
+  .lobby-count-unit {
+    font-family: var(--font-heading);
+    font-size: 19px;
+    color: var(--sem-accent, var(--p-gold));
+  }
+  .lobby-count-label {
+    font-size: 14px;
+  }
+
+  /* council: s14 昼の議論(評議)— 中央寄せ + 大型タイマー */
+  .council {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: var(--sp-2);
+  }
+  .council-timer {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 66px;
+    color: var(--sem-accent, var(--p-gold));
+    letter-spacing: 0.02em;
+    line-height: 1;
+    margin-top: 26px;
+  }
+  .council-track {
+    width: 100%;
+    height: 2px;
+    background: rgba(237, 233, 220, 0.1);
+    margin-top: 14px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .council-track span {
+    display: block;
+    height: 100%;
+    background: var(--sem-accent, var(--p-gold));
+  }
+  .council-remain {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12.5px;
+    color: rgba(237, 233, 220, 0.58);
+    margin-top: 8px;
+  }
+  .council-remain-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .council-prev {
+    width: 100%;
+    margin-top: 34px;
+    background: rgba(237, 233, 220, 0.03);
+    border-left: 2px solid var(--p-morning);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 16px;
+    text-align: left;
+  }
+
+  /* night-grid: s11 夜のアクション — 2列ダイヤカードの対象選択 */
+  .night-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .night-target {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+    min-height: 104px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(159, 180, 206, 0.06), rgba(237, 233, 220, 0.02));
+    border: 1px solid rgba(237, 233, 220, 0.14);
+    padding: 14px 10px;
+    cursor: pointer;
+    transition: box-shadow var(--t-micro), background var(--t-micro);
+  }
+  .night-target.is-selected {
+    background: rgba(159, 180, 206, 0.12);
+    border-color: transparent;
+    box-shadow: inset 0 0 0 1.5px rgba(159, 180, 206, 0.7);
+  }
+  .night-target.is-locked {
+    opacity: 0.55;
+    pointer-events: none;
+  }
+  .night-target-num {
+    width: 36px;
+    height: 36px;
+    transform: rotate(45deg);
+    border: 1px solid rgba(159, 180, 206, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .night-target-numi {
+    transform: rotate(-45deg);
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: rgba(237, 233, 220, 0.72);
+  }
+  .night-target-name {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    color: var(--sem-text, var(--p-text));
+  }
+  .night-target-mark {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 9px;
+    height: 9px;
+    transform: rotate(45deg);
+    background: #9FB4CE;
+    opacity: 0;
+  }
+  .night-target.is-selected .night-target-mark {
+    opacity: 1;
+  }
+
+  /* reveal: 中央寄せの通知/演出画面(s08/s10/s12/s13/s16/s17/s20 共通パターン) */
+  .reveal {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .reveal-eyebrow {
+    font-family: var(--font-eyebrow);
+    font-size: 12.5px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--sem-accent, var(--p-gold));
+    margin-bottom: 22px;
+  }
+  .reveal-title {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 30px;
+    line-height: 1.5;
+    color: var(--sem-text, var(--p-text));
+    margin: 0;
+    white-space: pre-line;
+    letter-spacing: 0.04em;
+  }
+  .reveal-rule {
+    width: 44px;
+    height: 1px;
+    background: var(--sem-accent, var(--p-gold));
+    opacity: 0.6;
+    margin: 26px 0;
+  }
+  .reveal-result {
+    font-size: 15px;
+    line-height: 1.9;
+    color: var(--sem-accent, var(--p-gold));
+    font-weight: 500;
+  }
+  .reveal-line {
+    margin-top: 18px;
+    font-size: 14px;
+    line-height: 1.95;
+    color: rgba(237, 233, 220, 0.66);
+    max-width: 260px;
+    white-space: pre-line;
+  }
+  .reveal-count {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 32px;
+  }
+  .reveal-count-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 58px;
+    color: var(--sem-accent, var(--p-gold));
+    line-height: 1;
+  }
+  .reveal-count-unit {
+    font-family: var(--font-heading);
+    font-size: 31px;
+    color: var(--sem-accent, var(--p-gold));
+  }
+  .reveal-box {
+    width: 100%;
+    margin-top: 20px;
+    background: rgba(237, 233, 220, 0.03);
+    border: 1px solid rgba(237, 233, 220, 0.12);
+    border-radius: 10px;
+    padding: 16px 20px;
+    text-align: left;
+  }
+  .reveal-diamonds {
+    display: flex;
+    gap: 12px;
+    margin-top: 40px;
+  }
+  .reveal-diamonds span {
+    width: 8px;
+    height: 8px;
+    transform: rotate(45deg);
+    background: var(--sem-accent, var(--p-gold));
+  }
+  .reveal-diamonds span:nth-child(2) { opacity: 0.45; }
+  .reveal-diamonds span:nth-child(3) { opacity: 0.2; }
+  /* moon: s10 夜の訪れ */
+  .reveal-moon {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 42% 38%, #d3dae6 0%, #9fb4ce 55%, #6f7f92 100%);
+    box-shadow: 0 0 80px 24px rgba(159, 180, 206, 0.18);
+    margin-bottom: 34px;
+    animation: kmMoon 6s ease-in-out infinite;
+  }
+  @keyframes kmMoon { 0%,100% { opacity: .88; } 50% { opacity: 1; } }
 
   .role-secret-info {
     padding: 12px 16px;
@@ -954,11 +1407,13 @@
     <div class="safe-frame">
 
     <div class="top-bar">
-      <span class="top-bar-title">GEKKA — SHADOWS</span>
-      <button type="button" class="btn btn--quiet" id="opReplayBtn" onclick="playOpeningAnimation()" style="font-size:0.75rem; padding:4px 8px;">🎬 Movie</button>
-      <a href="making.html" class="btn btn--quiet" style="font-size:0.75rem; padding:4px 8px; text-decoration:none;">📜 Making</a>
-      <button type="button" class="btn btn--quiet u-hidden" id="hostAdvanceBtn" onclick="handleHostManualAdvance()">進める</button>
-      <button type="button" class="btn btn--quiet rules-link" id="rulesBtn">ルール</button>
+      <span class="top-bar-title">GEKKA</span>
+      <div class="top-bar-actions">
+        <button type="button" class="btn btn--quiet top-bar-icon" id="opReplayBtn" onclick="playOpeningAnimation()" title="オープニングを再生" aria-label="オープニングを再生">▷</button>
+        <a href="making.html" class="btn btn--quiet top-bar-icon" title="メイキング" aria-label="メイキング">冊</a>
+        <button type="button" class="btn btn--quiet u-hidden" id="hostAdvanceBtn" onclick="handleHostManualAdvance()">進める</button>
+        <button type="button" class="btn btn--quiet rules-link" id="rulesBtn">ルール</button>
+      </div>
     </div>
 
     <div class="conn-banner u-hidden" id="connBanner">接続状態を確認しています。</div>
@@ -980,11 +1435,10 @@
       <section class="screen" id="s01">
         <div class="splash">
           <span class="splash-mark" aria-hidden="true"></span>
-          <div>
-            <h1 class="app-title">月下ノ影</h1>
-            <div class="app-title-en">GEKKA — SHADOWS</div>
-          </div>
-          <p class="app-subtitle">対面のプレイヤーを、<br>記録者が見届ける。</p>
+          <div class="app-title-en">〔 GEKKA — SHADOWS 〕</div>
+          <h1 class="app-title">月下ノ影</h1>
+          <span class="splash-rule" aria-hidden="true"></span>
+          <p class="app-subtitle">文明が途絶えた夜に、卓を囲む。<br>人狼の進行と記録を、ひとつの台帳へ。</p>
         </div>
         <div class="stack" style="width:100%;">
           <button type="button" class="btn btn--primary" onclick="showScreen('s02')">はじめる</button>
@@ -995,23 +1449,17 @@
       <!-- s02: つくる/入る選択 -->
       <section class="screen" id="s02">
         <h2 class="screen-title">部屋を選ぶ</h2>
-        <p class="screen-sub">名簿を開くか、名簿に加わってください。</p>
-        <div class="stack">
-          <button type="button" class="btn option-row" onclick="handleChooseHost()">
-            <span class="diamond" aria-hidden="true"></span>
-            <span class="option-body">
-              <span class="option-title">部屋をつくる</span>
-              <span class="option-sub">区画名簿を開設する</span>
-            </span>
-            <span class="option-chevron" aria-hidden="true">▸</span>
+        <p class="screen-sub">進行役として新しく始めるか、配られた合言葉で参加するか。</p>
+        <div class="opt-cards">
+          <button type="button" class="opt-card is-selected" onclick="handleChooseHost()">
+            <span class="opt-card-tag"><i></i>進行役 / ホスト</span>
+            <span class="opt-card-title">新しくゲームを始める</span>
+            <span class="opt-card-desc">あなたが部屋をつくり、みんなを招待します。</span>
           </button>
-          <button type="button" class="btn option-row" onclick="handleChoosePlayer()">
-            <span class="diamond diamond--outline" aria-hidden="true"></span>
-            <span class="option-body">
-              <span class="option-title">部屋に入る</span>
-              <span class="option-sub">合言葉かQRで名簿に加わる</span>
-            </span>
-            <span class="option-chevron" aria-hidden="true">▸</span>
+          <button type="button" class="opt-card" onclick="handleChoosePlayer()">
+            <span class="opt-card-tag"><i></i>プレイヤー</span>
+            <span class="opt-card-title">友達の部屋に参加する</span>
+            <span class="opt-card-desc">配られた合言葉を入力して入ります。</span>
           </button>
         </div>
       </section>
@@ -1029,77 +1477,86 @@
 
       <!-- s04: 表示名入力 -->
       <section class="screen" id="s04">
-        <h2 class="screen-title">表示名の入力</h2>
-        <p class="screen-sub">この名前が、他のプレイヤーに表示されます。</p>
-        <div class="text-field">
-          <label for="displayNameInput" class="screen-sub" style="margin:0;">名簿に記す名前</label>
-          <input type="text" id="displayNameInput" placeholder="あかり" value="あかり" maxlength="12">
+        <h2 class="screen-title">表示名</h2>
+        <p class="screen-sub">卓に表示される名前を決めてください。</p>
+        <div class="field-block" style="margin-top:var(--sp-6);">
+          <div class="field-eyebrow">表示名</div>
+          <div class="text-field name-field">
+            <input type="text" id="displayNameInput" placeholder="あかり" value="あかり" maxlength="12">
+          </div>
+        </div>
+        <div class="field-block" style="margin-top:var(--sp-6);">
+          <div class="field-eyebrow">目印</div>
+          <div class="marker-row" id="markerRow" role="radiogroup" aria-label="目印">
+            <span class="marker is-selected" role="radio" aria-checked="true"></span>
+            <span class="marker" role="radio" aria-checked="false"></span>
+            <span class="marker" role="radio" aria-checked="false"></span>
+            <span class="marker" role="radio" aria-checked="false"></span>
+            <span class="marker" role="radio" aria-checked="false"></span>
+          </div>
         </div>
         <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="handleS04Next()">この名前で進む</button>
       </section>
 
       <!-- s05: ロビー -->
       <section class="screen" id="s05">
-        <h2 class="screen-title">ロビー</h2>
-        <p class="screen-sub">全員の準備がそろうと開始できます。</p>
-        <div class="waiting-count" style="gap:var(--sp-2);">
-          <span>合言葉</span><span class="num" style="font-size:15px;letter-spacing:0.3em;" id="lobbyRoomCode"></span>
-        </div>
-        <hr class="engraved-rule" style="margin: var(--sp-1) 0;">
-        <div class="ledger-list player-list" id="lobbyPlayerList"></div>
-        <div id="lobbyControls"></div>
+        <h2 class="screen-title">待合の間</h2>
+        <p class="screen-sub">全員の準備が整うのを待っています。</p>
+        <span class="num u-hidden" id="lobbyRoomCode" aria-hidden="true"></span>
+        <div class="ledger-list player-list" id="lobbyPlayerList" style="margin-top:var(--sp-3);"></div>
+        <div id="lobbyControls" style="margin-top:auto;"></div>
       </section>
 
       <!-- s06: GM モード選択 -->
       <section class="screen" id="s06">
-        <h2 class="screen-title">進行役の選択</h2>
-        <p class="screen-sub">誰が進行と判定を担うかを選びます。</p>
+        <h2 class="screen-title">進行の担い手</h2>
+        <p class="screen-sub">この卓の記録者を選んでください。</p>
         <div class="gm-panel" id="gmSeg">
           <button type="button" data-gm="ai" class="gm-row is-selected">
-            <span class="gm-row-diamond" aria-hidden="true"></span>
-            <span class="gm-row-body">
-              <span class="gm-row-title">記録者<span class="gm-row-title-sub">(コンピューターGM)</span></span>
-              <span class="gm-row-desc">進行・判定・夜の記録をすべて担います。</span>
+            <span class="gm-row-head">
+              <span class="gm-row-diamond" aria-hidden="true"></span>
+              <span class="gm-row-title">記録者AI</span>
             </span>
+            <span class="gm-row-desc">進行・判定・夜の記録を、すべて担います。</span>
           </button>
           <button type="button" data-gm="human" class="gm-row">
-            <span class="gm-row-diamond" aria-hidden="true"></span>
-            <span class="gm-row-body">
-              <span class="gm-row-title">人間GM</span>
-              <span class="gm-row-desc">進行役の一人が実況・判定・記録を担当します。</span>
+            <span class="gm-row-head">
+              <span class="gm-row-diamond" aria-hidden="true"></span>
+              <span class="gm-row-title">人間の進行役</span>
             </span>
+            <span class="gm-row-desc">進行は自分で行い、記録だけを任せます。</span>
           </button>
         </div>
         <p class="center-note u-hidden" id="gmDesc" style="text-align:left;"></p>
-        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="showScreen('s07')">次へ</button>
+        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="showScreen('s07')">この記録者で開く</button>
       </section>
 
       <!-- s07: 役職構成 -->
       <section class="screen" id="s07">
         <h2 class="screen-title">役職構成</h2>
-        <p class="screen-sub">推奨構成(8人): 人狼2 / 予言者1 / 騎士団1 / 市民4</p>
+        <p class="screen-sub">卓のバランスを調整します。</p>
         <div class="ledger-list" id="compositionList"></div>
         <div class="composition-total" id="compositionTotal"></div>
-        <button type="button" class="btn btn--primary" onclick="handleS07Next()">この構成で進む</button>
+        <button type="button" class="btn btn--primary" onclick="handleS07Next()">配役を確定する</button>
       </section>
 
-      <!-- s08: 準備確認 -->
-      <section class="screen" id="s08">
-        <div class="splash">
-          <p class="recorder-msg">全員の準備を確かめています。</p>
-          <div class="waiting-count waiting-dot" id="s08Waiting">
-            <span>あと</span><span class="num">3</span><span>人の入力を待っています。</span>
-          </div>
-          <div class="waiting-diamonds" aria-hidden="true"><span></span><span></span><span></span></div>
-          <button type="button" class="btn btn--secondary" onclick="showScreen('s09')">役職を確認する</button>
+      <!-- s08: 配役通知 -->
+      <section class="screen" id="s08" style="--sem-accent:#9FB4CE;">
+        <div class="reveal">
+          <div class="reveal-eyebrow">記録者</div>
+          <h2 class="reveal-title">あなたの役職が
+決定しました</h2>
+          <div class="reveal-diamonds" aria-hidden="true"><span></span><span></span><span></span></div>
+          <span class="waiting-count u-hidden" id="s08Waiting"><span class="num">3</span></span>
         </div>
         <p class="center-note">そろい次第、自動で役職確認へ進みます。</p>
+        <button type="button" class="btn btn--secondary" onclick="showScreen('s09')">役職を確認する</button>
       </section>
 
       <!-- s09: 役職確認 -->
       <section class="screen" id="s09">
-        <h2 class="screen-title">役職確認</h2>
-        <p class="screen-sub">指を離すと、ただちに隠されます。</p>
+        <h2 class="screen-title">役職の確認</h2>
+        <p class="screen-sub">カードを長押ししている間だけ開きます。</p>
         <div class="hold-to-reveal" id="roleHold">
           <div class="card-slot card-slot--hero" id="roleCardSlot"></div>
           <div class="role-secret-info" id="roleSecretInfo"></div>
@@ -1116,14 +1573,17 @@
         <button type="button" class="btn btn--secondary" onclick="handleLiveHostSkip('s10')">夜へ進む</button>
       </section>
 
-      <!-- s10: 一斉暗転 -->
-      <section class="screen" id="s10">
-        <div class="splash">
-          <span class="diamond diamond--sm" style="opacity:0.7;" aria-hidden="true"></span>
-          <p class="recorder-msg" style="line-height:2.1;">まもなく夜が訪れます。<br>端末を伏せ、<br>静かに目を閉じてください。</p>
-          <button type="button" class="btn btn--secondary" onclick="handleInterstitialSkip('s11')">夜の行動へ</button>
+      <!-- s10: 夜の訪れ -->
+      <section class="screen" id="s10" style="--sem-accent:#9FB4CE;">
+        <div class="reveal">
+          <div class="reveal-moon" aria-hidden="true"></div>
+          <div class="reveal-eyebrow">一斉消灯</div>
+          <h2 class="reveal-title" style="font-weight:600;font-size:32px;">夜が訪れました</h2>
+          <p class="reveal-line">記録網が、卓の灯を落とします。
+まもなく夜の行動が始まります。</p>
         </div>
         <p class="center-note">記録者の合図で、自動で進みます。</p>
+        <button type="button" class="btn btn--secondary" onclick="handleInterstitialSkip('s11')">夜の行動へ</button>
       </section>
 
       <!-- s11: 夜の行動 -->
@@ -1131,40 +1591,45 @@
         <div id="nightPanel"></div>
       </section>
 
-      <!-- s12: 共通待機 -->
-      <section class="screen" id="s12">
-        <div class="splash">
-          <p class="recorder-msg">記録者が夜を記録しています。</p>
-          <div class="waiting-count waiting-dot" id="s12Waiting">
-            <span>あと</span><span class="num">5</span><span>人の記録を待っています。</span>
+      <!-- s12: 夜の行動完了 -->
+      <section class="screen" id="s12" style="--sem-accent:#9FB4CE;">
+        <div class="reveal">
+          <div class="reveal-eyebrow">記録者</div>
+          <h2 class="reveal-title" style="font-weight:600;">全員の行動を
+待っています</h2>
+          <div class="reveal-count" id="s12Waiting">
+            <span class="reveal-count-num num">5</span><span class="reveal-count-unit">人</span>
           </div>
-          <div class="waiting-diamonds" aria-hidden="true"><span></span><span></span><span></span></div>
-          <button type="button" class="btn btn--secondary" onclick="handleLiveHostSkip('s13')">朝を待つ</button>
+          <div class="reveal-line" style="margin-top:10px;">が、まだ行動しています</div>
         </div>
-        <p class="center-note">端末を伏せてお待ちください。</p>
+        <p class="center-note">端末を伏せて、静かにお待ちください。</p>
+        <button type="button" class="btn btn--secondary" onclick="handleLiveHostSkip('s13')">朝を待つ</button>
       </section>
 
-      <!-- s13: 朝の発表 -->
+      <!-- s13: 朝の訪れ -->
       <section class="screen" id="s13">
-        <div class="fullscreen-reveal" style="position:relative;inset:auto;background:transparent;padding:var(--sp-4);flex:1;">
-          <div class="center-note" style="letter-spacing:0.3em;color:var(--sem-accent);">朝の記録</div>
-          <p class="victory-banner" style="font-size:26px;">夜が明けました。</p>
-          <hr class="engraved-rule" style="width:44px;margin:0;">
-          <p class="recorder-msg" style="color:var(--sem-accent);font-weight:700;" id="eliminatedName">健太 が、命を落としました。</p>
-          <p class="center-note">昨夜の記録は封じられています。<br>議論で真実に近づいてください。</p>
+        <div class="reveal">
+          <div class="reveal-eyebrow">朝の記録</div>
+          <h2 class="reveal-title" style="font-size:34px;">夜が明けました</h2>
+          <span class="reveal-rule" aria-hidden="true"></span>
+          <div class="reveal-result" id="eliminatedName">健太 が、失われました。</div>
+          <p class="reveal-line">村は静まり返っている。誰の仕業か、まだ分からない。</p>
         </div>
         <button type="button" class="btn btn--primary" onclick="handleInterstitialSkip('s14')">議論へ</button>
       </section>
 
       <!-- s14: 昼の議論 -->
       <section class="screen" id="s14">
-        <h2 class="screen-title">昼の議論</h2>
-        <p class="screen-sub">議論して、人狼を推理してください。</p>
-        <div class="discussion-timer">
-          <div class="countdown" id="discussionCountdown">03:00</div>
-          <div class="track"><span id="discussionBar" style="width:100%;"></span></div>
-          <div class="center-note" style="letter-spacing:0.14em;">残り時間 / 3:00</div>
-          <div style="margin-top:var(--sp-3);padding:var(--sp-2) var(--sp-4);border-left:2px solid rgba(237,233,220,0.2);font-size:12px;line-height:1.9;color:rgba(237,233,220,0.55);text-align:left;">昨夜: 健太 が命を落とした。<br>生存 6 人 / 脱落 2 人</div>
+        <div class="council">
+          <h2 class="screen-title" style="text-align:center;">評議</h2>
+          <p class="screen-sub" style="text-align:center;">昨夜の出来事を話し合ってください。</p>
+          <div class="council-timer" id="discussionCountdown">03:00</div>
+          <div class="council-track"><span id="discussionBar" style="width:76%;"></span></div>
+          <div class="council-remain"><span>残り時間</span><span class="council-remain-num">03:00</span></div>
+          <div class="council-prev">
+            <div class="field-eyebrow" style="margin-bottom:5px;">前夜の記録</div>
+            <div id="s14PrevRecord" style="font-size:14px;color:rgba(237,233,220,0.8);">健太 が失われた</div>
+          </div>
         </div>
         <button type="button" class="btn btn--primary" onclick="handleLiveHostSkip('s15')">投票へ進む</button>
         <p class="center-note">時間が来ると、自動で投票に移ります。</p>
@@ -1193,49 +1658,53 @@
         </div>
       </section>
 
-      <!-- s16: 同票 -->
+      <!-- s16: 同票決選 -->
       <section class="screen" id="s16">
-        <div class="splash">
-          <p class="recorder-msg">得票数が同数のため、<br>決選投票を行います。</p>
-          <div class="stack-row" style="justify-content:center;">
-            <span class="vote-pill">沙耶 <span class="vote-pill-count">3票</span></span>
-            <span class="vote-pill">アキラ <span class="vote-pill-count">3票</span></span>
+        <div class="reveal">
+          <div class="reveal-eyebrow">記録者</div>
+          <h2 class="reveal-title" style="font-weight:600;font-size:29px;">得票が同数でした</h2>
+          <div class="stack-row" style="justify-content:center;margin-top:34px;">
+            <span class="vote-pill">沙耶 <span class="vote-pill-count">3</span></span>
+            <span class="vote-pill">アキラ <span class="vote-pill-count">3</span></span>
           </div>
-          <p class="center-note">決選投票では、この 2 人のみが対象です。</p>
+          <p class="reveal-line">この 2 人のみで、決選投票を行います。</p>
         </div>
         <button type="button" class="btn btn--primary" onclick="handleInterstitialSkip('s15')">決選投票へ</button>
       </section>
 
-      <!-- s17: 処刑結果 -->
+      <!-- s17: 評決・処刑 -->
       <section class="screen" id="s17">
-        <div class="fullscreen-reveal" style="position:relative;inset:auto;background:transparent;padding:var(--sp-4);flex:1;">
-          <div class="center-note" style="letter-spacing:0.3em;color:var(--sem-accent);">評決の記録</div>
-          <p class="victory-banner" style="font-size:26px;">評決が下されました。</p>
-          <hr class="engraved-rule" style="width:44px;margin:0;">
-          <p class="recorder-msg" style="color:var(--sem-accent);font-weight:700;" id="executedName">沙耶 が、処刑されました。</p>
-          <p class="center-note">記録は封じられたまま、夜が近づきます。</p>
+        <div class="reveal">
+          <div class="reveal-eyebrow">評決の記録</div>
+          <h2 class="reveal-title" style="font-size:32px;line-height:1.4;">追放が決まりました</h2>
+          <span class="reveal-rule" aria-hidden="true"></span>
+          <div class="reveal-box" style="max-width:270px;">
+            <div class="field-eyebrow" style="margin-bottom:7px;">評決</div>
+            <div style="font-family:var(--font-heading);font-size:16px;line-height:1.7;color:rgba(237,233,220,0.85);" id="executedName">沙耶 が、処刑されました。</div>
+          </div>
+          <p class="reveal-line">卓は静かに頷いた。真偽は、まだ誰にも分からない。</p>
         </div>
-        <button type="button" class="btn btn--primary" onclick="showScreen('s18')">次へ</button>
+        <button type="button" class="btn btn--primary" onclick="showScreen('s18')">結果を見る</button>
       </section>
 
-      <!-- s18: 勝敗+全役職公開 -->
+      <!-- s18: ゲーム終了・全役職開示 -->
       <section class="screen" id="s18">
-        <div class="fullscreen-reveal" style="position:relative;inset:auto;background:transparent;padding:var(--sp-3);text-align:center;">
-          <div class="center-note" style="letter-spacing:0.3em;color:var(--sem-accent);">終幕の記録</div>
-          <p class="victory-banner">市民陣営の勝利</p>
-          <p class="center-note">人狼をすべて追放しました。</p>
+        <div style="text-align:center;">
+          <div class="reveal-eyebrow" style="margin-bottom:14px;">終幕の記録</div>
+          <h2 class="reveal-title victory-banner" id="s18Title" style="font-size:30px;">市民陣営の勝利</h2>
+          <p class="screen-sub" id="s18Sub" style="text-align:center;margin-top:9px;">すべての正体が明かされます。</p>
         </div>
-        <hr class="engraved-rule">
-        <div class="screen-sub" style="letter-spacing:0.14em;">全役職公開</div>
-        <div class="roster-grid" id="rosterGrid"></div>
-        <button type="button" class="btn btn--primary" onclick="showScreen('s19')">終幕へ</button>
+        <div class="roster-grid" id="rosterGrid" style="margin-top:24px;"></div>
+        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="showScreen('s19')">終幕へ</button>
       </section>
 
       <!-- s19: 再戦 -->
       <section class="screen" id="s19">
-        <div class="splash">
-          <h2 class="screen-title">再戦</h2>
-          <p class="center-note">同じ顔ぶれで、<br>もう一度記録を始めますか。</p>
+        <div class="reveal">
+          <div class="reveal-eyebrow">次の卓へ</div>
+          <h2 class="reveal-title" style="font-weight:600;font-size:29px;">もう一度、囲む</h2>
+          <p class="reveal-line">同じ顔ぶれで、もう一度
+記録を始めますか。</p>
         </div>
         <div class="stack" style="width:100%;">
           <button type="button" class="btn btn--primary" onclick="handleS19Rematch()">同じメンバーで再戦</button>
@@ -1243,21 +1712,24 @@
         </div>
       </section>
 
-      <!-- s20: 再接続 -->
-      <section class="screen" id="s20">
-        <div class="reconnect-overlay" style="position:relative;inset:auto;background:transparent;flex:1;">
-          <div class="waiting-diamonds" aria-hidden="true"><span></span><span></span><span></span></div>
-          <p class="sync-indicator is-reconnecting" style="font-family:var(--font-heading);font-size:15px;color:var(--sem-text);">接続を復旧しています。</p>
-          <div class="recovery-panel" style="width:100%;">
-            <div class="screen-sub" style="letter-spacing:0.14em;">最後に確認した状態</div>
-            <div style="font-family:var(--font-heading);font-weight:700;font-size:14px;color:var(--sem-text);margin-top:6px;">昼の議論 <span style="font-family:var(--font-mono);font-size:13px;color:var(--sem-accent);">残り 02:14</span></div>
-            <p class="center-note" style="text-align:left;margin-top:4px;">再接続すると、評議へ戻れます。</p>
+      <!-- s20: 再接続・復帰 -->
+      <section class="screen" id="s20" style="--sem-accent:#9FB4CE;">
+        <div class="reconnect-banner">
+          <span class="reconnect-diamond" aria-hidden="true"></span>
+          <span>接続を復旧しています</span>
+        </div>
+        <div class="reveal">
+          <h2 class="reveal-title" style="font-weight:600;font-size:28px;">再接続中</h2>
+          <div class="reveal-box">
+            <div class="field-eyebrow" style="margin-bottom:8px;">最後に確認した状態</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="diamond" style="background:#9FB4CE;" aria-hidden="true"></span>
+              <span style="font-size:13.5px;color:rgba(237,233,220,0.85);">昼の議論：残り 02:14 を記録済み</span>
+            </div>
           </div>
         </div>
-        <div class="stack" style="width:100%;">
-          <button type="button" class="btn btn--primary" onclick="showScreen('s14')">復旧して合流する</button>
-          <p class="center-note">復旧できない場合は、自動で再試行します。</p>
-        </div>
+        <p class="center-note">このまま、少しお待ちください。</p>
+        <button type="button" class="btn btn--secondary" onclick="showScreen('s14')">復旧して合流する</button>
       </section>
 
     </div>
@@ -1279,14 +1751,108 @@
 
 <!-- RulesDrawer -->
 <div class="rules-drawer" id="rulesDrawer">
-  <div style="display:flex;justify-content:space-between;align-items:center;">
-    <h2 class="screen-title" style="color:var(--sem-accent);margin:0;">ルール</h2>
-    <button type="button" class="btn btn--quiet" id="rulesCloseBtn">閉じる</button>
+  <div class="rules-drawer-header">
+    <h2 class="screen-title" style="color:var(--sem-accent);margin:0;font-size:18px;">📜 ルール & 役職ガイド</h2>
+    <button type="button" class="btn btn--quiet" id="rulesCloseBtn" style="min-height:36px;padding:4px 12px;">閉じる</button>
   </div>
-  <hr class="engraved-rule">
-  <p class="center-note" style="text-align:left;">夜、特別な役職を持つプレイヤーは一人を選んで行動します。</p>
-  <p class="center-note" style="text-align:left;">昼、生存者全員で議論し、疑わしい一人に投票します。</p>
-  <p class="center-note" style="text-align:left;">人狼をすべて追放すれば市民陣営の勝利、生存者の均衡が崩れれば人狼陣営の勝利です。</p>
+
+  <div class="rules-tab-nav">
+    <button type="button" class="rules-tab-btn is-active" data-tab="rules">進行・ルール</button>
+    <button type="button" class="rules-tab-btn" data-tab="myrole">自分の役職</button>
+    <button type="button" class="rules-tab-btn" data-tab="roles">役職図鑑</button>
+  </div>
+
+  <!-- Tab 1: 進行・ルール -->
+  <div class="rules-tab-panel is-active" id="rulesTabPanelRules">
+    <div class="rules-card-box" style="border-color:var(--sem-accent);">
+      <div class="rules-phase-badge">現在の状況</div>
+      <div style="font-weight:700;font-size:14px;color:var(--sem-text);" id="rulesCurrentPhaseGuide">
+        ゲームの進行状況に合わせてガイドが表示されます。
+      </div>
+    </div>
+
+    <div class="rules-section-title">🌙 1. 夜の行動 (能力行使)</div>
+    <div class="rules-card-box">
+      <p style="font-size:13px;margin:0;line-height:1.5;color:var(--sem-text-dim);">
+        全プレイヤーが一斉にスマートフォンを操作します。<br>
+        能力者（予言者・騎士・人狼など）は対象を選んで行動を決定します。<br>
+        特別な能力がない市民も「待機」操作を行い、周囲に役職がバレないようにします。
+      </p>
+    </div>
+
+    <div class="rules-section-title">☀️ 2. 昼の評議 & 投票</div>
+    <div class="rules-card-box">
+      <p style="font-size:13px;margin:0;line-height:1.5;color:var(--sem-text-dim);">
+        タイマーに合わせて全員で自由議論を行います。<br>
+        議論終了後、生存者全員で追放したい一人を選び投票します。<br>
+        最多票を得たプレイヤーが村から追放されます。
+      </p>
+    </div>
+
+    <div class="rules-section-title">🏆 3. 陣営の勝利条件</div>
+    <div class="rules-card-box">
+      <div style="margin-bottom:8px;">
+        <span class="role-card-badge faction-citizen">市民陣営</span>
+        <span style="font-size:12px;color:var(--sem-text);margin-left:6px;font-weight:bold;">全ての人狼を追放する</span>
+      </div>
+      <div style="margin-bottom:8px;">
+        <span class="role-card-badge faction-werewolf">人狼陣営</span>
+        <span style="font-size:12px;color:var(--sem-text);margin-left:6px;font-weight:bold;">人狼の人数 ≥ 人間の人数 にする</span>
+      </div>
+      <div>
+        <span class="role-card-badge faction-third">第三陣営 (妖狐/狐/他)</span>
+        <span style="font-size:12px;color:var(--sem-text);margin-left:6px;font-weight:bold;">ゲーム終了時に自分が生き残る</span>
+      </div>
+    </div>
+
+    <div class="rules-section-title">❓ よくある質問</div>
+    <div class="rules-card-box">
+      <div class="rules-faq-q">Q. 投票が同数になったら？</div>
+      <div class="rules-faq-a">再投票、または処刑なしで次の夜へ進みます。</div>
+      <div class="rules-faq-q" style="margin-top:10px;">Q. 追放された人は喋れる？</div>
+      <div class="rules-faq-a">死亡したプレイヤーは「遺言」を残した後は議論に参加できません（狼の亡霊を除く）。</div>
+    </div>
+  </div>
+
+  <!-- Tab 2: 自分の役職 -->
+  <div class="rules-tab-panel" id="rulesTabPanelMyrole">
+    <div class="myrole-card-container" id="myroleContainer">
+      <div class="myrole-cover hold-to-reveal" id="myroleCoverArea">
+        <div style="font-size:32px;margin-bottom:8px;">🔒</div>
+        <div style="font-weight:700;font-size:15px;color:var(--sem-text);margin-bottom:4px;">あなたの役職カード</div>
+        <div style="font-size:12px;color:var(--sem-accent);">【長押し】して確認（放すと隠れます）</div>
+      </div>
+      <div id="myroleRevealedContent" style="display:none;padding-top:10px;">
+        <div style="font-size:11px;color:var(--sem-text-dim);" id="myroleFactionLabel">市民陣営</div>
+        <div style="font-size:22px;font-weight:800;color:var(--sem-text);margin:4px 0;" id="myroleNameLabel">市民</div>
+        <div style="font-size:12px;color:var(--sem-accent);margin-bottom:12px;" id="myroleEnLabel">Citizen</div>
+        <hr class="engraved-rule">
+        <div style="text-align:left;font-size:13px;line-height:1.5;color:var(--sem-text);margin-bottom:12px;" id="myroleDescLabel">
+          特別な能力は持たないが、お互いの信頼と鋭い議論によって人狼の正体を見破る主役。
+        </div>
+        <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:10px;text-align:left;">
+          <div style="font-weight:700;font-size:12px;color:var(--sem-accent);margin-bottom:4px;">💡 立ち回りのワンポイント</div>
+          <div style="font-size:12px;color:var(--sem-text-dim);line-height:1.4;" id="myroleAdviceLabel">
+            嘘をつく必要はありません。他のプレイヤーの発言の矛盾を見抜き、素直な考察を述べることで信頼を得ましょう。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: 役職図鑑 (Rolepedia) -->
+  <div class="rules-tab-panel" id="rulesTabPanelRoles">
+    <input type="text" class="role-search-box" id="roleSearchInput" placeholder="🔍 役職名や能力名で検索..." />
+    <div class="role-filter-chips" id="roleFilterChips">
+      <button type="button" class="role-chip is-selected" data-filter="all">すべて</button>
+      <button type="button" class="role-chip" data-filter="citizen">市民陣営</button>
+      <button type="button" class="role-chip" data-filter="werewolf">人狼陣営</button>
+      <button type="button" class="role-chip" data-filter="third">第三陣営</button>
+    </div>
+    <div class="role-card-grid" id="roleCardGrid">
+      <!-- JSで全26役職が生成されます -->
+    </div>
+  </div>
 </div>
 
 <!-- dev drawer (BottomSheet) -->
@@ -1476,15 +2042,6 @@
         desc_en: "Temporarily swaps roles of other players like a magic trick to confuse the direction of the discussion."
     },
     {
-        id: "magician_c",
-        jp: "奇術師 C",
-        en: "Magician C",
-        rubies: ["き", "じゅつ", "し", ""],
-        camp: "citizen",
-        desc_ja: "手品のように他のプレイヤーの役職を一時的に入れ替え、議論の方向性を攪乱する。(カードバリエーション版)",
-        desc_en: "Temporarily swaps roles of other players like a magic trick to confuse the direction of the discussion. (Alternative card version)"
-    },
-    {
         id: "hunter",
         jp: "ハンター",
         en: "Hunter",
@@ -1609,7 +2166,7 @@
       necromancer: { scale: 1.02, x: 0.75, y: 4.2 }, trapper: { scale: 0.96, x: -1, y: 4.28 },
       citizen: { scale: 0.95, x: 2.21, y: 4.91 }, prophet: { scale: 0.95, x: -1.2, y: 2.93 },
       bodyguard: { scale: 0.92, x: -1.25, y: 3.82 }, twins: { scale: 1.24, x: -0.39, y: 3.37 },
-      magician: { scale: 0.9, x: -2.72, y: 0.46 }, magician_c: { scale: 0.86, x: -1.77, y: 0.93 },
+      magician: { scale: 0.9, x: -2.72, y: 0.46 },
       hunter: { scale: 1, x: -0.71, y: 0.72 }, tough_guy: { scale: 1, x: 0, y: 0 }, spy: { scale: 1, x: 0, y: 0 },
       betrayal_twin: { scale: 0.89, x: -0.1, y: 5.32 }, werewolf: { scale: 0.98, x: 0.27, y: 8.16 },
       traitor: { scale: 0.91, x: 1.75, y: 4.57 }, betrayer: { scale: 1, x: 1.57, y: 2.9 },
@@ -2325,23 +2882,21 @@
     const body = document.getElementById('s03Body');
     const countLine = document.getElementById('s03CountLine');
     if (appState.view === 'host') {
-      title.textContent = '区画名簿の開設';
-      sub.textContent = 'QRか合言葉を、参加者に見せてください。';
+      title.textContent = '合言葉';
+      sub.textContent = 'この画面を、卓の全員に見せてください。';
       const codeForDisplay = MODE === 'live' ? (liveCode || '------') : roomCode;
       body.innerHTML =
         '<div class="qr-wrap">' +
           '<div class="qr-panel">' + buildFakeQrSvg(codeForDisplay) + '</div>' +
-          '<div style="display:flex;align-items:baseline;gap:10px;">' +
-            '<span class="screen-sub" style="margin:0;">合言葉</span>' +
-            '<span class="room-code">' + codeForDisplay.split('').join(' ') + '</span>' +
+          '<p class="qr-note">QRを読み取っても参加できます</p>' +
+          '<div class="code-block">' +
+            '<div class="field-eyebrow" style="text-align:center;margin-bottom:8px;">合言葉</div>' +
+            '<div class="room-code">' + codeForDisplay.split('').join(' ') + '</div>' +
           '</div>' +
           '<button type="button" class="btn btn--secondary" id="shareLinkBtn" style="min-height:46px;">共有リンクをコピー</button>' +
         '</div>';
-      if (MODE === 'live') {
-        countLine.innerHTML = '<div class="center-note" id="joinCountLine">参加 <span class="num" id="joinCountNum" style="font-family:var(--font-mono);font-size:inherit;color:var(--sem-accent);">' + (latestPlayers.length || 1) + '</span> 人</div>';
-      } else {
-        countLine.innerHTML = '<div class="center-note" id="joinCountLine">参加 <span class="num" id="joinCountNum" style="font-family:var(--font-mono);font-size:inherit;color:var(--sem-accent);">1</span> / ' + PLAYERS.length + ' 人</div>';
-      }
+      const joinedNum = MODE === 'live' ? (latestPlayers.length || 1) : 1;
+      countLine.innerHTML = '<div class="lobby-count"><span class="lobby-count-num" id="joinCountNum">' + joinedNum + '</span><span class="lobby-count-unit">/ ' + PLAYERS.length + '</span><span class="lobby-count-label">人 が参加</span></div>';
       const shareBtn = document.getElementById('shareLinkBtn');
       shareBtn.addEventListener('click', function () {
         try { navigator.clipboard && navigator.clipboard.writeText('https://example.invalid/join/' + codeForDisplay); } catch (e) { /* file:// では失敗して良い */ }
@@ -2407,7 +2962,7 @@
       });
       const liveControls = document.getElementById('lobbyControls');
       const count = latestPlayers.length;
-      const liveCountLine = '<div class="center-note" style="letter-spacing:0.1em;margin-top:var(--sp-2);">参加 ' + count + ' 人</div>';
+      const liveCountLine = '<div class="lobby-count"><span class="lobby-count-num">' + count + '</span><span class="lobby-count-unit">人</span><span class="lobby-count-label">が参加しています</span></div>';
       if (appState.view === 'host') {
         const canStart = count >= MIN_PLAYERS;
         liveControls.innerHTML =
@@ -2438,7 +2993,7 @@
     });
 
     const controls = document.getElementById('lobbyControls');
-    const countLine = '<div class="center-note" style="letter-spacing:0.1em;margin-top:var(--sp-2);">参加 ' + PLAYERS.length + ' / ' + PLAYERS.length + ' ・ 準備 ' + readyCount + ' / ' + PLAYERS.length + '</div>';
+    const countLine = '<div class="lobby-count"><span class="lobby-count-num">' + readyCount + '</span><span class="lobby-count-unit">人</span><span class="lobby-count-label">が準備しています</span></div>';
     if (appState.view === 'host') {
       controls.innerHTML =
         countLine +
@@ -2478,6 +3033,19 @@
         renderS06();
       });
     });
+    // s04: 目印(マーカー)の選択
+    const markerRow = document.getElementById('markerRow');
+    if (markerRow) {
+      markerRow.querySelectorAll('.marker').forEach(function (m) {
+        m.addEventListener('click', function () {
+          markerRow.querySelectorAll('.marker').forEach(function (x) {
+            const on = x === m;
+            x.classList.toggle('is-selected', on);
+            x.setAttribute('aria-checked', on ? 'true' : 'false');
+          });
+        });
+      });
+    }
   });
 
   /* ===================================================================
@@ -2494,6 +3062,7 @@
       const row = document.createElement('div');
       row.className = 'composition-row';
       row.innerHTML =
+        '<span class="comp-diamond" aria-hidden="true"></span>' +
         '<span class="role-label">' + c.label + '</span>' +
         '<div class="stepper">' +
           '<button type="button" class="btn btn--secondary" data-role="' + c.id + '" data-delta="-1">−</button>' +
@@ -2502,7 +3071,7 @@
         '</div>';
       list.appendChild(row);
     });
-    document.getElementById('compositionTotal').innerHTML = '合計 <span class="num">' + total + '</span> 人 / 参加 ' + PLAYERS.length + ' 人';
+    document.getElementById('compositionTotal').innerHTML = '<span>合計</span><span><span class="num">' + total + '</span> 人 / 参加 ' + PLAYERS.length + ' 人</span>';
     list.querySelectorAll('button').forEach(function (btn) {
       btn.addEventListener('click', function () {
         adjustComposition(btn.dataset.role, parseInt(btn.dataset.delta, 10));
@@ -2701,22 +3270,22 @@
     if (action) {
       const targets = PLAYERS.filter(function (p) { return p.id !== SELF_ID; });
       let optionsHtml = '';
-      targets.forEach(function (p) {
-        optionsHtml += '<div class="target-option" data-pid="' + p.id + '" onclick="selectNightTarget(this)"><span>' + p.name + '</span><span class="status-badge">生存</span></div>';
+      targets.forEach(function (p, i) {
+        optionsHtml += '<div class="night-target" data-pid="' + p.id + '" onclick="selectNightTarget(this)">' +
+          '<span class="night-target-num"><span class="night-target-numi">' + String(i + 1).padStart(2, '0') + '</span></span>' +
+          '<span class="night-target-name">' + p.name + '</span>' +
+          '<span class="night-target-mark" aria-hidden="true"></span>' +
+        '</div>';
       });
       panel.innerHTML =
         '<div style="display:flex;justify-content:space-between;align-items:flex-end;">' +
-          '<div><h2 class="screen-title" style="margin:0;">夜の行動</h2><p class="screen-sub">対象を 1 人選んでください。</p></div>' +
+          '<div><h2 class="screen-title" style="margin:0;">夜の行動</h2></div>' +
           '<div class="countdown" style="font-size:18px;color:var(--p-moonlight);" aria-hidden="true">01:24</div>' +
         '</div>' +
-        '<hr class="engraved-rule">' +
-        '<div style="padding:0 0 var(--sp-2);">' +
-          '<p class="recorder-msg" style="text-align:left;">' + action.question + '</p>' +
-          '<p class="center-note" style="text-align:left;margin-top:var(--sp-2);">確定すると、この夜の選択を変更できません。</p>' +
-        '</div>' +
-        '<div class="target-selector ledger-list">' + optionsHtml + '</div>' +
-        '<button type="button" class="btn btn--primary" id="nightDecideBtn" disabled style="margin-top:var(--sp-3);width:100%;" onclick="confirmNightAction()">' + action.verb + '</button>' +
-        '<p class="center-note">選択は記録者にのみ伝わります。</p>' +
+        '<p style="margin:12px 0 0;font-size:15px;line-height:1.7;color:rgba(237,233,220,0.88);">' + action.question + '</p>' +
+        '<div class="night-grid">' + optionsHtml + '</div>' +
+        '<p class="center-note" style="margin-top:var(--sp-3);">選択は、同じ人狼とだけ共有されます。</p>' +
+        '<button type="button" class="btn btn--secondary night-cta" id="nightDecideBtn" disabled style="width:100%;" onclick="confirmNightAction()">' + action.verb + '</button>' +
         '<div class="inline-notice u-hidden" id="nightRecordedNotice" style="margin-top:var(--sp-3);"></div>';
     } else {
       panel.innerHTML =
@@ -2734,7 +3303,7 @@
   window.selectNightTarget = function (el) {
     if (nightLocked) return;
     const list = el.parentElement;
-    list.querySelectorAll('.target-option').forEach(function (o) { o.classList.remove('is-selected'); });
+    list.querySelectorAll('.night-target, .target-option').forEach(function (o) { o.classList.remove('is-selected'); });
     el.classList.add('is-selected');
     voteSelectedNightTarget = el.dataset.pid;
     document.getElementById('nightDecideBtn').disabled = false;
@@ -2743,7 +3312,7 @@
   window.confirmNightAction = function () {
     if (!voteSelectedNightTarget || nightLocked) return;
     nightLocked = true;
-    document.querySelectorAll('#nightPanel .target-option').forEach(function (o) { o.setAttribute('disabled', 'disabled'); });
+    document.querySelectorAll('#nightPanel .night-target, #nightPanel .target-option').forEach(function (o) { o.classList.add('is-locked'); });
     document.getElementById('nightDecideBtn').disabled = true;
     const notice = document.getElementById('nightRecordedNotice');
     notice.textContent = '選択を記録しました。';
@@ -2810,16 +3379,17 @@
     const list = document.getElementById('voteTargetList');
     list.innerHTML = '';
     if (pub && pub.players) {
-      Object.values(pub.players).forEach(function (p) {
+      Object.values(pub.players).forEach(function (p, idx) {
         const isSelf = p.id === myUid;
         const opt = document.createElement('div');
         opt.className = 'target-option';
         opt.dataset.pid = p.id;
+        const num = '<span class="vote-num">' + String((idx || 0) + 1).padStart(2, '0') + '</span>';
         if (isSelf || !p.alive) {
           opt.setAttribute('disabled', 'disabled');
-          opt.innerHTML = '<span>' + p.displayName + (isSelf ? '(あなた)' : '') + '</span><span class="status-badge">' + (isSelf ? '投票不可' : '脱落') + '</span>';
+          opt.innerHTML = num + '<span class="vote-name">' + p.displayName + (isSelf ? '(あなた)' : '') + '</span><span class="status-badge">' + (isSelf ? '投票不可' : '脱落') + '</span>';
         } else {
-          opt.innerHTML = '<span>' + p.displayName + '</span><span class="status-badge">生存</span>';
+          opt.innerHTML = num + '<span class="vote-name">' + p.displayName + '</span><span class="vote-mark" aria-hidden="true"></span>';
           opt.addEventListener('click', function () { selectLiveVoteTarget(opt); });
         }
         list.appendChild(opt);
@@ -2845,16 +3415,17 @@
     voteLocked = false;
     const list = document.getElementById('voteTargetList');
     list.innerHTML = '';
-    PLAYERS.forEach(function (p) {
+    PLAYERS.forEach(function (p, i) {
       const isSelf = p.id === SELF_ID;
       const opt = document.createElement('div');
       opt.className = 'target-option';
       opt.dataset.pid = p.id;
+      const num = '<span class="vote-num">' + String(i + 1).padStart(2, '0') + '</span>';
       if (isSelf) {
         opt.setAttribute('disabled', 'disabled');
-        opt.innerHTML = '<span>' + p.name + '(あなた)</span><span class="status-badge">投票不可</span>';
+        opt.innerHTML = num + '<span class="vote-name">' + p.name + '(あなた)</span><span class="status-badge">投票不可</span>';
       } else {
-        opt.innerHTML = '<span>' + p.name + '</span><span class="status-badge">生存</span>';
+        opt.innerHTML = num + '<span class="vote-name">' + p.name + '</span><span class="vote-mark" aria-hidden="true"></span>';
         opt.addEventListener('click', function () { selectVoteTarget(opt); });
       }
       list.appendChild(opt);
@@ -2932,8 +3503,8 @@
     const pub = latestPublic;
     if (!pub) return;
     const teams = (pub.winner && pub.winner.teams) || [];
-    const banner = document.querySelector('#s18 .victory-banner');
-    const sub = document.querySelector('#s18 .fullscreen-reveal .center-note');
+    const banner = document.getElementById('s18Title');
+    const sub = document.getElementById('s18Sub');
     if (banner) banner.textContent = teams.map(function (t) { return WINNER_BANNER_BY_TEAM[t] || t; }).join(' / ') || '決着';
     if (sub) sub.textContent = VICTORY_TEXT_BY_CAMP[teams[0]] || '';
     const grid = document.getElementById('rosterGrid');
@@ -2941,18 +3512,36 @@
     Object.values(pub.players)
       .sort(function (a, b) { return (a.displayName || '').localeCompare(b.displayName || '', 'ja'); })
       .forEach(function (p) {
-        const cell = document.createElement('div');
-        cell.className = 'roster-cell';
-        const slot = document.createElement('div');
-        slot.className = 'card-slot';
-        cell.appendChild(slot);
-        const nameEl = document.createElement('div');
-        nameEl.className = 'roster-name';
-        nameEl.textContent = p.displayName + (p.alive ? '' : '(脱落)');
-        cell.appendChild(nameEl);
-        grid.appendChild(cell);
-        if (p.revealedRoleId) renderCardIntoSlot(slot, p.revealedRoleId);
+        grid.appendChild(buildRosterCell(p.revealedRoleId, p.displayName, !p.alive));
       });
+  }
+
+  /* roster mini-card(モック s19 準拠): 透過イラスト + 名前 + 役職 + 陣営色ボーダー */
+  function roleInfoById(id) {
+    for (var i = 0; i < rolesData.length; i += 1) { if (rolesData[i].id === id) return rolesData[i]; }
+    return { id: id, jp: id || '?', camp: 'citizen' };
+  }
+  function rosterFactionColor(camp) {
+    return camp === 'werewolf' ? '#C25B5B' : (camp === 'third' ? '#6F8E86' : '#6E8B6A');
+  }
+  function rosterImgSrc(id) {
+    if (id === 'magician') return '00_transparent-illustrations-72-a-refined/magician_ver_c.png';
+    return '00_transparent-illustrations-72-a-refined/' + id + '_ver_a.png';
+  }
+  function buildRosterCell(roleId, playerName, dead) {
+    const info = roleInfoById(roleId);
+    const fc = rosterFactionColor(info.camp);
+    const cell = document.createElement('div');
+    cell.className = 'roster-cell';
+    cell.innerHTML =
+      '<div class="roster-thumb">' +
+        (roleId ? '<img src="' + rosterImgSrc(roleId) + '" alt="' + (info.jp || '') + '" loading="lazy">' : '') +
+      '</div>' +
+      '<div class="roster-info" style="border-top-color:' + fc + ';">' +
+        '<div class="roster-name">' + (playerName || '') + '</div>' +
+        '<div class="roster-role">' + (info.jp || '') + (dead ? '' : '') + '</div>' +
+      '</div>';
+    return cell;
   }
 
   function renderS18() {
@@ -2961,17 +3550,7 @@
     grid.innerHTML = '';
     PLAYERS.forEach(function (p) {
       const roleId = p.id === SELF_ID ? appState.role : OTHER_ROLE_ASSIGN[p.id];
-      const cell = document.createElement('div');
-      cell.className = 'roster-cell';
-      const slot = document.createElement('div');
-      slot.className = 'card-slot';
-      cell.appendChild(slot);
-      const nameEl = document.createElement('div');
-      nameEl.className = 'roster-name';
-      nameEl.textContent = p.name;
-      cell.appendChild(nameEl);
-      grid.appendChild(cell);
-      renderCardIntoSlot(slot, roleId);
+      grid.appendChild(buildRosterCell(roleId, p.name, false));
     });
   }
 
@@ -3061,16 +3640,209 @@
   }
 
   /* ===================================================================
-     RulesDrawer
+     RulesDrawer & Rolepedia System
      =================================================================== */
+  const ALL_ROLES_MASTER = [
+    { id: "prophet", jp: "予言者", en: "Prophet", camp: "citizen", campName: "市民陣営", desc: "毎夜、生存者の中から一人を選び、「人狼」か「人間」かを識別できます。", advice: "占った結果をいつ村へ報告（CO）するか、状況を見極めて真の予言者として信頼を得ましょう。" },
+    { id: "necromancer", jp: "霊媒師", en: "Necromancer", camp: "citizen", campName: "市民陣営", desc: "毎夜、前日に処刑されたプレイヤーが「人狼」であったか「人間」であったかを知ることができます。", advice: "処刑された人物の真偽を明らかにし、村全体の考察を正しく修正するキーマンです。" },
+    { id: "knights", jp: "騎士団", en: "Knights", camp: "citizen", campName: "市民陣営", desc: "毎夜一人を指定して人狼の襲撃から守ります（自分は守れません）。", advice: "予言者や確定白い人物など、村にとってキーパーソンとなる重要人物を守護しましょう。" },
+    { id: "bodyguard", jp: "ボディガード", en: "Bodyguard", camp: "citizen", campName: "市民陣営", desc: "強靭な肉体で市民を守ります。夜の襲撃から一人を守護します。", advice: "騎士と同様、村の重要役職を死守することで人狼の計画を打ち砕きましょう。" },
+    { id: "trapper", jp: "罠師", en: "Trapper", camp: "citizen", campName: "市民陣営", desc: "指定した場所に罠を仕掛け、人狼が襲撃に来た際に相打ちに持ち込みます。", advice: "人狼が今夜誰を狙うかを予測し、先回りして罠を仕掛けましょう。" },
+    { id: "hunter", jp: "ハンター", en: "Hunter", camp: "citizen", campName: "市民陣営", desc: "処刑または人狼に殺された際、最後の一撃で他のプレイヤー一人を道連れにして死亡します。", advice: "死に際に誰を撃ち抜くかが勝負を決めます。真偽の怪しい人物を狙いましょう。" },
+    { id: "dictator", jp: "独裁者", en: "Dictator", camp: "citizen", campName: "市民陣営", desc: "投票時に自身の正体を明かすことで、その日の追放者を自分一人で決定できます。", advice: "ここぞという土壇場でCOし、議論が混迷した時の絶対的な一手を打ちましょう。" },
+    { id: "double", jp: "影武者", en: "Double", camp: "citizen", campName: "市民陣営", desc: "最初に指定した市民と同じ役職になり、その身代わりとして立ち塞がります。", advice: "自分が身代わりであることを隠し通すことで人狼の狙いを逸らすプレイが有効です。" },
+    { id: "counselor", jp: "カウンセラー", en: "Counselor", camp: "citizen", campName: "市民陣営", desc: "他のプレイヤーの精神を分析し、人狼の恐怖に呑まれかけている者を正常に導きます。", advice: "議論でパニックになっている味方を冷静にサポートしましょう。" },
+    { id: "twins", jp: "共有者", en: "Twins", camp: "citizen", campName: "市民陣営", desc: "もう一人の共有者とお互いが人間であることを最初から知っている二人。", advice: "お互いの白（人間）証明を活用し、村の主導権を握って偽COを追い詰めましょう。" },
+    { id: "tough_guy", jp: "タフガイ", en: "Tough Guy", camp: "citizen", campName: "市民陣営", desc: "人狼に襲撃されてもその夜は死なず、翌日の夜に傷の悪化で遅れて死亡します。", advice: "自分が襲撃されたと分かった昼、全力で残された情報や考察を村に残しましょう。" },
+    { id: "god", jp: "神様", en: "God", camp: "citizen", campName: "市民陣営", desc: "天界から全容を見通す。毎夜、誰が襲撃されたかを神の神託として受け取ります。", advice: "襲撃の全容を把握し、人狼の狙いやラインを正確に解読しましょう。" },
+    { id: "citizen", jp: "市民", en: "Citizen", camp: "citizen", campName: "市民陣営", desc: "特別な能力は持たないが、お互いの信頼と鋭い議論によって人狼を見破る主役。", advice: "他プレイヤーの矛盾を発言から見つけ出し、素直な村目線で積極的に議論を引っ張りましょう。" },
+    { id: "magician", jp: "奇術師", en: "Magician", camp: "citizen", campName: "市民陣営", desc: "手品のように他のプレイヤーの役職を一時的に入れ替え、議論を攪乱します。", advice: "予期せぬ混乱を生む可能性があるため、自身の行動の意図をしっかり計算しましょう。" },
+    { id: "werewolf", jp: "人狼", en: "Werewolf", camp: "werewolf", campName: "人狼陣営", desc: "人間に化けた狼。毎夜一人を選び、襲撃して捕食します。", advice: "昼は市民の振りをして村に馴染み、夜は危険な役職（予言者など）を静かに排除しましょう。" },
+    { id: "ghost_wolf", jp: "狼の亡霊", en: "Ghost Wolf", camp: "werewolf", campName: "人狼陣営", desc: "人数カウントに含まれず、死亡後もゲームから離脱せず議論・投票・襲撃相談に参加可能です。", advice: "死後もゴーストとして発言力を持ち続け、最後まで人狼チームを勝利へ導きましょう。" },
+    { id: "werewolf_child", jp: "人狼の子ども", en: "Werewolf's Child", camp: "werewolf", campName: "人狼陣営", desc: "死亡時、残された人狼たちに強い怒りと力を与え、翌夜の襲撃数を一時的に増やします。", advice: "あえて序盤に追放されることで、残された人狼仲間に強力な複数襲撃の機会を与えられます。" },
+    { id: "lone_wolf", jp: "一匹狼", en: "Lone Wolf", camp: "werewolf", campName: "人狼陣営", desc: "他人狼と会話できないが、独立した単独襲撃を行うことができる人狼。", advice: "他の人狼の動きを読み、補完しあうように狙撃を成功させましょう。" },
+    { id: "betrayer", jp: "裏切り者", en: "Betrayer", camp: "werewolf", campName: "人狼陣営", desc: "人狼陣営の勝利を望む人間。誰が人狼かは知らないが、村を混乱させ処刑へ追い込みます。", advice: "予言者や霊媒師を騙って（騙りCO）、市民の推理を徹底的に邪魔しましょう。" },
+    { id: "traitor", jp: "内通者", en: "Traitor", camp: "werewolf", campName: "人狼陣営", desc: "人間でありながら人狼に内通し、人狼チームの勝利のために議論を誘導します。", advice: "誰が人狼か察しをつけつつ、人間側に不利になるような誘導を行いましょう。" },
+    { id: "spy", jp: "スパイ", en: "Spy", camp: "werewolf", campName: "人狼陣営", desc: "市民陣営の中に紛れ込み、夜の会話をこっそり人狼チームへ送信する情報工作員。", advice: "市民のふりを徹底し、夜の有益な情報を影から人狼へ伝えましょう。" },
+    { id: "betrayal_twin", jp: "裏切りの共有者", en: "Betrayal Twin", camp: "werewolf", campName: "人狼陣営", desc: "共有者のふりをしているが実は人狼陣営。お互いの正体を知る裏切り者の双子。", advice: "共有者として完全に信用された状態で、村の議論を巧みに誤誘導しましょう。" },
+    { id: "mysterious_fox", jp: "妖狐", en: "Mysterious Fox", camp: "third", campName: "第三陣営", desc: "人狼の襲撃では死なないが、予言者に占われると呪殺されます。最後まで生き残れば単独勝利。", advice: "予言者に占われないよう身を潜め、市民対人狼の決着時に生き残っていましょう。" },
+    { id: "android", jp: "アンドロイド", en: "Android", camp: "third", campName: "第三陣営", desc: "全プレイヤーが死亡し、自分だけが生き残ることで単独勝利します。", advice: "人間と人狼を競い合わせ、双方が全滅する最後の1人になるよう立ち回りましょう。" },
+    { id: "lovers", jp: "恋人", en: "Lovers", camp: "third", campName: "第三陣営/市民", desc: "恋に落ちた二人。どちらか一方が死亡した場合、もう片方も即座に死亡します。", advice: "パートナーを死なせないよう互いを庇い合い、最後まで二人で生き残りましょう。" }
+  ];
+
   document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('rulesBtn').addEventListener('click', function () {
-      document.getElementById('rulesDrawer').classList.add('is-open');
+    const rulesBtn = document.getElementById('rulesBtn');
+    const rulesDrawer = document.getElementById('rulesDrawer');
+    const rulesCloseBtn = document.getElementById('rulesCloseBtn');
+
+    if (rulesBtn && rulesDrawer) {
+      rulesBtn.addEventListener('click', function () {
+        rulesDrawer.classList.add('is-open');
+        updateRulesDrawerState();
+      });
+    }
+    if (rulesCloseBtn && rulesDrawer) {
+      rulesCloseBtn.addEventListener('click', function () {
+        rulesDrawer.classList.remove('is-open');
+      });
+    }
+
+    // Rules Drawer Tabs switching
+    const tabBtns = document.querySelectorAll('.rules-tab-btn');
+    const tabPanels = {
+      rules: document.getElementById('rulesTabPanelRules'),
+      myrole: document.getElementById('rulesTabPanelMyrole'),
+      roles: document.getElementById('rulesTabPanelRoles')
+    };
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', function () {
+        const targetTab = this.getAttribute('data-tab');
+        tabBtns.forEach(b => b.classList.remove('is-active'));
+        this.classList.add('is-active');
+
+        Object.keys(tabPanels).forEach(key => {
+          if (tabPanels[key]) {
+            tabPanels[key].classList.toggle('is-active', key === targetTab);
+          }
+        });
+      });
     });
-    document.getElementById('rulesCloseBtn').addEventListener('click', function () {
-      document.getElementById('rulesDrawer').classList.remove('is-open');
-    });
+
+    // Hold to reveal My Role in Rules Drawer
+    const myroleCoverArea = document.getElementById('myroleCoverArea');
+    const myroleRevealedContent = document.getElementById('myroleRevealedContent');
+
+    if (myroleCoverArea && myroleRevealedContent) {
+      const showRole = () => {
+        myroleCoverArea.style.display = 'none';
+        myroleRevealedContent.style.display = 'block';
+      };
+      const hideRole = () => {
+        myroleCoverArea.style.display = 'block';
+        myroleRevealedContent.style.display = 'none';
+      };
+
+      ['mousedown', 'touchstart'].forEach(evt => {
+        myroleCoverArea.addEventListener(evt, (e) => {
+          if (e.type === 'touchstart') e.preventDefault();
+          showRole();
+        });
+      });
+
+      ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(evt => {
+        document.addEventListener(evt, () => {
+          hideRole();
+        });
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) hideRole();
+      });
+    }
+
+    // Rolepedia Directory Rendering & Search / Filter
+    renderRolepedia();
   });
+
+  function updateRulesDrawerState() {
+    // Current phase guide text sync
+    const currentPhaseEl = document.getElementById('phaseTitleText');
+    const phaseGuideEl = document.getElementById('rulesCurrentPhaseGuide');
+    if (currentPhaseEl && phaseGuideEl) {
+      const phaseText = currentPhaseEl.textContent.trim();
+      phaseGuideEl.textContent = `現在は「${phaseText}」フェーズです。制限時間内に議論や行動を行ってください。`;
+    }
+
+    // Sync My Role info if state available
+    if (typeof state !== 'undefined' && state.myRole) {
+      const roleId = state.myRole;
+      const roleData = ALL_ROLES_MASTER.find(r => r.id === roleId) || {
+        jp: state.myRole, en: "Unknown", desc: "自身の役職カードを確認してください。", advice: "議論に貢献しましょう。"
+      };
+      const nameEl = document.getElementById('myroleNameLabel');
+      const enEl = document.getElementById('myroleEnLabel');
+      const descEl = document.getElementById('myroleDescLabel');
+      const adviceEl = document.getElementById('myroleAdviceLabel');
+      const factionEl = document.getElementById('myroleFactionLabel');
+
+      if (nameEl) nameEl.textContent = roleData.jp;
+      if (enEl) enEl.textContent = roleData.en;
+      if (descEl) descEl.textContent = roleData.desc;
+      if (adviceEl) adviceEl.textContent = roleData.advice;
+      if (factionEl) factionEl.textContent = roleData.campName || "役職情報";
+    }
+  }
+
+  function renderRolepedia() {
+    const roleCardGrid = document.getElementById('roleCardGrid');
+    const roleSearchInput = document.getElementById('roleSearchInput');
+    const filterChips = document.querySelectorAll('#roleFilterChips .role-chip');
+
+    if (!roleCardGrid) return;
+
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    const filterAndRender = () => {
+      roleCardGrid.innerHTML = '';
+      const filtered = ALL_ROLES_MASTER.filter(role => {
+        const matchesFilter = (currentFilter === 'all') || (role.camp === currentFilter);
+        const matchesSearch = !searchQuery || 
+          role.jp.includes(searchQuery) || 
+          role.en.toLowerCase().includes(searchQuery.toLowerCase()) || 
+          role.desc.includes(searchQuery);
+        return matchesFilter && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        roleCardGrid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--sem-text-dim);font-size:13px;">該当する役職が見つかりませんでした</div>';
+        return;
+      }
+
+      filtered.forEach(role => {
+        const item = document.createElement('div');
+        item.className = 'role-card-item';
+
+        const factionClass = `faction-${role.camp}`;
+        item.innerHTML = `
+          <div class="role-card-header">
+            <span class="role-card-name">${role.jp} <span style="font-size:11px;opacity:0.7;">(${role.en})</span></span>
+            <span class="role-card-badge ${factionClass}">${role.campName}</span>
+          </div>
+          <div class="role-card-summary">${role.desc}</div>
+          <div class="role-card-detail">
+            <div style="font-weight:700;color:var(--sem-accent);margin-bottom:2px;">💡 立ち回りアドバイス:</div>
+            <div>${role.advice}</div>
+          </div>
+        `;
+
+        item.addEventListener('click', () => {
+          item.classList.toggle('is-expanded');
+        });
+
+        roleCardGrid.appendChild(item);
+      });
+    };
+
+    if (roleSearchInput) {
+      roleSearchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value.trim();
+        filterAndRender();
+      });
+    }
+
+    filterChips.forEach(chip => {
+      chip.addEventListener('click', function () {
+        filterChips.forEach(c => c.classList.remove('is-selected'));
+        this.classList.add('is-selected');
+        currentFilter = this.getAttribute('data-filter');
+        filterAndRender();
+      });
+    });
+
+    filterAndRender();
+  }
 
   /* ===================================================================
      dev drawer — 画面右上 44x44 ホットスポットを 600ms 長押しで開く
