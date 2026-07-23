@@ -155,10 +155,11 @@
   /* -----------------------------------------------------------------
      PC/デスクトップ大画面用 レスポンシブ・かっこいいコンソールレイアウト
      ----------------------------------------------------------------- */
+  /* ===== タブレット & デスクトップ(≥860px): アプリを"端末フレーム"として中央固定表示 ===== */
   @media (min-width: 860px) {
     body {
-      background: #060709 url('design-development/key-visuals/kv_shadow_ruins.png') no-repeat center center fixed !important;
-      background-size: cover !important;
+      background: #060709 url('design-development/key-visuals/kv_shadow_ruins.png') no-repeat center center fixed;
+      background-size: cover;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -169,10 +170,11 @@
       content: "";
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at center, rgba(6, 7, 9, 0.7) 0%, rgba(6, 7, 9, 0.9) 75%, rgba(6, 7, 9, 0.98) 100%),
-                  linear-gradient(to bottom, rgba(6, 7, 9, 0.75) 0%, transparent 50%, rgba(6, 7, 9, 0.92) 100%);
       z-index: 0;
       pointer-events: none;
+      background:
+        radial-gradient(120% 100% at 50% 28%, rgba(6, 7, 9, 0.5) 0%, rgba(6, 7, 9, 0.86) 68%, rgba(6, 7, 9, 0.97) 100%),
+        linear-gradient(180deg, rgba(6, 7, 9, 0.6) 0%, transparent 45%, rgba(6, 7, 9, 0.9) 100%);
     }
 
     .desktop-layout {
@@ -181,76 +183,101 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 36px;
+      gap: 40px;
       width: 100%;
-      max-width: 1120px;
-      padding: 24px;
+      max-width: 1260px;
+      padding: 32px 28px;
     }
 
+    /* 端末フレーム: モバイル比率のデバイスとして固定サイズ・内部スクロール */
+    .app-shell {
+      margin: 0 !important;
+      flex: none;
+      width: 402px;
+      max-width: 402px;
+      height: min(880px, 94vh);
+      min-height: 0 !important;
+      border-radius: 44px;
+      overflow: hidden;
+      border: 1px solid rgba(201, 168, 76, 0.28);
+      box-shadow:
+        0 42px 120px rgba(0, 0, 0, 0.85),
+        0 0 0 9px rgba(18, 16, 22, 0.92),
+        0 0 0 10px rgba(201, 168, 76, 0.12),
+        0 0 80px rgba(201, 168, 76, 0.12);
+    }
+    .safe-frame {
+      height: 100%;
+      min-height: 0 !important;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: none;
+    }
+    .safe-frame::-webkit-scrollbar { width: 0; height: 0; }
+
+    /* サイドバーは広い画面(≥1180px)でのみ表示。タブレットでは端末のみ中央表示 */
+    .desktop-sidebar { display: none; }
+  }
+
+  /* ===== ワイドデスクトップ(≥1180px): コンソール(両サイドバー) ===== */
+  @media (min-width: 1180px) {
     .desktop-sidebar {
-      flex: 1;
-      max-width: 310px;
       display: flex;
+      flex: 1;
+      max-width: 320px;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
       color: #e2e8f0;
+      align-self: stretch;
+      justify-content: center;
     }
-
-    .desktop-sidebar--left {
-      text-align: right;
-    }
-
-    .desktop-sidebar--right {
-      text-align: left;
-    }
+    .desktop-sidebar--left { text-align: left; }
+    .desktop-sidebar--right { text-align: left; }
 
     .desktop-brand-title {
       font-family: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
-      font-size: 2.4rem;
+      font-size: 2.6rem;
       font-weight: 800;
       color: #f8fafc;
-      letter-spacing: 0.12em;
-      text-shadow: 0 0 25px rgba(201, 168, 76, 0.5), 0 2px 10px rgba(0,0,0,0.8);
+      letter-spacing: 0.1em;
+      line-height: 1.2;
+      text-shadow: 0 0 26px rgba(201, 168, 76, 0.45), 0 2px 12px rgba(0,0,0,0.8);
     }
-
     .desktop-brand-sub {
-      font-size: 0.85rem;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
       color: #cfa83c;
-      letter-spacing: 0.22em;
-      margin-top: 4px;
+      letter-spacing: 0.34em;
+      margin-top: 8px;
     }
-
     .desktop-info-panel {
-      background: rgba(17, 19, 23, 0.75);
-      border: 1px solid rgba(201, 168, 76, 0.25);
-      border-radius: 12px;
-      padding: 18px 20px;
+      background: rgba(17, 19, 23, 0.72);
+      border: 1px solid rgba(201, 168, 76, 0.22);
+      border-radius: 16px;
+      padding: 20px 22px;
       backdrop-filter: blur(12px);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.55);
     }
-
     .desktop-info-panel h3 {
       font-family: 'Cinzel', serif;
       font-size: 0.95rem;
       color: #cfa83c;
-      margin-bottom: 8px;
-      letter-spacing: 0.15em;
+      margin-bottom: 10px;
+      letter-spacing: 0.18em;
     }
-
     .desktop-info-panel p {
-      font-size: 0.82rem;
-      line-height: 1.6;
-      color: #94a3b8;
+      font-size: 0.92rem;
+      line-height: 1.8;
+      color: #c7cdd6;
     }
-
-    .app-shell {
-      margin: 0 !important;
-      border-radius: 28px;
-      overflow: hidden;
-      border: 1px solid rgba(201, 168, 76, 0.35);
-      box-shadow: 0 35px 100px rgba(0, 0, 0, 0.9), 0 0 50px rgba(201, 168, 76, 0.18);
-      flex: none;
+    .desktop-info-panel a {
+      display: inline-block;
+      margin-bottom: 6px;
+      color: #E0C87E;
+      font-size: 0.92rem;
+      text-decoration: none;
     }
+    .desktop-info-panel a:hover { color: #fff; }
   }
 
   @media (max-width: 859px) {
@@ -1406,8 +1433,12 @@
       <div class="desktop-brand-sub">GEKKA — SHADOWS</div>
     </div>
     <div class="desktop-info-panel">
-      <h3>WORLD & STORY</h3>
+      <h3>WORLD &amp; STORY</h3>
       <p>崩壊した2026年現代都市の遺構を城壁とする最後の街。人々の中に紛れ込んだ人狼の影を暴け。</p>
+    </div>
+    <div class="desktop-info-panel">
+      <h3>HOW TO PLAY</h3>
+      <p style="margin:0;">① 進行役が部屋をつくる<br>② 各自スマホでQR / 合言葉から参加<br>③ 夜・昼・投票を進行し人狼を暴く<br><span style="color:#8f8878;">この画面はホスト卓・大画面用。プレイは各自の端末で。</span></p>
     </div>
   </div>
 
@@ -1747,6 +1778,7 @@
         <button type="button" class="btn btn--secondary" onclick="showScreen('s14')">復旧して合流する</button>
       </section>
 
+    </div>
     </div>
   </div>
 
