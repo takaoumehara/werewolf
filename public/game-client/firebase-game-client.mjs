@@ -28,6 +28,7 @@ import {
   ref,
   onValue,
   update,
+  push,
   connectDatabaseEmulator,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-database.js";
 import {
@@ -36,7 +37,7 @@ import {
   connectFunctionsEmulator,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-functions.js";
 
-const SUBSCRIPTION_KINDS = ["meta", "players", "public", "self"];
+const SUBSCRIPTION_KINDS = ["meta", "players", "public", "self", "chat"];
 
 function pathForKind(kind, roomId, uid) {
   if (!roomId) return null;
@@ -49,6 +50,8 @@ function pathForKind(kind, roomId, uid) {
       return `rooms/${roomId}/game/public`;
     case "self":
       return uid ? `rooms/${roomId}/game/privateViews/${uid}` : null;
+    case "chat":
+      return `rooms/${roomId}/game/chat`;
     default:
       return null;
   }
@@ -85,6 +88,8 @@ export function createGameClient({ config, useEmulator = false } = {}) {
   const joinSnapRoomFn = httpsCallable(fns, "joinSnapRoom");
   const startWerewolfGameFn = httpsCallable(fns, "startWerewolfGame");
   const dispatchWerewolfCommandFn = httpsCallable(fns, "dispatchWerewolfCommand");
+  const seatAiPlayersFn = httpsCallable(fns, "seatAiPlayers");
+  const advanceAiTurnFn = httpsCallable(fns, "advanceAiTurn");
 
   let currentUid = null;
   let currentRoomId = null;
@@ -111,6 +116,7 @@ export function createGameClient({ config, useEmulator = false } = {}) {
     players: new Map(),
     public: new Map(),
     self: new Map(),
+    chat: new Map(),
   };
 
   function rebind(kind) {
@@ -192,6 +198,30 @@ export function createGameClient({ config, useEmulator = false } = {}) {
     await update(ref(db, `rooms/${currentRoomId}/players/${currentUid}`), { name: displayName });
   }
 
+  async function seatAiPlayers({ count } = {}) {
+    await ready;
+    if (!currentRoomId) throw new Error("roomId is not set yet");
+    const r = await seatAiPlayersFn({ roomId: currentRoomId, count });
+    return r.data;
+  }
+
+  async function advanceAiTurn({ phase } = {}) {
+    await ready;
+    if (!currentRoomId) throw new Error("roomId is not set yet");
+    const r = await advanceAiTurnFn({ roomId: currentRoomId, phase });
+    return r.data;
+  }
+
+  async function postChat(text) {
+    await ready;
+    if (!currentRoomId) throw new Error("roomId is not set yet");
+    const clean = String(text ?? "").trim().slice(0, 200);
+    if (!clean) return;
+    await push(ref(db, `rooms/${currentRoomId}/game/chat`), {
+      authorId: currentUid, authorName: "あなた", text: clean, kind: "human", at: Date.now(),
+    });
+  }
+
   return {
     ready,
     createRoom,
@@ -199,10 +229,14 @@ export function createGameClient({ config, useEmulator = false } = {}) {
     startGame,
     send,
     renameSelf,
+    seatAiPlayers,
+    advanceAiTurn,
+    postChat,
     onMeta: (cb) => subscribe("meta", cb),
     onPlayers: (cb) => subscribe("players", cb),
     onPublic: (cb) => subscribe("public", cb),
     onSelf: (cb) => subscribe("self", cb),
+    onChat: (cb) => subscribe("chat", cb),
     get uid() {
       return currentUid;
     },
