@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><title>viewport fit</title></head>
+<body style="margin:0">
+<!--
+  実機の Safari が動く高さで、各画面の主要ボタンが画面内に残っているかを測る。
+
+  「必要高さ」だけを見ていると、flex で伸び縮みする画面や、内部スクロールを
+  持つ画面を取りこぼす。ここでは実際の documentElement.scrollHeight と、
+  その画面の主要ボタン(.btn--primary の最後)の下端を直接見る。
+
+  結果は #out に、開始/終了マーカーで囲んだ JSON として出す。
+-->
+<iframe id="f" style="border:0"></iframe>
+<pre id="out">FIT_START{"pending":true}FIT_END</pre>
+<script>
+(function () {
+  'use strict';
+  var q = new URLSearchParams(location.search);
+  var W = parseInt(q.get('w') || '393', 10);
+  var H = parseInt(q.get('h') || '690', 10);
+  var f = document.getElementById('f');
+  f.style.width = W + 'px';
+  f.style.height = H + 'px';
+  f.src = '/mobile_app.html?demo=1';
+
+  f.addEventListener('load', function () {
+    var w = f.contentWindow;
+    var d = w.document;
+    (function run() {
+      if (typeof w.showScreen !== 'function') return setTimeout(run, 200);
+      var skip = d.getElementById('op-skip-btn');
+      if (skip) skip.click();
+      var overlay = d.getElementById('opening-overlay');
+      if (overlay) overlay.style.display = 'none';
+
+      var screens = [];
+      d.querySelectorAll('.screen').forEach(function (sec) {
+        w.showScreen(sec.id);
+        var buttons = sec.querySelectorAll('.btn--primary');
+        var cta = buttons.length ? buttons[buttons.length - 1] : null;
+        var bottom = cta ? Math.round(cta.getBoundingClientRect().bottom) : null;
+        screens.push({
+          id: sec.id,
+          docHeight: Math.round(d.documentElement.scrollHeight),
+          ctaBottom: bottom,
+          ctaLabel: cta ? (cta.textContent || '').trim().slice(0, 16) : null,
+          ctaVisible: bottom === null ? true : bottom <= H
+        });
+      });
+
+      // 44pt 未満のタップ対象(画面をひととおり出してから集計する)
+      var small = [];
+      var seen = {};
+      d.querySelectorAll('.screen').forEach(function (sec) {
+        w.showScreen(sec.id);
+        sec.querySelectorAll('button, a, input, [role="button"]').forEach(function (el) {
+          var r = el.getBoundingClientRect();
+          if (r.width === 0 || r.height === 0) return;
+          if (r.height >= 44) return;
+          var key = sec.id + '|' + (el.id || el.className) + '|' + (el.textContent || '').trim().slice(0, 8);
+          if (seen[key]) return;
+          seen[key] = true;
+          small.push({ screen: sec.id, id: el.id || el.className, text: (el.textContent || '').trim().slice(0, 10), h: Math.round(r.height) });
+        });
+      });
+
+      document.getElementById('out').textContent =
+        'FIT_START' + JSON.stringify({ viewport: { w: W, h: H }, screens: screens, smallTargets: small }) + 'FIT_END';
+    })();
+  });
+})();
+</script>
+</body>
+</html>

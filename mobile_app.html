@@ -156,7 +156,9 @@
      PC/デスクトップ大画面用 レスポンシブ・かっこいいコンソールレイアウト
      ----------------------------------------------------------------- */
   /* ===== タブレット & デスクトップ(≥860px): アプリを"端末フレーム"として中央固定表示 ===== */
-  @media (min-width: 860px) {
+  /* pointer:fine を足してタッチ端末を除く。iPhone Pro Max の横向きは 932pt あり、
+     幅だけで判定すると実機が「端末フレーム」に押し込まれて中身が切れる。 */
+  @media (min-width: 860px) and (pointer: fine) {
     body {
       background: #060709 url('design-development/key-visuals/kv_shadow_ruins.png') no-repeat center center fixed;
       background-size: cover;
@@ -195,7 +197,7 @@
       flex: none;
       width: 402px;
       max-width: 402px;
-      height: min(880px, 94vh);
+      height: min(880px, 94dvh);
       min-height: 0 !important;
       border-radius: 44px;
       overflow: hidden;
@@ -481,6 +483,7 @@
     max-width: 252px;
     margin: 0 auto;
   }
+
   /* ルールドロワーの「自分の役職」タブに出す小さめの絵札 */
   .myrole-card-slot {
     max-width: 160px;
@@ -598,7 +601,11 @@
      ----------------------------------------------------------------- */
   .role-picker {
     flex: 1 1 auto;
+    /* .safe-frame は min-height なので、flex だけでは高さが決まらず一覧が
+       伸び切ってしまう。max-height で明示的に頭打ちにして、下の
+       「配役を確定する」を必ず画面内に残す。 */
     min-height: 0;
+    max-height: 52dvh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
@@ -666,10 +673,9 @@
     margin-top: 5px;
   }
   .role-pick-stepper button {
-    /* 44pt には満たないが、隣接する行間 margin を含めた実タップ域で 44pt を確保する。
-       3列グリッドの幅制約下でこれ以上は広げられない。 */
+    /* 幅は3列グリッドの制約で 38px までだが、高さは 44pt を確保する。 */
     min-width: 38px;
-    min-height: 38px;
+    min-height: 44px;
     padding: 0;
     font-size: 17px;
     line-height: 1;
@@ -686,7 +692,7 @@
     gap: 8px;
     margin-bottom: var(--sp-3, 12px);
   }
-  .comp-presets .btn { flex: 1 1 0; min-height: 40px; padding: 8px 6px; font-size: 13px; }
+  .comp-presets .btn { flex: 1 1 0; min-height: 44px; padding: 8px 6px; font-size: 13px; }
 
   /* AI同席コントロール(s05 待合の間) */
   .ai-seat {
@@ -763,8 +769,11 @@
     font-weight: 500;
     font-size: 13px;
     letter-spacing: 0.04em;
-    padding: 8px 12px;
-    min-height: 40px;
+    /* 折り返しを禁じる。393pt 幅では進行役の5ボタンが入りきらず、
+       「進め/る」「ル/ー/ル」と縦に潰れていた。 */
+    white-space: nowrap;
+    padding: 8px 10px;
+    min-height: 44px;
     border-radius: 8px;
     border: 1px solid rgba(237, 233, 220, 0.18);
     background: rgba(237, 233, 220, 0.04);
@@ -1246,13 +1255,14 @@
     font-size: 15px;
   }
   .composition-total {
-    margin-top: auto;
+    /* かつては役職の行が数行しかなく、合計を画面下へ寄せていた。
+       いまは下に一覧と確定ボタンが続くので、auto の余白は空白を生むだけ。 */
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     color: rgba(237, 233, 220, 0.6);
     font-size: 14px;
-    padding: 16px 0;
+    padding: 10px 0;
     border-top: 1px solid rgba(237, 233, 220, 0.12);
   }
   .composition-total .num {
@@ -1661,7 +1671,7 @@
   .card-fullscreen.u-hidden { display: none; }
   .card-fullscreen-slot {
     width: min(92vw, 430px);
-    height: min(78vh, 760px);
+    height: min(78dvh, 760px);
     position: relative;
   }
   /* fitCardToSlot の translate(-50%,-50%) は position:absolute でスロット中心に
@@ -1677,6 +1687,44 @@
     font-size: 12.5px;
     color: rgba(237, 233, 220, 0.65);
     letter-spacing: 0.12em;
+  }
+  /* -----------------------------------------------------------------
+     短いビューポート向けの詰め
+     デザイン確認は 852pt(全画面)で行われたが、実機の Safari はアドレスバーと
+     ツールバーを差し引いた 690〜712pt で動き、そこへ safe-area の 53px が乗る。
+     この差のせいで、役職確認の確定ボタンなど主要な操作が折り返しの下へ沈む。
+     ----------------------------------------------------------------- */
+  @media (max-height: 800px) {
+    .screen { gap: var(--sp-3); }
+    .role-picker { max-height: 44dvh; }
+    .card-slot--hero { max-width: 196px; }
+    .opt-cards { gap: 10px; margin: 2px 0 4px; }
+    .opt-card { padding: 16px 20px; gap: 9px; }
+    .role-secret-info { margin-top: 6px; }
+  }
+  /* 一覧が伸びる画面は、一覧の側をスクロールさせて主要ボタンを画面内に残す。
+     .safe-frame は min-height なので画面全体は伸びうる。max-height で明示的に
+     頭打ちにしないと、確定ボタンが一覧の下へ押し出される。 */
+  @media (max-height: 800px) {
+    #voteTargetList { max-height: 42dvh; overflow-y: auto; overscroll-behavior: contain; }
+    #rosterGrid { max-height: 46dvh; overflow-y: auto; overscroll-behavior: contain; }
+    #lobbyPlayerList { max-height: 34dvh; overflow-y: auto; overscroll-behavior: contain; }
+    #liveNightTargetList { max-height: 38dvh; overflow-y: auto; overscroll-behavior: contain; }
+    .chat-log { max-height: 26dvh; }
+  }
+  @media (max-height: 760px) {
+    .card-slot--hero { max-width: 172px; }
+  }
+  @media (max-height: 700px) {
+    .screen { gap: var(--sp-2); }
+    .card-slot--hero { max-width: 164px; }
+    .role-picker { max-height: 44dvh; }
+    .opt-card { padding: 12px 18px; gap: 7px; }
+    .opt-cards { gap: 8px; }
+    .opt-card-title { font-size: 20px; }
+    .opt-card-desc { font-size: 13px; line-height: 1.5; }
+    .chat-log { max-height: 18dvh; min-height: 96px; }
+    .council-timer { font-size: 34px; }
   }
 </style>
 </head>
@@ -1774,7 +1822,7 @@
       <!-- s02: つくる/入る選択 -->
       <section class="screen" id="s02">
         <h2 class="screen-title">部屋を選ぶ</h2>
-        <p class="screen-sub">進行役として新しく始めるか、配られた合言葉で参加するか。</p>
+        <p class="screen-sub">新しく始めるか、合言葉で参加するか。</p>
         <div class="opt-cards">
           <button type="button" class="opt-card is-selected" onclick="handleChooseHost()">
             <span class="opt-card-tag"><i></i>進行役 / ホスト</span>
@@ -1927,7 +1975,7 @@
           </div>
         </div>
         <button type="button" class="btn btn--primary" id="roleConfirmBtn" disabled onclick="confirmRoleSeen()">確認して閉じる</button>
-        <p class="center-note">画面を伏せると、記録は自動で隠されます。</p>
+        <p class="center-note" id="s09PrivacyNote">画面を伏せると、記録は自動で隠されます。</p>
         <div class="inline-notice u-hidden" id="roleConfirmedNotice">確認しました。もう一度確認するには、上のカードを長押ししてください。</div>
         <button type="button" class="btn btn--secondary" onclick="handleLiveHostSkip('s10')">夜へ進む</button>
       </section>
@@ -2131,7 +2179,7 @@
 <div class="rules-drawer" id="rulesDrawer">
   <div class="rules-drawer-header">
     <h2 class="screen-title" style="color:var(--sem-accent);margin:0;font-size:18px;">📜 ルール & 役職ガイド</h2>
-    <button type="button" class="btn btn--quiet" id="rulesCloseBtn" style="min-height:36px;padding:4px 12px;">閉じる</button>
+    <button type="button" class="btn btn--quiet" id="rulesCloseBtn" style="min-height:44px;padding:4px 14px;">閉じる</button>
   </div>
 
   <div class="rules-tab-nav">
@@ -4223,6 +4271,17 @@
     document.getElementById('roleConfirmedNotice').classList.add('u-hidden');
   }
 
+  /**
+   * s09 の「画面を伏せると〜」は、隣の人から隠すための物理操作の指示。
+   * ひとり用では隠す相手が居らず意味を成さないので、そのときは出さない。
+   */
+  function updateRoleRevealPrivacyNote() {
+    const note = document.getElementById('s09PrivacyNote');
+    if (!note) return;
+    // ひとり用には覗き見の相手が居ないので、この一行は出さない。
+    note.classList.toggle('u-hidden', !!appState.solo);
+  }
+
   window.confirmRoleSeen = function () {
     document.getElementById('roleConfirmedNotice').classList.remove('u-hidden');
     showToast('確認しました。');
@@ -4909,7 +4968,7 @@
       }
       renderComposition();
     }
-    if (id === 's09') { renderS09(); playStinger('reveal'); }
+    if (id === 's09') { renderS09(); updateRoleRevealPrivacyNote(); playStinger('reveal'); }
     if (id === 's10') setPhase('night');
     if (id === 's11') { setPhase('night'); renderS11(); }
     if (id === 's12') setPhase('night'); /* 全員共通の待機画面。役職に依存しない */

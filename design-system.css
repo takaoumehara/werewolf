@@ -410,6 +410,8 @@ body {
   border-color: transparent;
   color: var(--sem-text-dim, var(--p-ash));
   font-weight: 400;
+  /* 「閉じる」は控えめな見た目でも、タップ域は 44pt を下回らせない */
+  min-height: 44px;
 }
 
 .btn--quiet:hover {
@@ -920,7 +922,8 @@ body {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: var(--sp-8);
+  /* ホームインジケータに重ならないよう safe-area を足す */
+  bottom: calc(var(--sp-8) + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   min-height: 40px;
   padding: var(--sp-2) var(--sp-4);
