@@ -2,7 +2,7 @@
 // カード文言は mobile_app.html の rolesData（= card_viewer.html の正本）が出典。
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createGame, dispatch, ROLE_IDS } from "../src/engine.mjs";
+import { createGame, dispatch, toPublicView, ROLE_IDS } from "../src/engine.mjs";
 import { ROLE_DEFINITIONS } from "../src/roles.mjs";
 
 const NOW = 1_000_000;
@@ -232,4 +232,53 @@ test("神様は毎夜、襲撃された相手を神託として受け取る", ()
   const results = state.roleState.privateResults.p1;
   assert.equal(results.at(-1).type, "oracle");
   assert.equal(results.at(-1).targetId, "p4");
+});
+
+/* ---- 公開ビューが画面に必要な数字を持っているか ------------------------ */
+
+test("公開ビューは夜行動を出し終えた人数を持つ", () => {
+  let state = toNight(gameWithExactRoles(["prophet", "knights", "werewolf", "citizen"]));
+  assert.equal(toPublicView(state).pendingActionCount, 0);
+  state = send(state, "p1", "SUBMIT_NIGHT_ACTION", { kind: "divine", targetId: "p3" });
+  assert.equal(toPublicView(state).pendingActionCount, 1);
+  state = send(state, "p2", "SUBMIT_NIGHT_ACTION", { kind: "protect", targetId: "p1" });
+  assert.equal(toPublicView(state).pendingActionCount, 2);
+  state = send(state, "p1", "RESOLVE_NIGHT");
+  assert.equal(toPublicView(state).pendingActionCount, 0, "夜が明けたら数え直す");
+});
+
+test("公開ビューは直前の投票結果(得票数・処刑者)を持つ", () => {
+  let state = toNight(gameWithExactRoles(["citizen", "citizen", "werewolf", "citizen"]));
+  state = send(state, "p1", "RESOLVE_NIGHT");
+  state = send(state, "p1", "START_VOTE");
+  assert.equal(toPublicView(state).lastVote, null, "投票前は結果が無い");
+  state = voteOut(state, "p3");
+  state = send(state, "p1", "RESOLVE_VOTE");
+  const lastVote = toPublicView(state).lastVote;
+  assert.equal(lastVote.executedPlayerId, "p3");
+  assert.equal(lastVote.tied, false);
+  assert.equal(lastVote.counts.p3, 3);
+  assert.equal(lastVote.round, state.round);
+});
+
+test("同票なら、誰が何票で並んだかが公開ビューに残る", () => {
+  let state = toNight(gameWithExactRoles(["citizen", "citizen", "werewolf", "citizen"]));
+  state = send(state, "p1", "RESOLVE_NIGHT");
+  state = send(state, "p1", "START_VOTE");
+  state = send(state, "p1", "CAST_VOTE", { targetId: "p3" });
+  state = send(state, "p2", "CAST_VOTE", { targetId: "p3" });
+  state = send(state, "p3", "CAST_VOTE", { targetId: "p4" });
+  state = send(state, "p4", "CAST_VOTE", { targetId: "p2" });
+  // p3=2, p4=1, p2=1 → 単独最多なので同票ではない
+  let lastVote = toPublicView(send(state, "p1", "RESOLVE_VOTE")).lastVote;
+  assert.equal(lastVote.tied, false);
+
+  state = send(state, "p4", "CAST_VOTE", { targetId: "p2" });
+  state = send(state, "p3", "CAST_VOTE", { targetId: "p2" });
+  // p3=2, p2=2 → 同票
+  lastVote = toPublicView(send(state, "p1", "RESOLVE_VOTE")).lastVote;
+  assert.equal(lastVote.tied, true);
+  assert.equal(lastVote.executedPlayerId, null);
+  assert.equal(lastVote.counts.p2, 2);
+  assert.equal(lastVote.counts.p3, 2);
 });

@@ -481,6 +481,11 @@
     max-width: 252px;
     margin: 0 auto;
   }
+  /* ルールドロワーの「自分の役職」タブに出す小さめの絵札 */
+  .myrole-card-slot {
+    max-width: 160px;
+    margin: 0 auto 12px;
+  }
 
   /* roster(結果画面カード一覧): カード仕立て(C案) × 人数適応大判グリッド(D案)
      - 列数は人数に応じて JS が roster-grid--cols{2,3,4} を付与する
@@ -1930,9 +1935,9 @@
           <h2 class="reveal-title" style="font-weight:600;">全員の行動を
 待っています</h2>
           <div class="reveal-count" id="s12Waiting">
-            <span class="reveal-count-num num">5</span><span class="reveal-count-unit">人</span>
+            <span class="reveal-count-num num" id="s12WaitingNum">0</span><span class="reveal-count-unit">人</span>
           </div>
-          <div class="reveal-line" style="margin-top:10px;">が、まだ行動しています</div>
+          <div class="reveal-line" style="margin-top:10px;">が、行動を終えました</div>
         </div>
         <p class="center-note">端末を伏せて、静かにお待ちください。</p>
         <button type="button" class="btn btn--secondary" onclick="handleLiveHostSkip('s13')">朝を待つ</button>
@@ -1944,7 +1949,7 @@
           <div class="reveal-eyebrow">朝の記録</div>
           <h2 class="reveal-title" style="font-size:34px;">夜が明けました</h2>
           <span class="reveal-rule" aria-hidden="true"></span>
-          <div class="reveal-result" id="eliminatedName">健太 が、失われました。</div>
+          <div class="reveal-result" id="eliminatedName">—</div>
           <p class="reveal-line">村は静まり返っている。誰の仕業か、まだ分からない。</p>
         </div>
         <button type="button" class="btn btn--primary" onclick="handleInterstitialSkip('s14')">議論へ</button>
@@ -1957,10 +1962,10 @@
           <p class="screen-sub" style="text-align:center;">昨夜の出来事を話し合ってください。</p>
           <div class="council-timer" id="discussionCountdown">03:00</div>
           <div class="council-track"><span id="discussionBar" style="width:76%;"></span></div>
-          <div class="council-remain"><span>残り時間</span><span class="council-remain-num">03:00</span></div>
+          <div class="council-remain"><span>残り時間</span><span class="council-remain-num" id="discussionRemainNum">--:--</span></div>
           <div class="council-prev">
             <div class="field-eyebrow" style="margin-bottom:5px;">前夜の記録</div>
-            <div id="s14PrevRecord" style="font-size:14px;color:rgba(237,233,220,0.8);">健太 が失われた</div>
+            <div id="s14PrevRecord" style="font-size:14px;color:rgba(237,233,220,0.8);">—</div>
           </div>
           <div class="chat" id="chatPanel">
             <div class="chat-log" id="chatLog" aria-live="polite" aria-label="議論ログ"></div>
@@ -1986,13 +1991,13 @@
             <h2 class="screen-title" style="margin:0;">投票</h2>
             <p class="screen-sub">処刑する対象に投票してください。</p>
           </div>
-          <div class="countdown" style="font-size:18px;" aria-hidden="true">00:48</div>
+          <div class="countdown" style="font-size:18px;" aria-hidden="true" id="voteCountdown">--:--</div>
         </div>
         <hr class="engraved-rule">
         <div class="inline-notice" style="background:transparent;border:none;padding:0;">一度確定すると、投票を変更できません。</div>
         <div class="vote-ballot" style="border:none;background:transparent;padding:0;">
           <div class="target-selector ledger-list" id="voteTargetList"></div>
-          <div class="center-note" style="letter-spacing:0.1em;">投票済み <span style="font-family:var(--font-mono);color:var(--sem-text);">3</span> / 7</div>
+          <div class="center-note" style="letter-spacing:0.1em;" id="voteProgress">投票済み <span style="font-family:var(--font-mono);color:var(--sem-text);">0</span> / 0</div>
           <button type="button" class="btn btn--primary" id="voteDecideBtn" disabled onclick="openVoteConfirm()">この人に投票する</button>
         </div>
         <div class="status-badge u-hidden" id="voteCompletedBadge" style="justify-content:center;">投票しました</div>
@@ -2008,8 +2013,7 @@
           <div class="reveal-eyebrow">記録者</div>
           <h2 class="reveal-title" style="font-weight:600;font-size:29px;">得票が同数でした</h2>
           <div class="stack-row" style="justify-content:center;margin-top:34px;">
-            <span class="vote-pill">沙耶 <span class="vote-pill-count">3</span></span>
-            <span class="vote-pill">アキラ <span class="vote-pill-count">3</span></span>
+            <!-- 同票で並んだ相手は renderS16Live が実データから入れる -->
           </div>
           <p class="reveal-line">この 2 人のみで、決選投票を行います。</p>
         </div>
@@ -2024,7 +2028,7 @@
           <span class="reveal-rule" aria-hidden="true"></span>
           <div class="reveal-box" style="max-width:270px;">
             <div class="field-eyebrow" style="margin-bottom:7px;">評決</div>
-            <div style="font-family:var(--font-heading);font-size:16px;line-height:1.7;color:rgba(237,233,220,0.85);" id="executedName">沙耶 が、処刑されました。</div>
+            <div style="font-family:var(--font-heading);font-size:16px;line-height:1.7;color:rgba(237,233,220,0.85);" id="executedName">—</div>
           </div>
           <p class="reveal-line">卓は静かに頷いた。真偽は、まだ誰にも分からない。</p>
         </div>
@@ -2178,6 +2182,7 @@
         <div style="font-size:12px;color:var(--sem-accent);" id="myroleCoverHint">【長押し】して確認（放すと隠れます）</div>
       </div>
       <div id="myroleRevealedContent" style="display:none;padding-top:10px;">
+        <div class="card-slot myrole-card-slot" id="myroleCardSlot" aria-hidden="true"></div>
         <div style="font-size:11px;color:var(--sem-text-dim);" id="myroleFactionLabel">市民陣営</div>
         <div style="font-size:22px;font-weight:800;color:var(--sem-text);margin:4px 0;" id="myroleNameLabel">市民</div>
         <div style="font-size:12px;color:var(--sem-accent);margin-bottom:12px;" id="myroleEnLabel">Citizen</div>
@@ -2191,7 +2196,7 @@
             嘘をつく必要はありません。他のプレイヤーの発言の矛盾を見抜き、素直な考察を述べることで信頼を得ましょう。
           </div>
         </div>
-        <button type="button" class="btn btn--secondary" id="myroleFullscreenBtn" style="margin-top:12px;width:100%;display:none;" onclick="openMyRoleCardFullscreen()">カードを全画面で見る</button>
+        <button type="button" class="btn btn--secondary" id="myroleFullscreenBtn" style="margin-top:12px;width:100%;" onclick="openMyRoleCardFullscreen()">カードを全画面で見る</button>
       </div>
     </div>
   </div>
@@ -3342,15 +3347,21 @@
   /* ===================================================================
      本物 QR コード生成（qrcode-generator 優先、SVG/API フォールバック）
      =================================================================== */
+  /**
+   * 合言葉から、実際に入室できる招待URLを組み立てる。
+   * QRと「共有リンクをコピー」は必ず同じものを配ること。
+   */
+  function buildInviteUrl(code) {
+    if (code.startsWith('http://') || code.startsWith('https://')) return code;
+    const origin = (window.location.origin && window.location.origin !== 'null' && window.location.protocol.startsWith('http'))
+      ? window.location.origin
+      : 'https://werewolf-game.web.app';
+    const path = window.location.pathname || '/index.html';
+    return origin + path + '?room=' + encodeURIComponent(code);
+  }
+
   function buildFakeQrSvg(seedText) {
-    let targetUrl = seedText;
-    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
-      const origin = (window.location.origin && window.location.origin !== 'null' && window.location.protocol.startsWith('http'))
-        ? window.location.origin
-        : 'https://werewolf-game.web.app';
-      const path = window.location.pathname || '/index.html';
-      targetUrl = origin + path + '?room=' + encodeURIComponent(seedText);
-    }
+    const targetUrl = buildInviteUrl(seedText);
 
     if (typeof globalThis.qrcode === 'function') {
       try {
@@ -3540,10 +3551,13 @@
           '<button type="button" class="btn btn--secondary" id="shareLinkBtn" style="min-height:46px;">共有リンクをコピー</button>' +
         '</div>';
       const joinedNum = MODE === 'live' ? (latestPlayers.length || 1) : 1;
-      countLine.innerHTML = '<div class="lobby-count"><span class="lobby-count-num" id="joinCountNum">' + joinedNum + '</span><span class="lobby-count-unit">/ ' + PLAYERS.length + '</span><span class="lobby-count-label">人 が参加</span></div>';
+      // 分母は卓の上限。デモ用配列の人数(8)を live 卓に出さない。
+      countLine.innerHTML = '<div class="lobby-count"><span class="lobby-count-num" id="joinCountNum">' + joinedNum + '</span><span class="lobby-count-unit">/ ' + (MODE === 'live' ? MAX_TABLE_SIZE : PLAYERS.length) + '</span><span class="lobby-count-label">人 が参加</span></div>';
       const shareBtn = document.getElementById('shareLinkBtn');
       shareBtn.addEventListener('click', function () {
-        try { navigator.clipboard && navigator.clipboard.writeText('https://example.invalid/join/' + codeForDisplay); } catch (e) { /* file:// では失敗して良い */ }
+        // QR と同じ、実際に入室できるURLを配る(かつては example.invalid を配っていた)
+        const inviteUrl = buildInviteUrl(codeForDisplay);
+        try { navigator.clipboard && navigator.clipboard.writeText(inviteUrl); } catch (e) { /* file:// では失敗して良い */ }
         showToast('リンクをコピーしました。');
       });
       if (MODE === 'live') {
@@ -4191,10 +4205,35 @@
   }
 
   function renderS16Live() {
-    const msg = document.querySelector('#s16 .recorder-msg');
-    if (msg) msg.innerHTML = '得票が同数だったため、<br>処刑は行われませんでした。';
+    const pub = latestPublic;
+    // 同票で並んだ相手と票数を実データから出す。
     const pillRow = document.querySelector('#s16 .stack-row');
-    if (pillRow) pillRow.innerHTML = '';
+    if (pillRow) {
+      pillRow.innerHTML = '';
+      const lastVote = pub && pub.lastVote;
+      if (lastVote && lastVote.counts) {
+        const entries = Object.keys(lastVote.counts).map(function (id) {
+          return { id: id, count: lastVote.counts[id] };
+        }).sort(function (a, b) { return b.count - a.count || a.id.localeCompare(b.id); });
+        const top = entries.length ? entries[0].count : 0;
+        entries.filter(function (e) { return e.count === top; }).forEach(function (e) {
+          const pill = document.createElement('span');
+          pill.className = 'vote-pill';
+          const name = (pub.players && pub.players[e.id]) ? pub.players[e.id].displayName : e.id;
+          pill.textContent = name + ' ';
+          const num = document.createElement('span');
+          num.className = 'vote-pill-count';
+          num.textContent = String(e.count);
+          pill.appendChild(num);
+          pillRow.appendChild(pill);
+        });
+      }
+    }
+    // エンジンに決選投票フェーズは無い。同票のラウンドは処刑なしで昼へ戻る。
+    const line = document.querySelector('#s16 .reveal-line');
+    if (line) line.textContent = '同数のため、この日は処刑を行いません。';
+    const btn = document.querySelector('#s16 .btn--primary');
+    if (btn) btn.textContent = '議論に戻る';
   }
 
   function renderS17Live() {
@@ -4272,25 +4311,64 @@
   /* ===================================================================
      s14: 昼の議論
      =================================================================== */
+  /** 前夜に失われた人を1行にする。誰も死ななかった夜も、そう書く。 */
+  function livePrevNightRecord() {
+    const pub = latestPublic;
+    if (!pub || !pub.players) return '—';
+    const lost = Object.values(pub.players).filter(function (p) {
+      return p.death && p.death.round === pub.round && p.death.cause === 'night_attack';
+    });
+    if (lost.length === 0) return '誰も失われなかった';
+    return lost.map(function (p) { return p.displayName; }).join('、') + ' が失われた';
+  }
+
   function renderS14Live() {
     clearIntervalIfAny();
+    const prev = document.getElementById('s14PrevRecord');
+    if (prev) prev.textContent = livePrevNightRecord();
     function tick() {
       const pub = latestPublic;
       const countdownEl = document.getElementById('discussionCountdown');
+      const remainEl = document.getElementById('discussionRemainNum');
       const bar = document.getElementById('discussionBar');
       if (!pub || pub.deadlineAt == null) {
         if (countdownEl) countdownEl.textContent = '--:--';
+        if (remainEl) remainEl.textContent = '--:--';
         if (bar) bar.style.width = '100%';
         return;
       }
       const remainMs = Math.max(0, pub.deadlineAt - Date.now());
       const remainSec = Math.ceil(remainMs / 1000);
-      if (countdownEl) countdownEl.textContent = formatClock(remainSec);
+      const clock = formatClock(remainSec);
+      if (countdownEl) countdownEl.textContent = clock;
+      // 大きなタイマーと「残り時間」が食い違わないよう、同じ値を入れる。
+      if (remainEl) remainEl.textContent = clock;
       if (bar) bar.style.width = Math.max(0, Math.min(100, (remainSec / 180) * 100)) + '%';
       if (remainMs <= 0) clearIntervalIfAny();
     }
     tick();
     discussionTimerId = setInterval(tick, 1000);
+  }
+
+  /* 投票画面の残り時間と、夜の行動完了人数。どちらも公開データから毎秒引き直す。 */
+  let livePhaseTickerId = null;
+  function startLivePhaseTicker() {
+    if (livePhaseTickerId) return;
+    livePhaseTickerId = setInterval(updateLivePhaseWidgets, 1000);
+  }
+  function updateLivePhaseWidgets() {
+    const pub = latestPublic;
+    const voteClock = document.getElementById('voteCountdown');
+    if (voteClock) {
+      voteClock.textContent = (pub && pub.phase === 'vote' && pub.deadlineAt != null)
+        ? formatClock(Math.max(0, Math.ceil((pub.deadlineAt - Date.now()) / 1000)))
+        : '--:--';
+    }
+    const waitNum = document.getElementById('s12WaitingNum');
+    if (waitNum) {
+      // 誰が出したかは公開されない。出し終えた人数だけを表示する。
+      waitNum.textContent = String((pub && pub.pendingActionCount) || 0);
+    }
   }
 
   function renderS14() {
@@ -4420,6 +4498,15 @@
     const chosen = (liveVoteSelectedId && pub && pub.players) ? pub.players[liveVoteSelectedId] : null;
     if (!chosen || !chosen.alive || liveVoteSelectedId === myUid) liveVoteSelectedId = null;
     applyLiveVoteSelection();
+    // 「投票済み n / m」を実データにする(かつては 3 / 7 の固定値だった)
+    const progressEl = document.getElementById('voteProgress');
+    if (progressEl) {
+      const aliveCount = (pub && pub.players)
+        ? Object.values(pub.players).filter(function (p) { return p.alive; }).length : 0;
+      const voted = (pub && typeof pub.pendingVoteCount === 'number') ? pub.pendingVoteCount : 0;
+      progressEl.innerHTML = '投票済み <span style="font-family:var(--font-mono);color:var(--sem-text);">' +
+        voted + '</span> / ' + aliveCount;
+    }
     document.getElementById('voteCompletedBadge').classList.toggle('u-hidden', !liveVoteLocked);
     document.getElementById('voteDecideBtn').classList.toggle('u-hidden', liveVoteLocked);
     document.getElementById('voteBranchButtons').classList.add('u-hidden');
@@ -4821,11 +4908,13 @@
 
   function updateRulesDrawerState() {
     // Current phase guide text sync
-    const currentPhaseEl = document.getElementById('phaseTitleText');
+    // 上部バーのフェーズ表示は #phTitle。存在しない #phaseTitleText を見ていたため、
+    // ルールの「現在の状況」は初期文のまま一度も更新されなかった。
+    const currentPhaseEl = document.getElementById('phTitle');
     const phaseGuideEl = document.getElementById('rulesCurrentPhaseGuide');
     if (currentPhaseEl && phaseGuideEl) {
       const phaseText = currentPhaseEl.textContent.trim();
-      phaseGuideEl.textContent = `現在は「${phaseText}」フェーズです。制限時間内に議論や行動を行ってください。`;
+      phaseGuideEl.textContent = '現在は「' + phaseText + '」です。制限時間内に議論や行動を行ってください。';
     }
 
     // ソロ対戦向けの「自分の役職」タブ調整: 覗き見リスクがないため
@@ -4839,11 +4928,19 @@
     const fsBtn = document.getElementById('myroleFullscreenBtn');
     if (fsBtn) fsBtn.style.display = appState.solo ? 'block' : 'none';
 
-    // Sync My Role info if state available
-    if (typeof state !== 'undefined' && state.myRole) {
-      const roleId = state.myRole;
-      const roleData = ALL_ROLES_MASTER.find(r => r.id === roleId) || {
-        jp: state.myRole, en: "Unknown", desc: "自身の役職カードを確認してください。", advice: "議論に貢献しましょう。"
+    // 「自分の役職」タブを実際の役職に合わせる。
+    // かつては存在しない変数 `state` を見ていたため条件が常に偽で、
+    // 誰が何を引いてもHTML直書きの市民用の文言が出たままだった。
+    const roleId = currentSelfRoleId();
+    if (roleId) {
+      const master = ALL_ROLES_MASTER.filter(function (r) { return r.id === roleId; })[0];
+      const card = getRole(roleId);
+      const roleData = master || {
+        jp: (card && card.jp) || roleId,
+        en: (card && card.en) || 'Unknown',
+        desc: (card && card.desc_ja) || '自身の役職カードを確認してください。',
+        advice: '議論に貢献しましょう。',
+        campName: card ? campLabel(card.camp) : '役職情報'
       };
       const nameEl = document.getElementById('myroleNameLabel');
       const enEl = document.getElementById('myroleEnLabel');
@@ -4855,7 +4952,9 @@
       if (enEl) enEl.textContent = roleData.en;
       if (descEl) descEl.textContent = roleData.desc;
       if (adviceEl) adviceEl.textContent = roleData.advice;
-      if (factionEl) factionEl.textContent = roleData.campName || "役職情報";
+      if (factionEl) factionEl.textContent = roleData.campName || '役職情報';
+      const slot = document.getElementById('myroleCardSlot');
+      if (slot) renderCardIntoSlot(slot, roleId);
     }
   }
 
@@ -5097,6 +5196,11 @@
     setSelf: function (self) { latestSelf = self; },
     setPlayers: function (players) { latestPlayers = players; },
     renderLobby: renderS05,
+    renderVoteResult: renderS16Live,
+    renderDiscussion: renderS14Live,
+    updateRulesDrawer: updateRulesDrawerState,
+    updatePhaseWidgets: updateLivePhaseWidgets,
+    buildInviteUrl: buildInviteUrl,
     renderVote: renderS15Live,
     renderNight: renderS11Live,
     // ソロ進行ドライバ(E-1 恒久停止 / E-4 二重発火)の検証用。
@@ -5112,6 +5216,8 @@
   };
   setupCompositionPresets();
   setupLobbyAiSeat();
+  // 毎秒の表示更新は、参照する変数がすべて初期化されたここで開始する。
+  if (MODE === 'live') startLivePhaseTicker();
   // 音トグルの初期表示を localStorage の実状態に同期
   updateSoundToggleLabel();
 })();

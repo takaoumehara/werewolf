@@ -253,7 +253,7 @@ export function createGame({ gameId, players, seed = 1, roleIds = [], gmMode = "
       privateResults: {}, lovers, twins: pairMap("twins"), betrayalTwins: pairMap("betrayal_twin"),
       traps: {}, deathShots: {}, wolfRageRound: null, lastExecution: null,
     },
-    pendingActions: {}, pendingVotes: {}, winner: null, history: [], lastAttack: null, eventSequence: 0,
+    pendingActions: {}, pendingVotes: {}, winner: null, history: [], lastAttack: null, lastVote: null, eventSequence: 0,
   };
 }
 
@@ -284,6 +284,7 @@ function rehydratePersistedContainers(state) {
   state.deadlineAt ??= null;
   state.winner ??= null;
   state.lastAttack ??= null;
+  state.lastVote ??= null;
   for (const player of Object.values(state.players ?? {})) {
     player.death ??= null;
     player.flags ??= {};
@@ -404,6 +405,8 @@ export function dispatch(inputState, command) {
         kill(state, targetId, "execution", events, now);
         state.roleState.lastExecution = { playerId: targetId, round: state.round };
       }
+      // 得票は公開情報。画面が「誰が何票で並んだか」を実データで出せるよう残す。
+      state.lastVote = { round: state.round, counts, executedPlayerId, tied };
       state.pendingVotes = {};
       state.phase = "day";
       events.push(event(state, "VOTE_RESOLVED", { executedPlayerId }, now));
@@ -466,6 +469,9 @@ export function toPublicView(state) {
       revealedRoleId: state.phase === "finished" ? player.roleId : (state.revealedRoles?.[id] ?? null),
     }])),
     pendingVoteCount: Object.keys(state.pendingVotes).length,
+    // 誰が出したかは伏せたまま「何人が出し終えたか」だけを公開する。
+    pendingActionCount: Object.keys(state.pendingActions).length,
+    lastVote: state.lastVote ?? null,
     winner: state.winner,
   };
 }

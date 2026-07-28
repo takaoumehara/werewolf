@@ -38,7 +38,8 @@
     return {
       gameId: 'r1', revision: opts.revision, gmMode: 'computer',
       phase: opts.phase || 'vote', round: opts.round, deadlineAt: null,
-      players: players, pendingVoteCount: opts.votes || 0, winner: null
+      players: players, pendingVoteCount: opts.votes || 0,
+      pendingActionCount: opts.actions || 0, lastVote: opts.lastVote || null, winner: null
     };
   }
 
@@ -226,6 +227,75 @@
     });
   }
 
+  // 監査D章「画面に出ている数字や名前が実データではない」の回帰。
+  function runTruthfulDisplay(w, hooks) {
+    var d = w.document;
+    w.liveClient = { uid: 'p1' };
+
+    // 自分の役職タブ — かつては誰が何を引いても「市民」固定だった
+    hooks.setSelf({ id: 'p1', displayName: 'あなた', roleId: 'trapper', alive: true, pendingAction: null });
+    hooks.updateRulesDrawer();
+    check('「自分の役職」が実際に配られた役職になる',
+      d.getElementById('myroleNameLabel').textContent === '罠師',
+      d.getElementById('myroleNameLabel').textContent);
+    check('立ち回りの助言もその役職のものになる',
+      d.getElementById('myroleAdviceLabel').textContent.indexOf('罠') !== -1,
+      d.getElementById('myroleAdviceLabel').textContent);
+    check('「自分の役職」タブにも絵札が出る',
+      !!d.querySelector('#myroleCardSlot .card-wrapper'));
+
+    // 投票済み n / m
+    var pub = publicView({ round: 2, revision: 800, phase: 'vote', votes: 2, dead: ['ai3'] });
+    hooks.setPublic(pub);
+    hooks.renderVote();
+    check('「投票済み」が実データになる',
+      d.getElementById('voteProgress').textContent.replace(/\s/g, '') === '投票済み2/3',
+      d.getElementById('voteProgress').textContent);
+
+    // 投票の残り時間
+    pub.deadlineAt = Date.now() + 45000;
+    hooks.setPublic(pub);
+    hooks.updatePhaseWidgets();
+    check('投票画面の残り時間が動く',
+      /^00:4[0-9]$/.test(d.getElementById('voteCountdown').textContent),
+      d.getElementById('voteCountdown').textContent);
+
+    // 夜に行動を終えた人数
+    hooks.setPublic(publicView({ round: 2, revision: 801, phase: 'night', actions: 3 }));
+    hooks.updatePhaseWidgets();
+    check('夜に行動を終えた人数が実データになる',
+      d.getElementById('s12WaitingNum').textContent === '3',
+      d.getElementById('s12WaitingNum').textContent);
+
+    // 同票の表示
+    var tie = publicView({ round: 2, revision: 802, phase: 'day' });
+    tie.lastVote = { round: 2, counts: { ai1: 2, ai2: 2, p1: 1 }, executedPlayerId: null, tied: true };
+    hooks.setPublic(tie);
+    hooks.renderVoteResult();
+    var pills = d.querySelectorAll('#s16 .vote-pill');
+    check('同票で並んだのは実際の2人', pills.length === 2, String(pills.length));
+    check('同票の名前が実データ',
+      pills.length === 2 && /虎鉄/.test(pills[0].textContent) && /凛/.test(pills[1].textContent),
+      pills.length ? pills[0].textContent + '|' + pills[1].textContent : '');
+    check('同票の票数が実データ',
+      pills.length === 2 && pills[0].querySelector('.vote-pill-count').textContent === '2');
+
+    // 前夜の記録
+    var morning = publicView({ round: 3, revision: 803, phase: 'day' });
+    morning.players.ai2.alive = false;
+    morning.players.ai2.death = { round: 3, cause: 'night_attack' };
+    hooks.setPublic(morning);
+    hooks.renderDiscussion();
+    check('前夜の記録が実際に失われた人になる',
+      d.getElementById('s14PrevRecord').textContent.indexOf('凛') !== -1,
+      d.getElementById('s14PrevRecord').textContent);
+
+    // 招待リンク
+    var invite = hooks.buildInviteUrl('K7M2Q9');
+    check('共有リンクが実際に入室できるURLになる',
+      invite.indexOf('example.invalid') === -1 && invite.indexOf('?room=K7M2Q9') !== -1, invite);
+  }
+
   function run(w) {
     var hooks = w.__liveRenderTestHooks;
     check('テストフックが公開されている', !!hooks);
@@ -323,6 +393,7 @@
       !d.getElementById('liveNightRecordedNotice').classList.contains('u-hidden'));
 
     runRolePicker(w);
+    runTruthfulDisplay(w, hooks);
 
     runTableModes(w, hooks)
       .then(function () { return runHostDriver(w, hooks); })
