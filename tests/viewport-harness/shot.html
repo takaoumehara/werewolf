@@ -1,0 +1,53 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+  html,body{margin:0;background:#1a1a1a;font:12px -apple-system,sans-serif;color:#888}
+  .label{padding:4px 8px}
+  iframe{border:0;display:block;box-shadow:0 0 0 1px #444}
+</style>
+</head>
+<body>
+<div class="label" id="lab">loading…</div>
+<iframe id="fr"></iframe>
+<script>
+  const q = new URLSearchParams(location.search);
+  const screenId = q.get('s') || 's01';
+  const W = parseInt(q.get('w') || '393', 10);
+  const H = parseInt(q.get('h') || '852', 10);
+  const fr = document.getElementById('fr');
+  fr.style.width = W + 'px';
+  fr.style.height = H + 'px';
+  document.getElementById('lab').textContent = screenId + ' @ ' + W + 'x' + H;
+  fr.src = '/mobile_app.html?demo=1';
+  fr.addEventListener('load', function () {
+    const w = fr.contentWindow;
+    function drive() {
+      try {
+        if (typeof w.showScreen !== 'function') { setTimeout(drive, 200); return; }
+        // オープニング演出を確実に消す
+        const skip = w.document.getElementById('op-skip-btn');
+        if (skip) skip.click();
+        const ov0 = w.document.getElementById('opening-overlay');
+        if (ov0) ov0.style.display = 'none';
+        w.showScreen(screenId);
+        // open overlays on request
+        const ov = q.get('overlay');
+        if (ov === 'rules') {
+          const d = w.document.getElementById('rulesDrawer');
+          if (d) d.classList.add('is-open');
+          const tab = q.get('tab');
+          if (tab) {
+            const btn = w.document.querySelector('.rules-tab-btn[data-tab="' + tab + '"]');
+            if (btn) btn.click();
+          }
+        } else if (ov === 'making' && typeof w.openMakingModal === 'function') {
+          w.openMakingModal();
+        }
+        document.getElementById('lab').textContent = screenId + ' @ ' + W + 'x' + H + ' — ready';
+      } catch (e) {
+        document.getElementById('lab').textContent = 'ERR: ' + e.message;
+      }
+    }
+    drive();
+  });
+</script>
+</body></html>

@@ -27,7 +27,16 @@
             "$uid": {
               ".read": "auth != null && auth.uid === $uid"
             }
+          },
+          "chat": {
+            ".read": "auth != null && root.child('roomMembers').child($roomId).child(auth.uid).val() === true",
+            "$msgId": {
+              ".write": "auth != null && root.child('roomMembers').child($roomId).child(auth.uid).val() === true && (!data.exists() || data.child('authorId').val() === auth.uid) && newData.child('authorId').val() === auth.uid"
+            }
           }
+        },
+        "aiPlayers": {
+          ".read": "auth != null && root.child('roomMembers').child($roomId).child(auth.uid).val() === true"
         }
       }
     }

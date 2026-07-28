@@ -9,9 +9,14 @@ firebase-debug.log
 functions/node_modules/
 GeminiAPKEY.md
 kie-ai-API.md
+APIKEYS.md
 **/serviceAccount*.json
 claude-design/project/uploads/
 claude-design/project/assets/
+# 132MB の素材スクラッチ(動画・スクショ)。成果は design/ と docs/ に正本を置く
+claude-design2/
+# 使い捨ての画面ドライバ。正式版は tests/viewport-harness/ を使う
+drv_*.html
 tmp/
 tmp/ui-shots/
 .superpowers/
@@ -19,4 +24,8 @@ tmp/ui-shots/
 # Archiving
 _archive/
 _archieve/
+
+# Cloud Functions local secrets (never commit real or dummy API keys)
+functions/.secret.local
+**/.secret.local
 

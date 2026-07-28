@@ -1,0 +1,105 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>measure</title></head>
+<body style="margin:0">
+<iframe id="fr" style="border:0" src="/mobile_app.html?demo=1"></iframe>
+<pre id="out">PENDING</pre>
+<script>
+const q = new URLSearchParams(location.search);
+const W = parseInt(q.get('w') || '393', 10);
+// iPhone 15 Pro: 852pt 全体。Safari のアドレスバー+下部ツールバーを引いた実効可視高さ
+const H = parseInt(q.get('h') || '852', 10);
+const fr = document.getElementById('fr');
+fr.style.width = W + 'px';
+fr.style.height = H + 'px';
+
+fr.addEventListener('load', () => {
+  const w = fr.contentWindow, d = w.document;
+  function run() {
+    if (typeof w.showScreen !== 'function') return setTimeout(run, 200);
+    const skip = d.getElementById('op-skip-btn'); if (skip) skip.click();
+    const ov = d.getElementById('opening-overlay'); if (ov) ov.style.display = 'none';
+
+    const report = { viewport: { w: W, h: H }, screens: [], smallTargets: [], overflowX: [] };
+
+    // --- 各画面の必要高さ（min-height:100vh に頭打ちされないよう実コンテンツで測る）---
+    d.querySelectorAll('.screen').forEach(sec => {
+      w.showScreen(sec.id);
+      const secTop = sec.getBoundingClientRect().top;
+      const cs = w.getComputedStyle(sec);
+      let maxBottom = secTop;
+      sec.querySelectorAll('*').forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.height === 0 && r.width === 0) return;
+        if (w.getComputedStyle(el).position === 'fixed') return;
+        if (r.bottom > maxBottom) maxBottom = r.bottom;
+      });
+      const padB = parseFloat(cs.paddingBottom) || 0;
+      // top-bar は fixed/sticky なので別枠で加算する
+      const topBar = d.querySelector('.top-bar');
+      const tb = topBar ? Math.round(topBar.getBoundingClientRect().height) : 0;
+      const need = (maxBottom - secTop) + padB;
+      report.screens.push({
+        id: sec.id,
+        need: Math.round(need),
+        topBarH: tb,
+        // Safari実効可視高さ 712pt を基準に判定
+        fits852: need <= 852,
+        fits712: need <= 712,
+        over712: Math.max(0, Math.round(need - 712))
+      });
+      // 横オーバーフロー
+      if (sec.scrollWidth > W + 1) {
+        report.overflowX.push({ id: sec.id, scrollWidth: Math.round(sec.scrollWidth) });
+      }
+    });
+
+    // --- タップターゲット < 44px ---
+    w.showScreen('s02');
+    const sel = 'button, a, input, [role="button"], [onclick]';
+    const seen = new Set();
+    d.querySelectorAll('.screen').forEach(sec => {
+      w.showScreen(sec.id);
+      d.querySelectorAll(sel).forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 && r.height === 0) return;
+        const key = (el.id || '') + '|' + (el.className || '') + '|' + (el.textContent || '').trim().slice(0, 18);
+        if (seen.has(key)) return;
+        if (r.width < 44 || r.height < 44) {
+          seen.add(key);
+          report.smallTargets.push({
+            screen: sec.id,
+            tag: el.tagName.toLowerCase(),
+            id: el.id || null,
+            cls: (typeof el.className === 'string' ? el.className : '') || null,
+            text: (el.textContent || '').trim().slice(0, 18),
+            w: Math.round(r.width), h: Math.round(r.height)
+          });
+        }
+      });
+    });
+
+    // --- 「部屋を選ぶ」s02 の高さ内訳 ---
+    w.showScreen('s02');
+    const s02 = d.getElementById('s02');
+    const breakdown = [];
+    if (s02) {
+      s02.querySelectorAll(':scope > *').forEach(el => {
+        const r = el.getBoundingClientRect();
+        const cs = w.getComputedStyle(el);
+        breakdown.push({
+          tag: el.tagName.toLowerCase(),
+          cls: (typeof el.className === 'string' ? el.className : '').slice(0, 40),
+          text: (el.textContent || '').trim().slice(0, 24),
+          h: Math.round(r.height),
+          mt: cs.marginTop, mb: cs.marginBottom
+        });
+      });
+    }
+    report.s02Breakdown = breakdown;
+
+    w.showScreen('s02');
+    document.getElementById('out').textContent = 'RESULT_START' + JSON.stringify(report, null, 1) + 'RESULT_END';
+  }
+  run();
+});
+</script>
+</body></html>

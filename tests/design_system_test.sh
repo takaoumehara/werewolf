@@ -21,5 +21,6 @@ check "prefers-reduced-motion" "reduced motion support"
 if grep -A40 '^:root' design-system.css | grep -q 'secret-faction'; then
   echo "FAIL: secret token leaked into :root"; FAIL=1
 fi
+node tests/contrast_check.mjs || FAIL=1
 [ $FAIL -eq 0 ] && echo "OK: design_system_test passed"
 exit $FAIL

@@ -101,7 +101,7 @@ body[data-phase="day"] {
   --sem-bg: #0E0C12;
   --sem-bg-elevated: #14121A;
   --sem-text: #EDE9DC;
-  --sem-text-dim: rgba(237, 233, 220, 0.64);
+  --sem-text-dim: rgba(237, 233, 220, 0.75);
   --sem-line: rgba(237, 233, 220, 0.12);
   --sem-accent: var(--p-gold);
   --sem-glow: rgba(201, 168, 76, 0.16);
@@ -112,7 +112,7 @@ body[data-phase="night"] {
   --sem-bg: #0B0A10;
   --sem-bg-elevated: #14121A;
   --sem-text: #EDE9DC;
-  --sem-text-dim: rgba(237, 233, 220, 0.64);
+  --sem-text-dim: rgba(237, 233, 220, 0.75);
   --sem-line: rgba(237, 233, 220, 0.12);
   --sem-accent: var(--p-moonlight);
   --sem-glow: rgba(159, 180, 206, 0.15);
@@ -123,7 +123,7 @@ body[data-phase="dawn"] {
   --sem-bg: #131009;
   --sem-bg-elevated: #1C160D;
   --sem-text: #EDE9DC;
-  --sem-text-dim: rgba(237, 233, 220, 0.64);
+  --sem-text-dim: rgba(237, 233, 220, 0.75);
   --sem-line: rgba(237, 233, 220, 0.12);
   --sem-accent: var(--p-morning);
   --sem-glow: rgba(217, 199, 160, 0.16);
@@ -134,7 +134,7 @@ body[data-phase="verdict"] {
   --sem-bg: #110D0D;
   --sem-bg-elevated: #1C1414;
   --sem-text: #EDE9DC;
-  --sem-text-dim: rgba(237, 233, 220, 0.64);
+  --sem-text-dim: rgba(237, 233, 220, 0.75);
   --sem-line: rgba(237, 233, 220, 0.12);
   --sem-accent: var(--p-gold);
   --sem-glow: rgba(201, 168, 76, 0.2);
@@ -145,7 +145,7 @@ body[data-phase="finished"] {
   --sem-bg: #0E0C12;
   --sem-bg-elevated: #14121A;
   --sem-text: #EDE9DC;
-  --sem-text-dim: rgba(237, 233, 220, 0.64);
+  --sem-text-dim: rgba(237, 233, 220, 0.75);
   --sem-line: rgba(237, 233, 220, 0.12);
   --sem-accent: var(--p-gold);
   --sem-glow: rgba(201, 168, 76, 0.18);
@@ -268,14 +268,14 @@ body {
   font-weight: 600;
   font-size: 10px;
   letter-spacing: 0.4em;
-  color: rgba(237, 233, 220, 0.45);
+  color: rgba(237, 233, 220, 0.72);
 }
 
 .btn.rules-link {
   font-family: var(--font-body);
   font-weight: 400;
   font-size: 12px;
-  color: rgba(237, 233, 220, 0.5);
+  color: rgba(237, 233, 220, 0.72);
   min-width: auto;
   padding: 0 var(--sp-2);
   border: none;
@@ -420,6 +420,21 @@ body {
   background: var(--p-danger);
   border-color: var(--p-danger);
   color: var(--p-text);
+}
+
+/* フォーカス可視化（WCAG 2.2 SC 2.4.11/2.4.13） */
+.btn:focus-visible,
+.opt-card:focus-visible,
+.gm-row:focus-visible,
+.rules-tab-btn:focus-visible,
+.role-chip:focus-visible,
+.target-option:focus-visible,
+.stepper-btn:focus-visible,
+.chat-chip:focus-visible,
+.chat-input:focus-visible,
+.seg-control > button:focus-visible {
+  outline: 3px solid var(--sem-accent, var(--p-moonlight));
+  outline-offset: 2px;
 }
 
 /* btn--hold: 長押し進捗リング/バー。--hold-progress(0〜1) を JS 側で更新する */
@@ -613,7 +628,7 @@ body {
   width: 20px;
   font-family: var(--font-mono);
   font-size: 13.5px;
-  color: rgba(237, 233, 220, 0.55);
+  color: rgba(237, 233, 220, 0.7);
 }
 .target-option .vote-name {
   position: relative;
@@ -629,7 +644,7 @@ body {
   width: 8px;
   height: 8px;
   transform: rotate(45deg);
-  border: 1px solid rgba(237, 233, 220, 0.35);
+  border: 1px solid rgba(237, 233, 220, 0.5);
   box-sizing: border-box;
 }
 
@@ -1019,7 +1034,7 @@ body {
   width: 18px;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: rgba(237, 233, 220, 0.35);
+  color: rgba(237, 233, 220, 0.6);
 }
 
 .player-row .name {
@@ -1360,7 +1375,7 @@ body {
 .role-chip {
   flex-shrink: 0;
   padding: 9px 16px;
-  min-height: 40px;
+  min-height: var(--tap-min);
   border-radius: 20px;
   font-size: 13.5px;
   font-weight: 700;
@@ -1508,6 +1523,26 @@ body {
 .role-card-item.is-expanded .role-card-detail {
   display: block;
 }
+
+/* チャット（AI議論） */
+.chat { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-3); flex: 1; min-height: 0; }
+.chat-log { flex: 1; min-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-2); }
+.chat-bubble { max-width: 82%; padding: 10px 12px; border-radius: 14px; font-size: 15px; line-height: 1.55;
+  background: var(--sem-bg-elevated, var(--p-surface)); color: var(--sem-text, var(--p-text));
+  border: 1px solid var(--sem-line, var(--p-line)); animation: chatIn var(--t-micro, 160ms) var(--ease-standard, ease); }
+.chat-bubble--ai { align-self: flex-start; border-color: var(--sem-accent, var(--p-moonlight)); }
+.chat-bubble--human { align-self: flex-end; background: var(--sem-accent, var(--p-moonlight)); color: var(--p-soot); }
+.chat-bubble .chat-author { display: block; font-size: 12px; font-weight: 700; margin-bottom: 2px; color: var(--sem-accent, var(--p-moonlight)); }
+.chat-bubble--human .chat-author { color: var(--p-soot); }
+.chat-quick { display: flex; gap: var(--sp-2); }
+.chat-chip { min-height: var(--tap-min); padding: 8px 16px; border-radius: 20px; font-weight: 700;
+  background: transparent; color: var(--sem-text, var(--p-text)); border: 1px solid var(--sem-accent, var(--p-moonlight)); cursor: pointer; }
+.chat-input-bar { display: flex; gap: var(--sp-2); }
+.chat-input { flex: 1; min-height: var(--tap-min); padding: var(--sp-3); border-radius: var(--r-control, 10px);
+  background: var(--sem-bg, var(--p-charcoal)); color: var(--sem-text, var(--p-text)); border: 1px solid var(--sem-line, var(--p-line)); }
+.chat-send { min-width: 72px; }
+@keyframes chatIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .chat-bubble { animation: none; } }
 
 /* =========================================================================
    4. ANIMATIONS
