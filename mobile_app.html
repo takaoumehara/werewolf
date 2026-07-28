@@ -1974,6 +1974,7 @@
             </div>
           </div>
         </div>
+        <button type="button" class="btn btn--secondary u-hidden" id="roleZoomBtn" onclick="openMyRoleCardFullscreen()">絵札を大きく見る</button>
         <button type="button" class="btn btn--primary" id="roleConfirmBtn" disabled onclick="confirmRoleSeen()">確認して閉じる</button>
         <p class="center-note" id="s09PrivacyNote">画面を伏せると、記録は自動で隠されます。</p>
         <div class="inline-notice u-hidden" id="roleConfirmedNotice">確認しました。もう一度確認するには、上のカードを長押ししてください。</div>
@@ -4254,6 +4255,8 @@
         '<span class="label">勝利条件</span>' + (VICTORY_TEXT_BY_CAMP[liveTeam] || VICTORY_TEXT_BY_CAMP.fox);
       roleRevealedOnce = false;
       document.getElementById('roleConfirmBtn').disabled = true;
+      const zoomBtn = document.getElementById('roleZoomBtn');
+      if (zoomBtn) zoomBtn.classList.add('u-hidden');
       document.getElementById('roleConfirmedNotice').classList.add('u-hidden');
       return;
     }
@@ -4268,6 +4271,8 @@
       '<span class="label">勝利条件</span>' + (VICTORY_TEXT_BY_CAMP[camp] || VICTORY_TEXT_BY_CAMP.fox);
     roleRevealedOnce = false;
     document.getElementById('roleConfirmBtn').disabled = true;
+    const zoomBtn = document.getElementById('roleZoomBtn');
+    if (zoomBtn) zoomBtn.classList.add('u-hidden');
     document.getElementById('roleConfirmedNotice').classList.add('u-hidden');
   }
 
@@ -5007,6 +5012,9 @@
         if (!roleRevealedOnce) {
           roleRevealedOnce = true;
           document.getElementById('roleConfirmBtn').disabled = false;
+          // 一度見たあとは、いつでも絵札を大きく見られるようにする。
+          const zoom = document.getElementById('roleZoomBtn');
+          if (zoom && el.id === 'roleHold') zoom.classList.remove('u-hidden');
         }
       }, 400);
     }
@@ -5234,9 +5242,13 @@
         item.className = 'role-card-item';
 
         const factionClass = `faction-${role.camp}`;
-        const imgSrc = '00_transparent-illustrations-72-a-refined/' + role.id + '_ver_a.png';
+        // 図鑑のサムネも絵札の背景を敷いて、原画の雰囲気のまま見えるようにする。
+        const hasCard = !!getRole(role.id);
+        const imgSrc = rosterImgSrc(role.id);
+        const bgSrc = hasCard ? rosterBgSrc(role.id) : '';
         item.innerHTML = `
           <div class="role-card-thumb ${factionClass}">
+            ${bgSrc ? `<span class="role-card-thumb-bg" style="background-image:url('${bgSrc}')"></span>` : ''}
             <img src="${imgSrc}" alt="${role.jp}" loading="lazy" onerror="this.style.display='none'">
           </div>
           <div class="role-card-main">
@@ -5248,6 +5260,7 @@
             <div class="role-card-detail">
               <div style="font-weight:700;color:var(--sem-accent);margin-bottom:4px;">💡 立ち回りアドバイス</div>
               <div>${role.advice}</div>
+              ${hasCard ? '<button type="button" class="btn btn--secondary role-card-zoom" style="margin-top:10px;width:100%;">絵札を大きく見る</button>' : ''}
             </div>
           </div>
         `;
@@ -5255,6 +5268,13 @@
         item.addEventListener('click', () => {
           item.classList.toggle('is-expanded');
         });
+        const zoom = item.querySelector('.role-card-zoom');
+        if (zoom) {
+          zoom.addEventListener('click', (ev) => {
+            ev.stopPropagation(); // 開閉のトグルと二重に反応させない
+            openCardFullscreen(role.id);
+          });
+        }
 
         roleCardGrid.appendChild(item);
       });

@@ -371,6 +371,54 @@
     check('オンに戻せる', btn.textContent === 'オン' && hooks.isNarrationEnabled());
   }
 
+  // 用意した絵札を見られる場所が、実際にいくつあるか。
+  function runCardExposure(w) {
+    var d = w.document;
+
+    // 役職図鑑: 24枚の原画が背景つきで並び、そこから全画面にできる
+    w.showScreen('s01');
+    var rulesBtn = d.getElementById('rulesBtn');
+    if (rulesBtn) rulesBtn.click();
+    var pediaTab = d.querySelector('#rulesTabs [data-tab="roles"], #rulesTabs button:nth-child(3)');
+    if (pediaTab) pediaTab.click();
+    var pedia = d.getElementById('roleCardGrid');
+    check('役職図鑑に役職が並ぶ', !!pedia && pedia.children.length >= 24,
+      pedia ? String(pedia.children.length) : 'なし');
+    check('図鑑のサムネにも絵札の背景が敷かれている',
+      !!pedia && pedia.querySelectorAll('.role-card-thumb-bg').length >= 24,
+      pedia ? String(pedia.querySelectorAll('.role-card-thumb-bg').length) : '0');
+    check('図鑑から絵札を全画面にできる',
+      !!pedia && pedia.querySelectorAll('.role-card-zoom').length >= 24,
+      pedia ? String(pedia.querySelectorAll('.role-card-zoom').length) : '0');
+
+    var zoom = pedia && pedia.querySelector('.role-card-zoom');
+    if (zoom) {
+      zoom.click();
+      var overlay = d.getElementById('cardFullscreen');
+      check('全画面のカードが実際に開く',
+        !!overlay && !overlay.classList.contains('u-hidden') &&
+        !!overlay.querySelector('.card-wrapper'));
+      w.closeCardFullscreen();
+    }
+    var closeBtn = d.getElementById('rulesCloseBtn');
+    if (closeBtn) closeBtn.click();
+
+    // 役職確認: 一度めくれば、いつでも大きく見られる
+    w.showScreen('s09');
+    var zoomBtn = d.getElementById('roleZoomBtn');
+    check('役職確認に「絵札を大きく見る」がある', !!zoomBtn);
+    check('めくる前は出さない', zoomBtn && zoomBtn.classList.contains('u-hidden'));
+
+    // 結果画面: 全員の絵札が並ぶ
+    w.showScreen('s18');
+    var roster = d.getElementById('rosterGrid');
+    check('終幕で全員の絵札が並ぶ',
+      !!roster && roster.querySelectorAll('.roster-cell').length > 0,
+      roster ? String(roster.querySelectorAll('.roster-cell').length) : 'なし');
+    check('終幕の絵札も押して大きく見られる',
+      !!roster && !!roster.querySelector('.roster-cell[role="button"]'));
+  }
+
   function run(w) {
     var hooks = w.__liveRenderTestHooks;
     check('テストフックが公開されている', !!hooks);
@@ -470,6 +518,7 @@
     runRolePicker(w);
     runTruthfulDisplay(w, hooks);
     runNarration(w, hooks);
+    runCardExposure(w);
 
     runTableModes(w, hooks)
       .then(function () { return runHostDriver(w, hooks); })
