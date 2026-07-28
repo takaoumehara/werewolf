@@ -715,6 +715,28 @@
   }
   .ai-seat .stepper { flex: 0 0 auto; }
 
+  /* 設定行(ルールドロワー) */
+  .setting-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3, 12px);
+    text-align: left;
+  }
+  .setting-row .setting-label { flex: 1 1 auto; min-width: 0; }
+  .setting-row .setting-title {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sem-text, #EDE9DC);
+  }
+  .setting-row .setting-note {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--sem-text-dim, #8f8878);
+  }
+  .setting-row .btn { flex: 0 0 auto; min-width: 84px; min-height: 44px; }
+
   /* -----------------------------------------------------------------
      画面共通レイアウト
      ----------------------------------------------------------------- */
@@ -2170,6 +2192,14 @@
     </div>
 
     <hr class="engraved-rule" style="margin:18px 0 12px;">
+    <div class="setting-row">
+      <span class="setting-label">
+        <span class="setting-title">記録者の読み上げ</span>
+        <span class="setting-note" id="narrationNote">夜明けや評決を声で伝えます。</span>
+      </span>
+      <button type="button" class="btn btn--secondary" id="narrationToggleBtn" aria-pressed="true" onclick="toggleNarration()">オン</button>
+    </div>
+    <hr class="engraved-rule" style="margin:12px 0;">
     <button type="button" class="btn btn--secondary" style="width:100%;" onclick="handleBackToTitle(true)">タイトルに戻る（ゲームを離れる）</button>
   </div>
 
@@ -2904,6 +2934,7 @@
     const phase = pub.phase;
     const prevPhase = liveLastPhase;
     liveLastPhase = phase;
+    narratePhaseChange(phase, prevPhase, pub);
 
     if (phase === 'lobby' || phase === 'role_reveal') return; // s05〜s09 は既存の onMeta/onSelf 自動遷移が担う
 
@@ -3227,6 +3258,142 @@
     btn.style.opacity = on ? '1' : '0.55';
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     btn.setAttribute('aria-label', on ? '環境音の切り替え(現在オン)' : '環境音の切り替え(現在オフ)');
+  }
+
+  /* ===================================================================
+     記録者の読み上げ(TTS)
+     設計: docs/superpowers/specs/2026-07-23-ai-hybrid-werewolf-design.md
+     「音声は演出、テキストが本体」。読み上げが無い端末でも、同じ情報は
+     必ず画面に出ている。ここが落ちてもゲームは進む。
+     =================================================================== */
+  const NARRATION_PREF_KEY = 'gekka.narration';
+  let narrationVoice = null;
+  let narrationEnabled = true;
+  try { narrationEnabled = localStorage.getItem(NARRATION_PREF_KEY) !== 'off'; } catch (e) { /* Safari のプライベート閲覧 */ }
+
+  function narrationSupported() {
+    return typeof window.speechSynthesis !== 'undefined' &&
+      typeof window.SpeechSynthesisUtterance === 'function';
+  }
+
+  function pickNarrationVoice() {
+    if (!narrationSupported()) return null;
+    const voices = window.speechSynthesis.getVoices() || [];
+    return voices.filter(function (v) { return /^ja(-|_|$)/i.test(v.lang); })[0] ||
+      voices.filter(function (v) { return /Japanese|日本語/i.test(v.name); })[0] || null;
+  }
+
+  function narrationActive() {
+    if (!narrationEnabled || !narrationSupported()) return false;
+    // 音を消しているときは喋らない。「消音」の意味を1つに保つ。
+    if (window.gekkaSound && window.gekkaSound.isMuted && window.gekkaSound.isMuted()) return false;
+    return true;
+  }
+
+  /** 記録者の声で1文読み上げる。interrupt を渡すと言いかけを止めて割り込む。 */
+  function narrate(text, opts) {
+    if (!text || !narrationActive()) return;
+    try {
+      if (!narrationVoice) narrationVoice = pickNarrationVoice();
+      if (opts && opts.interrupt) window.speechSynthesis.cancel();
+      const utterance = new window.SpeechSynthesisUtterance(String(text));
+      utterance.lang = 'ja-JP';
+      if (narrationVoice) utterance.voice = narrationVoice;
+      utterance.rate = 0.95;
+      utterance.pitch = 0.95;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.error('narrate failed', e);
+    }
+  }
+
+  function stopNarration() {
+    if (narrationSupported()) {
+      try { window.speechSynthesis.cancel(); } catch (e) { /* 端末差は無視してよい */ }
+    }
+  }
+
+  function updateNarrationToggleLabel() {
+    const btn = document.getElementById('narrationToggleBtn');
+    const note = document.getElementById('narrationNote');
+    if (!btn) return;
+    if (!narrationSupported()) {
+      btn.textContent = '非対応';
+      btn.disabled = true;
+      btn.setAttribute('aria-pressed', 'false');
+      if (note) note.textContent = 'この端末では読み上げを使えません。表示はそのまま読めます。';
+      return;
+    }
+    btn.textContent = narrationEnabled ? 'オン' : 'オフ';
+    btn.setAttribute('aria-pressed', narrationEnabled ? 'true' : 'false');
+    if (note) {
+      note.textContent = narrationEnabled
+        ? '夜明けや評決を声で伝えます。音を消すと一緒に止まります。'
+        : '声は出しません。同じ内容は画面に出ています。';
+    }
+  }
+
+  window.toggleNarration = function () {
+    narrationEnabled = !narrationEnabled;
+    try { localStorage.setItem(NARRATION_PREF_KEY, narrationEnabled ? 'on' : 'off'); } catch (e) { /* 保存できなくても動く */ }
+    if (!narrationEnabled) stopNarration();
+    updateNarrationToggleLabel();
+    if (narrationEnabled) narrate('記録者が読み上げます。');
+  };
+
+  if (narrationSupported() && typeof window.speechSynthesis.addEventListener === 'function') {
+    // 音声一覧は非同期で届く端末がある。届いたら選び直す。
+    window.speechSynthesis.addEventListener('voiceschanged', function () {
+      narrationVoice = pickNarrationVoice();
+    });
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stopNarration();
+  });
+
+  /* ---- 何を読み上げるか ---------------------------------------------- */
+
+  function narrationNamesOf(players) {
+    return players.map(function (p) { return p.displayName; }).join('、');
+  }
+
+  /** 朝の発表。誰が失われたかは画面にも必ず出ている。 */
+  function narrateMorning(pub) {
+    if (!pub || !pub.players) return;
+    const lost = Object.values(pub.players).filter(function (p) {
+      return p.death && p.death.round === pub.round && p.death.cause === 'night_attack';
+    });
+    narrate(lost.length
+      ? '朝が来ました。' + narrationNamesOf(lost) + ' が失われました。'
+      : '朝が来ました。今朝は、誰も失われませんでした。', { interrupt: true });
+  }
+
+  /** 評決の発表。 */
+  function narrateVerdict(pub) {
+    if (!pub || !pub.players) return;
+    const executed = Object.values(pub.players).filter(function (p) {
+      return p.death && p.death.round === pub.round && p.death.cause === 'execution';
+    });
+    narrate(executed.length
+      ? narrationNamesOf(executed) + ' が処刑されました。'
+      : '得票が同数のため、この日の処刑は行われません。', { interrupt: true });
+  }
+
+  function narrateOutcome(pub) {
+    if (!pub || !pub.winner) return;
+    const label = { citizen: '市民チーム', werewolf: '人狼チーム', fox: '第三陣営', android: 'アンドロイド' };
+    const teams = (pub.winner.teams || []).map(function (t) { return label[t] || t; }).join('と');
+    narrate((teams || '誰か') + ' の勝利です。', { interrupt: true });
+  }
+
+  /** フェーズが変わった瞬間に、記録者が読み上げる一言。 */
+  function narratePhaseChange(phase, prevPhase, pub) {
+    if (phase === prevPhase) return;
+    if (phase === 'night') narrate('夜が来ました。それぞれの行いを、静かに。', { interrupt: true });
+    else if (phase === 'day' && prevPhase === 'vote') narrateVerdict(pub);
+    else if (phase === 'day') narrateMorning(pub);
+    else if (phase === 'vote') narrate('投票の時間です。処刑する相手を選んでください。', { interrupt: true });
+    else if (phase === 'finished') narrateOutcome(pub);
   }
 
   function toggleSound() {
@@ -4409,6 +4576,25 @@
       b.appendChild(who); b.appendChild(body); log.appendChild(b);
     }
     log.scrollTop = log.scrollHeight;
+    narrateNewChat();
+  }
+
+  // 読み上げ済みの位置。購読のたびに全件届くので、増えたぶんだけを声にする。
+  let narratedChatUpTo = -1;
+  function narrateNewChat() {
+    if (!narrationActive()) {
+      // 声を出さない間に流れた発言は、あとから遡って読み上げない。
+      narratedChatUpTo = chatMessages.length ? (chatMessages[chatMessages.length - 1].at || 0) : narratedChatUpTo;
+      return;
+    }
+    const fresh = chatMessages.filter(function (m) { return (m.at || 0) > narratedChatUpTo; });
+    if (fresh.length === 0) return;
+    narratedChatUpTo = fresh[fresh.length - 1].at || narratedChatUpTo;
+    // 初回購読(復帰時)は溜まっているぶんを一気に喋らない。
+    if (narratedChatUpTo > 0 && fresh.length === chatMessages.length && chatMessages.length > 1) return;
+    fresh.filter(function (m) { return m.kind === 'ai'; }).forEach(function (m) {
+      narrate((m.authorName ? m.authorName + '、' : '') + m.text);
+    });
   }
   function renderS14Chat() {
     if (MODE !== 'live') return;
@@ -5196,6 +5382,9 @@
     setSelf: function (self) { latestSelf = self; },
     setPlayers: function (players) { latestPlayers = players; },
     renderLobby: renderS05,
+    narratePhaseChange: narratePhaseChange,
+    narrationSupported: narrationSupported,
+    isNarrationEnabled: function () { return narrationEnabled; },
     renderVoteResult: renderS16Live,
     renderDiscussion: renderS14Live,
     updateRulesDrawer: updateRulesDrawerState,
@@ -5216,6 +5405,7 @@
   };
   setupCompositionPresets();
   setupLobbyAiSeat();
+  updateNarrationToggleLabel();
   // 毎秒の表示更新は、参照する変数がすべて初期化されたここで開始する。
   if (MODE === 'live') startLivePhaseTicker();
   // 音トグルの初期表示を localStorage の実状態に同期

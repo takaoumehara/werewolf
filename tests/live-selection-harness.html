@@ -296,6 +296,81 @@
       invite.indexOf('example.invalid') === -1 && invite.indexOf('?room=K7M2Q9') !== -1, invite);
   }
 
+  // 記録者の読み上げ。実際に音が出たかは測れないので、
+  // 「どの場面で何を喋ろうとしたか」を SpeechSynthesis に差し替えて見る。
+  function runNarration(w, hooks) {
+    var d = w.document;
+    var spoken = [];
+    check('この環境で読み上げAPIが使える', hooks.narrationSupported());
+    if (!hooks.narrationSupported()) return;
+    w.speechSynthesis.speak = function (u) { spoken.push(u.text); };
+    w.speechSynthesis.cancel = function () {};
+    if (w.gekkaSound && w.gekkaSound.isMuted && w.gekkaSound.isMuted()) {
+      w.gekkaSound.setMuted(false);
+    }
+    check('読み上げの既定はオン', hooks.isNarrationEnabled());
+
+    var night = publicView({ round: 1, revision: 900, phase: 'night' });
+    hooks.narratePhaseChange('night', 'role_reveal', night);
+    check('夜の始まりを読み上げる', /夜が来ました/.test(spoken.join('|')), spoken.join('|'));
+
+    spoken.length = 0;
+    var morning = publicView({ round: 1, revision: 901, phase: 'day' });
+    morning.players.ai3.alive = false;
+    morning.players.ai3.death = { round: 1, cause: 'night_attack' };
+    hooks.narratePhaseChange('day', 'night', morning);
+    check('朝に失われた人の名前を読み上げる',
+      /沙耶/.test(spoken.join('|')) && /朝が来ました/.test(spoken.join('|')), spoken.join('|'));
+
+    spoken.length = 0;
+    var quiet = publicView({ round: 2, revision: 902, phase: 'day' });
+    hooks.narratePhaseChange('day', 'night', quiet);
+    check('誰も死ななかった朝もそう読み上げる', /誰も失われ/.test(spoken.join('|')), spoken.join('|'));
+
+    spoken.length = 0;
+    hooks.narratePhaseChange('vote', 'day', publicView({ round: 2, revision: 903, phase: 'vote' }));
+    check('投票の開始を読み上げる', /投票/.test(spoken.join('|')), spoken.join('|'));
+
+    spoken.length = 0;
+    var verdict = publicView({ round: 2, revision: 904, phase: 'day' });
+    verdict.players.ai1.alive = false;
+    verdict.players.ai1.death = { round: 2, cause: 'execution' };
+    hooks.narratePhaseChange('day', 'vote', verdict);
+    check('評決の結果を読み上げる', /虎鉄 が処刑されました/.test(spoken.join('|')), spoken.join('|'));
+
+    spoken.length = 0;
+    var finished = publicView({ round: 3, revision: 905, phase: 'finished' });
+    finished.winner = { teams: ['citizen'], reason: 'win_condition' };
+    hooks.narratePhaseChange('finished', 'vote', finished);
+    check('決着を読み上げる', /市民チーム の勝利です/.test(spoken.join('|')), spoken.join('|'));
+
+    spoken.length = 0;
+    hooks.narratePhaseChange('night', 'night', publicView({ round: 3, revision: 906, phase: 'night' }));
+    check('フェーズが変わっていなければ喋らない', spoken.length === 0, spoken.join('|'));
+
+    // 消音との関係
+    spoken.length = 0;
+    if (w.gekkaSound && w.gekkaSound.setMuted) {
+      w.gekkaSound.setMuted(true);
+      hooks.narratePhaseChange('night', 'day', publicView({ round: 4, revision: 907, phase: 'night' }));
+      check('音を消している間は読み上げない', spoken.length === 0, spoken.join('|'));
+      w.gekkaSound.setMuted(false);
+    }
+
+    // 設定のトグル
+    spoken.length = 0;
+    var btn = d.getElementById('narrationToggleBtn');
+    check('ルールに読み上げの切り替えがある', !!btn);
+    check('切り替えの初期表示がオン', btn && btn.textContent === 'オン', btn && btn.textContent);
+    w.toggleNarration();
+    check('オフにできる', btn.textContent === 'オフ' && !hooks.isNarrationEnabled());
+    spoken.length = 0;
+    hooks.narratePhaseChange('night', 'day', publicView({ round: 5, revision: 908, phase: 'night' }));
+    check('オフのあいだは読み上げない', spoken.length === 0, spoken.join('|'));
+    w.toggleNarration();
+    check('オンに戻せる', btn.textContent === 'オン' && hooks.isNarrationEnabled());
+  }
+
   function run(w) {
     var hooks = w.__liveRenderTestHooks;
     check('テストフックが公開されている', !!hooks);
@@ -394,6 +469,7 @@
 
     runRolePicker(w);
     runTruthfulDisplay(w, hooks);
+    runNarration(w, hooks);
 
     runTableModes(w, hooks)
       .then(function () { return runHostDriver(w, hooks); })
