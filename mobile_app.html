@@ -482,45 +482,107 @@
     margin: 0 auto;
   }
 
+  /* roster(結果画面カード一覧): カード仕立て(C案) × 人数適応大判グリッド(D案)
+     - 列数は人数に応じて JS が roster-grid--cols{2,3,4} を付与する
+     - flex-wrap + justify-content:center により、最終行の余りは自動で中央寄せになる */
   .roster-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    /* 既定は3列。セル側で再宣言すると親クラスの列数指定が継承されなくなるため、
+       カスタムプロパティは必ずコンテナ側でのみ宣言する */
+    --roster-cols: 3;
   }
+  .roster-grid.roster-grid--cols2 { --roster-cols: 2; }
+  .roster-grid.roster-grid--cols3 { --roster-cols: 3; }
+  .roster-grid.roster-grid--cols4 { --roster-cols: 4; }
   .roster-cell {
-    background: #14121A;
-    border: 1px solid rgba(237, 233, 220, 0.1);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .roster-thumb {
+    flex: 0 0 calc((100% - (var(--roster-cols) - 1) * 10px) / var(--roster-cols));
+    max-width: calc((100% - (var(--roster-cols) - 1) * 10px) / var(--roster-cols));
     position: relative;
-    aspect-ratio: 1 / 1.1;
-    background: linear-gradient(180deg, #20191a, #0c0a09);
+    aspect-ratio: 63 / 88;
+    border-radius: 10px;
     overflow: hidden;
+    background: #0c0a09;
+    border: 1.5px solid var(--p-gold, #C9A84C);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
   }
-  .roster-thumb img {
+  .roster-cell.is-dead .roster-char {
+    filter: grayscale(0.65) brightness(0.72);
+  }
+  .roster-cell:focus-visible {
+    outline: 3px solid var(--sem-accent, var(--p-moonlight));
+    outline-offset: 2px;
+  }
+  .roster-bg {
     position: absolute;
-    bottom: -2px;
+    inset: 0;
+    background-size: cover;
+    background-position: center 20%;
+    opacity: 0.9;
+  }
+  .roster-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.05) 40%, rgba(8, 7, 10, 0.92) 100%);
+  }
+  .roster-char {
+    position: absolute;
+    bottom: -4%;
     left: 50%;
     transform: translateX(-50%);
-    height: 130%;
+    height: 96%;
     object-fit: contain;
+    z-index: 2;
   }
-  .roster-info {
-    padding: 5px 6px;
-    border-top: 2px solid transparent;
+  .roster-mark {
+    position: absolute;
+    top: 6px;
+    left: 7px;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 12px;
+    color: #fff;
+    letter-spacing: 2px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    z-index: 3;
   }
-  .roster-info .roster-name {
-    font-size: 11.5px;
-    color: rgba(237, 233, 220, 0.9);
+  .roster-faction-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    z-index: 3;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+  }
+  .roster-plate {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    padding: 5px 7px 6px;
+    background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.55) 30%);
+  }
+  .roster-plate .roster-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--sem-text, #EDE9DC);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .roster-info .roster-role {
-    font-size: 11px;
-    color: rgba(237, 233, 220, 0.62);
+  .roster-plate .roster-role-en {
+    font-size: 9.5px;
+    color: var(--p-gold-hi, #E0C87E);
+    letter-spacing: 0.04em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1434,6 +1496,39 @@
       transition-duration: 1ms !important;
     }
   }
+  /* 役職カード フルスクリーン表示 */
+  .card-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    background: rgba(6, 7, 9, 0.94);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px 12px;
+  }
+  .card-fullscreen.u-hidden { display: none; }
+  .card-fullscreen-slot {
+    width: min(92vw, 430px);
+    height: min(78vh, 760px);
+    position: relative;
+  }
+  /* fitCardToSlot の translate(-50%,-50%) は position:absolute でスロット中心に
+     揃える前提。これが無いとカードがスロット左上角を基準に画面外へはみ出す */
+  .card-fullscreen-slot .card-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center center;
+  }
+  .card-fullscreen-hint {
+    margin: 0;
+    font-size: 12.5px;
+    color: rgba(237, 233, 220, 0.65);
+    letter-spacing: 0.12em;
+  }
 </style>
 </head>
 <body data-phase="day">
@@ -1490,6 +1585,7 @@
       <div class="top-bar-actions">
         <button type="button" class="top-bar-link" id="opReplayBtn" onclick="playOpeningAnimation()">映像</button>
         <button type="button" class="top-bar-link" onclick="openMakingModal()">制作</button>
+        <button type="button" class="top-bar-link" id="soundToggleBtn" onclick="toggleSound()" aria-pressed="false" aria-label="環境音の切り替え(現在オフ)" style="opacity:0.55;white-space:nowrap;min-width:44px;min-height:44px;">♪</button>
         <button type="button" class="top-bar-link u-hidden" id="hostAdvanceBtn" onclick="handleHostManualAdvance()">進める</button>
         <button type="button" class="top-bar-link top-bar-link--rules" id="rulesBtn">ルール</button>
       </div>
@@ -1551,9 +1647,9 @@
 
       <!-- s02b: ソロ卓設定 -->
       <section class="screen" id="s02b">
-        <h2 class="screen-title">卓の設定</h2>
+        <h2 class="screen-title">ゲーム設定</h2>
         <p class="screen-sub">あなたを含めた参加人数を選びます。残りはAIが着席します。</p>
-        <div class="solo-stepper" role="group" aria-label="卓の人数">
+        <div class="solo-stepper" role="group" aria-label="参加人数">
           <button type="button" class="stepper-btn" aria-label="人数を減らす" onclick="adjustSoloCount(-1)">−</button>
           <span class="solo-count-num" id="soloCountNum" aria-live="polite">5</span>
           <button type="button" class="stepper-btn" aria-label="人数を増やす" onclick="adjustSoloCount(1)">＋</button>
@@ -1576,7 +1672,7 @@
       <!-- s04: 表示名入力 -->
       <section class="screen" id="s04">
         <h2 class="screen-title">表示名</h2>
-        <p class="screen-sub">卓に表示される名前を決めてください。</p>
+        <p class="screen-sub">ゲーム中に表示される名前を決めてください。</p>
         <div class="field-block" style="margin-top:var(--sp-6);">
           <div class="field-eyebrow">表示名</div>
           <div class="text-field name-field">
@@ -1632,7 +1728,9 @@
       <!-- s07: 役職構成 -->
       <section class="screen" id="s07">
         <h2 class="screen-title">役職構成</h2>
-        <p class="screen-sub">卓のバランスを調整します。</p>
+        <p class="screen-sub">役職ごとの人数を調整します。</p>
+        <p class="screen-sub" id="compositionSoloNote" style="display:none;color:#8f8878;font-size:12px;">ソロ版で使える役職は 人狼・予言者・市民 です(AI対応の役職から順次追加予定)。</p>
+        <p class="screen-sub" id="compositionWarning" style="display:none;color:#C97B7B;" role="alert"></p>
         <div class="ledger-list" id="compositionList"></div>
         <div class="composition-total" id="compositionTotal"></div>
         <button type="button" class="btn btn--primary" onclick="handleS07Next()">配役を確定する</button>
@@ -1819,6 +1917,7 @@
         <div class="stack" style="width:100%;">
           <button type="button" class="btn btn--primary" onclick="handleS19Rematch()">同じメンバーで再戦</button>
           <button type="button" class="btn btn--secondary" onclick="handleS19Lobby()">ロビーに戻る</button>
+          <button type="button" class="btn btn--secondary" onclick="handleBackToTitle(false)">タイトルに戻る</button>
         </div>
       </section>
 
@@ -1861,6 +1960,12 @@
 </div>
 
 <!-- RulesDrawer -->
+<!-- 役職カード フルスクリーン表示(タップで閉じる) -->
+<div id="cardFullscreen" class="card-fullscreen u-hidden" role="dialog" aria-modal="true" aria-label="役職カード" onclick="closeCardFullscreen()">
+  <div class="card-fullscreen-slot" id="cardFullscreenSlot"></div>
+  <p class="card-fullscreen-hint">タップで閉じる</p>
+</div>
+
 <div class="rules-drawer" id="rulesDrawer">
   <div class="rules-drawer-header">
     <h2 class="screen-title" style="color:var(--sem-accent);margin:0;font-size:18px;">📜 ルール & 役職ガイド</h2>
@@ -1923,6 +2028,9 @@
       <div class="rules-faq-q" style="margin-top:10px;">Q. 追放された人は喋れる？</div>
       <div class="rules-faq-a">死亡したプレイヤーは「遺言」を残した後は議論に参加できません（狼の亡霊を除く）。</div>
     </div>
+
+    <hr class="engraved-rule" style="margin:18px 0 12px;">
+    <button type="button" class="btn btn--secondary" style="width:100%;" onclick="handleBackToTitle(true)">タイトルに戻る（ゲームを離れる）</button>
   </div>
 
   <!-- Tab 2: 自分の役職 -->
@@ -1931,7 +2039,7 @@
       <div class="myrole-cover hold-to-reveal" id="myroleCoverArea">
         <div style="font-size:32px;margin-bottom:8px;">🔒</div>
         <div style="font-weight:700;font-size:15px;color:var(--sem-text);margin-bottom:4px;">あなたの役職カード</div>
-        <div style="font-size:12px;color:var(--sem-accent);">【長押し】して確認（放すと隠れます）</div>
+        <div style="font-size:12px;color:var(--sem-accent);" id="myroleCoverHint">【長押し】して確認（放すと隠れます）</div>
       </div>
       <div id="myroleRevealedContent" style="display:none;padding-top:10px;">
         <div style="font-size:11px;color:var(--sem-text-dim);" id="myroleFactionLabel">市民陣営</div>
@@ -1947,6 +2055,7 @@
             嘘をつく必要はありません。他のプレイヤーの発言の矛盾を見抜き、素直な考察を述べることで信頼を得ましょう。
           </div>
         </div>
+        <button type="button" class="btn btn--secondary" id="myroleFullscreenBtn" style="margin-top:12px;width:100%;display:none;" onclick="openMyRoleCardFullscreen()">カードを全画面で見る</button>
       </div>
     </div>
   </div>
@@ -2079,6 +2188,9 @@
 
 <!-- トースト -->
 <div class="toast" id="toast"></div>
+
+<!-- 生成サウンドエンジン(Web Audio・音源ファイル不要)。読込失敗してもゲームは動作する -->
+<script src="game-client/sound-engine.js"></script>
 
 <script>
 (function () {
@@ -2832,11 +2944,16 @@
   }
 
   function computeDefaultComposition(playerCount) {
+    // 人狼数は人数でスケールさせる。少人数で狼2だと、初夜の襲撃1件で
+    // パリティ勝利(狼数 >= 市民数)に到達し、昼が一度も来ないまま決着する。
+    // 6人以下は狼1に抑えることで必ず昼(議論)フェーズへ到達できる。
+    const wolves = playerCount >= 10 ? 3 : playerCount >= 7 ? 2 : 1;
+    const knights = playerCount >= 6 ? 1 : 0;
     return [
-      { id: 'werewolf', label: '人狼', count: 2 },
+      { id: 'werewolf', label: '人狼', count: wolves },
       { id: 'prophet', label: '予言者', count: 1 },
-      { id: 'knights', label: '騎士団', count: 1 },
-      { id: 'citizen', label: '市民', count: Math.max(0, playerCount - 4) }
+      { id: 'knights', label: '騎士団', count: knights },
+      { id: 'citizen', label: '市民', count: Math.max(0, playerCount - wolves - 1 - knights) }
     ];
   }
 
@@ -2863,6 +2980,50 @@
   }
 
   /* ===================================================================
+     タイトルへ戻る(完全リセット) / 役職カードのフルスクリーン表示
+     =================================================================== */
+  function handleBackToTitle(askConfirm) {
+    if (askConfirm && !window.confirm('ゲームを離れてタイトルに戻りますか？')) return;
+    // クエリやゲーム状態を完全に初期化して最初の画面へ戻す
+    window.location.href = window.location.pathname;
+  }
+
+  function currentSelfRoleId() {
+    if (MODE === 'live' && latestSelf && latestSelf.roleId) return latestSelf.roleId;
+    return appState.role;
+  }
+
+  function openCardFullscreen(roleId) {
+    const overlay = document.getElementById('cardFullscreen');
+    const slot = document.getElementById('cardFullscreenSlot');
+    if (!overlay || !slot || !roleId || !getRole(roleId)) return;
+    slot.innerHTML = '';
+    slot.appendChild(buildCardWrapper(roleId));
+    overlay.classList.remove('u-hidden');
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(function () { fitCardToSlot(slot); });
+  }
+
+  function closeCardFullscreen() {
+    const overlay = document.getElementById('cardFullscreen');
+    if (!overlay || overlay.classList.contains('u-hidden')) return;
+    overlay.classList.add('u-hidden');
+    document.body.style.overflow = '';
+  }
+
+  function openMyRoleCardFullscreen() {
+    openCardFullscreen(currentSelfRoleId());
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeCardFullscreen();
+  });
+  window.addEventListener('resize', function () {
+    const overlay = document.getElementById('cardFullscreen');
+    if (overlay && !overlay.classList.contains('u-hidden')) fitCardToSlot(document.getElementById('cardFullscreenSlot'));
+  });
+
+  /* ===================================================================
      JS 契約
      =================================================================== */
   const appState = { phase: 'day', role: 'prophet', view: 'player', screen: 's01' };
@@ -2870,7 +3031,63 @@
   function setPhase(p) {
     appState.phase = p;
     document.body.dataset.phase = p;
+    syncSoundPhase();
   }
+
+  /* ===================================================================
+     生成サウンド(game-client/sound-engine.js)との配線。
+     エンジン未読込・ミュート時は全て no-op になるようガードする。
+     =================================================================== */
+  function soundPhaseFor(p) {
+    // アプリ内フェーズ → サウンドエンジンの「空気」へのマッピング
+    const map = { night: 'night', dawn: 'day', day: 'day', vote: 'vote', verdict: 'vote', finished: 'finished' };
+    return map[p] || null;
+  }
+
+  let lastSoundPhase = null;
+  function syncSoundPhase() {
+    if (!window.gekkaSound || window.gekkaSound.isMuted()) return;
+    const phase = soundPhaseFor(appState.phase);
+    // 同一フェーズの再送を抑止(s18→s19 で finished の解決和音が二重に鳴るのを防ぐ)
+    if (phase && phase !== lastSoundPhase) {
+      lastSoundPhase = phase;
+      window.gekkaSound.setPhase(phase);
+    }
+  }
+
+  function playStinger(name) {
+    if (!window.gekkaSound || window.gekkaSound.isMuted()) return;
+    window.gekkaSound.stinger(name);
+  }
+
+  function updateSoundToggleLabel() {
+    const btn = document.getElementById('soundToggleBtn');
+    if (!btn) return;
+    const on = !!(window.gekkaSound && !window.gekkaSound.isMuted());
+    // アイコンのみ表示(トップバーの幅節約)。状態は不透明度と aria で伝える
+    btn.textContent = '♪';
+    btn.style.opacity = on ? '1' : '0.55';
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.setAttribute('aria-label', on ? '環境音の切り替え(現在オン)' : '環境音の切り替え(現在オフ)');
+  }
+
+  function toggleSound() {
+    if (!window.gekkaSound) return;
+    // AudioContext の resume はユーザー操作のコールスタック内で行う(iOS対策)
+    window.gekkaSound.init();
+    window.gekkaSound.setMuted(!window.gekkaSound.isMuted());
+    syncSoundPhase();
+    updateSoundToggleLabel();
+  }
+
+  // 音ONの状態で再訪したユーザー向け: 最初のタップで AudioContext を起こす
+  document.addEventListener('pointerdown', function () {
+    if (window.gekkaSound && !window.gekkaSound.isMuted()) {
+      window.gekkaSound.init();
+      syncSoundPhase();
+    }
+    updateSoundToggleLabel();
+  }, { once: true });
 
   function showScreen(id) {
     appState.screen = id;
@@ -3394,7 +3611,20 @@
         '</div>';
       list.appendChild(row);
     });
-    document.getElementById('compositionTotal').innerHTML = '<span>合計</span><span><span class="num">' + total + '</span> 人 / 参加 ' + PLAYERS.length + ' 人</span>';
+    // ライブ卓では実際の参加人数を表示する(デモ用固定配列 PLAYERS の数を出さない)
+    const joinedCount = (MODE === 'live' && latestPlayers.length) ? latestPlayers.length : PLAYERS.length;
+    document.getElementById('compositionTotal').innerHTML = '<span>合計</span><span><span class="num">' + total + '</span> 人 / 参加 ' + joinedCount + ' 人</span>';
+    // 初夜で決着し得る構成(襲撃1件で 狼数 >= 市民数 に到達)には事前に警告する
+    const warnEl = document.getElementById('compositionWarning');
+    if (warnEl) {
+      const wolfEntry = composition.filter(function (c) { return c.id === 'werewolf'; })[0];
+      const wolves = wolfEntry ? wolfEntry.count : 0;
+      const instantEnd = total > 0 && wolves > 0 && (wolves * 2 >= total - 1);
+      warnEl.textContent = instantEnd ? '⚠ この構成は最初の夜で決着することがあります。人狼を減らすか人数を増やすと、昼の議論まで楽しめます。' : '';
+      warnEl.style.display = instantEnd ? 'block' : 'none';
+    }
+    const soloNoteEl = document.getElementById('compositionSoloNote');
+    if (soloNoteEl) soloNoteEl.style.display = appState.solo ? 'block' : 'none';
     list.querySelectorAll('button').forEach(function (btn) {
       btn.addEventListener('click', function () {
         adjustComposition(btn.dataset.role, parseInt(btn.dataset.delta, 10));
@@ -3880,17 +4110,20 @@
     if (sub) sub.textContent = VICTORY_TEXT_BY_CAMP[teams[0]] || '';
     const grid = document.getElementById('rosterGrid');
     grid.innerHTML = '';
-    Object.values(pub.players)
-      .sort(function (a, b) { return (a.displayName || '').localeCompare(b.displayName || '', 'ja'); })
-      .forEach(function (p) {
-        grid.appendChild(buildRosterCell(p.revealedRoleId, p.displayName, !p.alive));
-      });
+    const entries = Object.values(pub.players)
+      .sort(function (a, b) { return (a.displayName || '').localeCompare(b.displayName || '', 'ja'); });
+    applyRosterGridCols(grid, entries.length);
+    entries.forEach(function (p) {
+      grid.appendChild(buildRosterCell(p.revealedRoleId, p.displayName, !p.alive));
+    });
   }
 
-  /* roster mini-card(モック s19 準拠): 透過イラスト + 名前 + 役職 + 陣営色ボーダー */
+  /* roster カード(カード仕立て(C案) × 人数適応大判(D案)):
+     背景レイヤー + 透過キャラ + 縦書き役職名 + 名前 + 英語役職名 + 陣営色枠。
+     タップ/Enter/Spaceで役職カードのフルスクリーン表示(openCardFullscreen)を開く。 */
   function roleInfoById(id) {
     for (var i = 0; i < rolesData.length; i += 1) { if (rolesData[i].id === id) return rolesData[i]; }
-    return { id: id, jp: id || '?', camp: 'citizen' };
+    return { id: id, jp: id || '?', en: '', camp: 'citizen' };
   }
   function rosterFactionColor(camp) {
     return camp === 'werewolf' ? '#C25B5B' : (camp === 'third' ? '#6F8E86' : '#6E8B6A');
@@ -3899,19 +4132,48 @@
     if (id === 'magician') return '00_transparent-illustrations-72-a-refined/magician_ver_c.png';
     return '00_transparent-illustrations-72-a-refined/' + id + '_ver_a.png';
   }
+  function rosterBgSrc(id) {
+    return 'backgrounds-72/' + id + '_bg.png';
+  }
+  /* 人数に応じた列数(6以下=2列 / 7〜12=3列 / 13以上=4列)。最終行の余りは
+     .roster-grid の flex-wrap + justify-content:center により自動で中央寄せになる。 */
+  function rosterColsForCount(count) {
+    if (count <= 6) return 2;
+    if (count <= 12) return 3;
+    return 4;
+  }
+  function applyRosterGridCols(grid, count) {
+    grid.classList.remove('roster-grid--cols2', 'roster-grid--cols3', 'roster-grid--cols4');
+    grid.classList.add('roster-grid--cols' + rosterColsForCount(count));
+  }
   function buildRosterCell(roleId, playerName, dead) {
     const info = roleInfoById(roleId);
     const fc = rosterFactionColor(info.camp);
     const cell = document.createElement('div');
-    cell.className = 'roster-cell';
+    cell.className = 'roster-cell' + (dead ? ' is-dead' : '');
+    cell.style.borderColor = fc;
+    cell.tabIndex = 0;
+    cell.setAttribute('role', 'button');
+    cell.setAttribute('aria-label', (playerName || '') + 'の役職カードを全画面表示');
     cell.innerHTML =
-      '<div class="roster-thumb">' +
-        (roleId ? '<img src="' + rosterImgSrc(roleId) + '" alt="' + (info.jp || '') + '" loading="lazy">' : '') +
-      '</div>' +
-      '<div class="roster-info" style="border-top-color:' + fc + ';">' +
-        '<div class="roster-name">' + (playerName || '') + '</div>' +
-        '<div class="roster-role">' + (info.jp || '') + (dead ? '' : '') + '</div>' +
+      (roleId ? '<div class="roster-bg" style="background-image:url(\'' + rosterBgSrc(roleId) + '\');"></div>' : '') +
+      (roleId ? '<img class="roster-char" src="' + rosterImgSrc(roleId) + '" alt="' + (info.jp || '') + '" loading="lazy">' : '') +
+      '<div class="roster-mark">' + (info.jp || '') + '</div>' +
+      '<div class="roster-faction-dot" style="background:' + fc + ';"></div>' +
+      '<div class="roster-plate">' +
+        '<div class="roster-name"></div>' +
+        '<div class="roster-role-en">' + (info.en ? info.en.toUpperCase() : '') + '</div>' +
       '</div>';
+    // プレイヤー名は他者入力(ライブ卓のdisplayName)なので innerHTML に混ぜず
+    // textContent で差し込む(XSS防止)
+    const nameEl = cell.querySelector('.roster-name');
+    if (nameEl) nameEl.textContent = playerName || '';
+    if (roleId) {
+      cell.addEventListener('click', function () { openCardFullscreen(roleId); });
+      cell.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCardFullscreen(roleId); }
+      });
+    }
     return cell;
   }
 
@@ -3919,6 +4181,7 @@
     if (MODE === 'live') { renderS18Live(); return; }
     const grid = document.getElementById('rosterGrid');
     grid.innerHTML = '';
+    applyRosterGridCols(grid, PLAYERS.length);
     PLAYERS.forEach(function (p) {
       const roleId = p.id === SELF_ID ? appState.role : OTHER_ROLE_ASSIGN[p.id];
       grid.appendChild(buildRosterCell(roleId, p.name, false));
@@ -3941,16 +4204,20 @@
       if (appState.solo) composition = clampCompositionToMvp1(composition);
       renderComposition();
     }
-    if (id === 's09') renderS09();
+    if (id === 's09') { renderS09(); playStinger('reveal'); }
     if (id === 's10') setPhase('night');
     if (id === 's11') { setPhase('night'); renderS11(); }
     if (id === 's12') setPhase('night'); /* 全員共通の待機画面。役職に依存しない */
-    if (id === 's13') { setPhase('dawn'); if (MODE === 'live') renderS13Live(); }
+    if (id === 's13') { setPhase('dawn'); if (MODE === 'live') renderS13Live(); playStinger('attack'); }
     if (id === 's14') { setPhase('day'); renderS14(); renderS14Chat(); }
     if (id === 's15') renderS15();
     if (id === 's16') { if (MODE === 'live') renderS16Live(); }
-    if (id === 's17') { setPhase('verdict'); if (MODE === 'live') renderS17Live(); }
-    if (id === 's18') { setPhase('finished'); renderS18(); }
+    if (id === 's17') { setPhase('verdict'); if (MODE === 'live') renderS17Live(); playStinger('execution'); }
+    if (id === 's18') {
+      setPhase('finished'); renderS18();
+      const wolfWin = !!(MODE === 'live' && latestPublic && latestPublic.winner && latestPublic.winner.teams && latestPublic.winner.teams.indexOf('werewolf') >= 0);
+      playStinger(wolfWin ? 'victory_wolf' : 'victory_citizen');
+    }
     if (id === 's19') setPhase('finished');
     if (id === 's01' || id === 's02' || id === 's02b') setPhase('day');
 
@@ -4092,6 +4359,8 @@
         myroleRevealedContent.style.display = 'block';
       };
       const hideRole = () => {
+        // ソロ対戦では対面の覗き見リスクがないため、一度開いたら表示を維持する
+        if (appState.solo) return;
         myroleCoverArea.style.display = 'block';
         myroleRevealedContent.style.display = 'none';
       };
@@ -4126,6 +4395,17 @@
       const phaseText = currentPhaseEl.textContent.trim();
       phaseGuideEl.textContent = `現在は「${phaseText}」フェーズです。制限時間内に議論や行動を行ってください。`;
     }
+
+    // ソロ対戦向けの「自分の役職」タブ調整: 覗き見リスクがないため
+    // 長押し不要の案内に変え、フルスクリーン表示ボタンを出す
+    const coverHint = document.getElementById('myroleCoverHint');
+    if (coverHint) {
+      coverHint.textContent = appState.solo
+        ? 'タップして確認（ソロでは表示されたままになります）'
+        : '【長押し】して確認（放すと隠れます）';
+    }
+    const fsBtn = document.getElementById('myroleFullscreenBtn');
+    if (fsBtn) fsBtn.style.display = appState.solo ? 'block' : 'none';
 
     // Sync My Role info if state available
     if (typeof state !== 'undefined' && state.myRole) {
@@ -4367,6 +4647,18 @@
   window.showScreen = showScreen;
   window.setPhase = setPhase;
   window.appState = appState;
+  window.handleBackToTitle = handleBackToTitle;
+  window.openCardFullscreen = openCardFullscreen;
+  window.closeCardFullscreen = closeCardFullscreen;
+  window.openMyRoleCardFullscreen = openMyRoleCardFullscreen;
+  window.toggleSound = toggleSound;
+  window.applyRosterGridCols = applyRosterGridCols;
+  // 既存バグ修正: これらも onclick 属性から呼ばれるがエクスポート漏れしていた
+  window.playOpeningAnimation = playOpeningAnimation;
+  window.openMakingModal = openMakingModal;
+  window.closeMakingModal = closeMakingModal;
+  // 音トグルの初期表示を localStorage の実状態に同期
+  updateSoundToggleLabel();
 })();
 </script>
 
