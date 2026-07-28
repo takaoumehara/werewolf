@@ -2577,9 +2577,14 @@
        day フェーズで deadlineAt を更新しないため、公開ビューだけでは判別できない)。
      =================================================================== */
   const ROLE_REVEAL_GRACE_MS = 10000;
+  // advanceAiTurn の失敗はここで打ち切る。無制限に再試行すると1秒ごとに
+  // LLM 呼び出しが走り続け、かつ aiTurnDone が立たないままゲームが恒久停止する。
+  const AI_TURN_MAX_ATTEMPTS = 3;
+  const AI_TURN_RETRY_BACKOFF_MS = [2000, 5000];
   const hostDriver = { lastSentType: null, roleRevealEnteredAt: null, inFlight: false, lastRevisionAtSend: -1,
     // ソロモード: フェーズ(round+phase)ごとに1回だけAIの行動を駆動するための追跡状態。
-    aiTurnKey: null, aiTurnDone: {} };
+    // 完了判定は aiTurnDone のみで行う(aiTurnInFlight は多重送信の抑止用)。
+    aiTurnInFlight: null, aiTurnDone: {}, aiTurnAttempts: {}, aiTurnRetryAt: 0 };
 
   function computeNextHostCommand(pub, opts) {
     const force = !!(opts && opts.force);
@@ -2650,16 +2655,33 @@
     if (appState.solo && pub && !pub.winner && pub.players) {
       const aiPhase = pub.phase;
       const aiKey = (pub.round || 0) + ':' + aiPhase;
-      if (['night', 'vote', 'day'].includes(aiPhase) && hostDriver.aiTurnKey !== aiKey) {
-        hostDriver.aiTurnKey = aiKey;
+      // 発火の判定は aiTurnDone で行う。「まだ発火していないキーか」を aiTurnKey で
+      // 見ていると、投票解決後の day (R:vote → R:day)が直前のキーと異なるため
+      // 同じ昼で二度目の発話が走り、夜にAI発言が流れ込む + LLM が二重に走る。
+      if (['night', 'vote', 'day'].indexOf(aiPhase) !== -1 &&
+          !hostDriver.aiTurnDone[aiKey] &&
+          hostDriver.aiTurnInFlight === null &&
+          Date.now() >= hostDriver.aiTurnRetryAt) {
+        hostDriver.aiTurnInFlight = aiKey;
         getLiveClient().then(function (client) {
           return client.advanceAiTurn({ phase: aiPhase });
         }).then(function () {
+          hostDriver.aiTurnInFlight = null;
           hostDriver.aiTurnDone[aiKey] = true;
         }).catch(function (e) {
-          console.error('advanceAiTurn failed', e);
-          // 再試行を許可する(ただし別tickで既に次のkeyへ進んでいたら上書きしない)。
-          if (hostDriver.aiTurnKey === aiKey) hostDriver.aiTurnKey = null;
+          hostDriver.aiTurnInFlight = null;
+          const attempts = (hostDriver.aiTurnAttempts[aiKey] || 0) + 1;
+          hostDriver.aiTurnAttempts[aiKey] = attempts;
+          console.error('advanceAiTurn failed', aiKey, 'attempt', attempts, e);
+          if (attempts >= AI_TURN_MAX_ATTEMPTS) {
+            // ここで諦めないと RESOLVE_NIGHT / RESOLVE_VOTE が永久に送られず、
+            // 手動の「進める」も同じガードの下でブロックされ復旧不能になる。
+            hostDriver.aiTurnDone[aiKey] = true;
+            showToast('AIの行動を完了できませんでした。このまま進行します。');
+          } else {
+            hostDriver.aiTurnRetryAt = Date.now() +
+              (AI_TURN_RETRY_BACKOFF_MS[attempts - 1] || 5000);
+          }
         });
       }
     }
@@ -3690,17 +3712,55 @@
      s11: 夜の行動
      =================================================================== */
   let liveNightSelected = [];
+  let liveNightSelectedRound = -1;
   let liveNightLocked = false;
+  // 送信済み表示を先に出すための楽観ロック。サーバの pendingAction が返るまでの
+  // 間だけ効く。投票側の liveVoteLockedRound と同じ役割。
+  let liveNightSubmittedRound = -1;
   let liveNightCfg = null;
+
+  // パネルを作り直すべきか判定するシグネチャ。ラウンド・自分の役職・記録済みか・
+  // 選べる対象の並びだけで決まる(AIの行動で毎回変わる revision 等は含めない)。
+  function liveNightPanelSignature(pub, self, targets) {
+    return String(pub ? pub.round : -1) + '|' + String(self ? self.roleId : '') + '|' +
+      (liveNightLocked ? 'locked' : 'open') + '|' +
+      targets.map(function (p) { return p.id; }).join(',');
+  }
+
+  // liveNightSelected を DOM(選択マーク・決定ボタン)へ反映する。
+  function applyLiveNightSelection() {
+    document.querySelectorAll('#liveNightTargetList .target-option').forEach(function (o) {
+      o.classList.toggle('is-selected', liveNightSelected.indexOf(o.dataset.pid) !== -1);
+    });
+    const btn = document.getElementById('liveNightDecideBtn');
+    if (!btn) return;
+    const needed = (liveNightCfg && liveNightCfg.kind === 'swap') ? 2 : 1;
+    btn.disabled = liveNightLocked || liveNightSelected.length !== needed;
+  }
 
   function renderS11Live() {
     const panel = document.getElementById('nightPanel');
     const self = latestSelf;
-    liveNightSelected = [];
-    if (!self) { panel.innerHTML = ''; return; }
+    const pub = latestPublic;
+    // AIの夜行動は orchestrator が1体ずつ適用するため、そのたびに onPublic →
+    // ここが呼ばれる。毎回選択を捨てると人狼/予言者のソロプレイヤーが
+    // 「押しても選べない」状態になる。選択を捨てるのは夜が変わったときだけ。
+    if (!self || !pub || pub.round !== liveNightSelectedRound) {
+      liveNightSelected = [];
+      liveNightSelectedRound = pub ? pub.round : -1;
+    }
+    if (!self) { panel.innerHTML = ''; panel.dataset.sig = ''; return; }
     const cfg = LIVE_NIGHT_ACTIONS[self.roleId];
     liveNightCfg = cfg || null;
-    liveNightLocked = !!self.pendingAction;
+    liveNightLocked = !!self.pendingAction || (!!pub && liveNightSubmittedRound === pub.round);
+    const targets = cfg ? liveAliveOthers() : [];
+    const sig = liveNightPanelSignature(pub, self, targets);
+    if (panel.dataset.sig === sig) {
+      // 名簿も状態も変わっていない。選択を維持したまま表示だけ整える。
+      if (cfg) applyLiveNightSelection();
+      return;
+    }
+    panel.dataset.sig = sig;
     if (!cfg) {
       panel.innerHTML =
         '<div class="splash">' +
@@ -3710,7 +3770,9 @@
         '</div>';
       return;
     }
-    const targets = liveAliveOthers();
+    // 脱落した対象への選択は落とす。
+    const aliveIds = targets.map(function (p) { return p.id; });
+    liveNightSelected = liveNightSelected.filter(function (id) { return aliveIds.indexOf(id) !== -1; });
     let optionsHtml = '';
     targets.forEach(function (p) {
       optionsHtml += '<div class="target-option" data-pid="' + p.id + '" onclick="selectLiveNightTarget(this)"><span>' + p.displayName + '</span><span class="status-badge">生存</span></div>';
@@ -3735,6 +3797,7 @@
       notice.textContent = '選択を記録しました。';
       notice.classList.remove('u-hidden');
     }
+    applyLiveNightSelection();
   }
 
   window.selectLiveNightTarget = function (el) {
@@ -3751,29 +3814,24 @@
     } else {
       liveNightSelected = [pid];
     }
-    document.querySelectorAll('#liveNightTargetList .target-option').forEach(function (o) {
-      o.classList.toggle('is-selected', liveNightSelected.indexOf(o.dataset.pid) !== -1);
-    });
-    const needed = liveNightCfg.kind === 'swap' ? 2 : 1;
-    document.getElementById('liveNightDecideBtn').disabled = liveNightSelected.length !== needed;
+    liveNightSelectedRound = latestPublic ? latestPublic.round : liveNightSelectedRound;
+    applyLiveNightSelection();
   };
 
   window.confirmLiveNightAction = function () {
     if (liveNightLocked || !liveNightCfg) return;
     const needed = liveNightCfg.kind === 'swap' ? 2 : 1;
     if (liveNightSelected.length !== needed) return;
-    liveNightLocked = true;
     const payload = { kind: liveNightCfg.kind, targetId: liveNightSelected[0] };
     if (liveNightCfg.kind === 'swap') payload.secondTargetId = liveNightSelected[1];
-    document.querySelectorAll('#liveNightTargetList .target-option').forEach(function (o) { o.setAttribute('disabled', 'disabled'); });
-    document.getElementById('liveNightDecideBtn').classList.add('u-hidden');
-    const notice = document.getElementById('liveNightRecordedNotice');
-    notice.textContent = '選択を記録しました。';
-    notice.classList.remove('u-hidden');
+    liveNightSubmittedRound = latestPublic ? latestPublic.round : -1;
+    // 行の無効化・決定ボタン/通知の切替は描画側に一本化する。
+    // (送信失敗で楽観ロックを戻したとき、確実に操作可能へ復帰させるため)
+    renderS11Live();
     getLiveClient().then(function (client) {
       return client.send({ type: 'SUBMIT_NIGHT_ACTION', payload: payload });
     }).catch(function () {
-      liveNightLocked = false;
+      liveNightSubmittedRound = -1;
       showToast('行動を記録できませんでした。もう一度お試しください。');
       renderS11Live();
     });
@@ -3969,45 +4027,78 @@
      s15: 投票
      =================================================================== */
   let liveVoteSelectedId = null;
+  let liveVoteSelectedRound = -1;
   let liveVoteLocked = false;
   let liveVoteLockedRound = -1;
 
+  // 一覧を作り直すべきか判定するための名簿シグネチャ。ラウンド・自分のid・
+  // 各プレイヤーの並びと生死・投票済みかだけで決まる(得票数など毎回変わる値は含めない)。
+  function liveVoteListSignature(pub, myUid) {
+    const players = (pub && pub.players) ? Object.values(pub.players) : [];
+    return String(pub ? pub.round : -1) + '|' + String(myUid) + '|' + (liveVoteLocked ? 'locked' : 'open') + '|' +
+      players.map(function (p) { return p.id + ':' + (p.alive ? '1' : '0'); }).join(',');
+  }
+
   function renderS15Live() {
-    liveVoteSelectedId = null;
     const pub = latestPublic;
     if (pub && pub.round !== liveVoteLockedRound) liveVoteLocked = false;
+    // この関数は onPublic のたびに呼ばれる。ソロでは投票開始と同時にAI全員分の
+    // CAST_VOTE が連続で届くため、毎回作り直すと人間が選んでいる最中に選択が飛ぶ。
+    // 選択を捨てるのはラウンドが変わったときだけにする。
+    if (!pub || pub.round !== liveVoteSelectedRound) {
+      liveVoteSelectedId = null;
+      liveVoteSelectedRound = pub ? pub.round : -1;
+    }
     const myUid = window.liveClient && window.liveClient.uid;
     const list = document.getElementById('voteTargetList');
-    list.innerHTML = '';
-    if (pub && pub.players) {
-      Object.values(pub.players).forEach(function (p, idx) {
-        const isSelf = p.id === myUid;
-        const opt = document.createElement('div');
-        opt.className = 'target-option';
-        opt.dataset.pid = p.id;
-        const num = '<span class="vote-num">' + String((idx || 0) + 1).padStart(2, '0') + '</span>';
-        if (isSelf || !p.alive) {
-          opt.setAttribute('disabled', 'disabled');
-          opt.innerHTML = num + '<span class="vote-name">' + p.displayName + (isSelf ? '(あなた)' : '') + '</span><span class="status-badge">' + (isSelf ? '投票不可' : '脱落') + '</span>';
-        } else {
-          opt.innerHTML = num + '<span class="vote-name">' + p.displayName + '</span><span class="vote-mark" aria-hidden="true"></span>';
-          opt.addEventListener('click', function () { selectLiveVoteTarget(opt); });
-        }
-        list.appendChild(opt);
-      });
+    const sig = liveVoteListSignature(pub, myUid);
+    if (list.dataset.sig !== sig) {
+      list.dataset.sig = sig;
+      list.innerHTML = '';
+      if (pub && pub.players) {
+        Object.values(pub.players).forEach(function (p, idx) {
+          const isSelf = p.id === myUid;
+          const opt = document.createElement('div');
+          opt.className = 'target-option';
+          opt.dataset.pid = p.id;
+          const num = '<span class="vote-num">' + String((idx || 0) + 1).padStart(2, '0') + '</span>';
+          if (isSelf || !p.alive) {
+            opt.setAttribute('disabled', 'disabled');
+            opt.innerHTML = num + '<span class="vote-name">' + p.displayName + (isSelf ? '(あなた)' : '') + '</span><span class="status-badge">' + (isSelf ? '投票不可' : '脱落') + '</span>';
+          } else {
+            opt.innerHTML = num + '<span class="vote-name">' + p.displayName + '</span><span class="vote-mark" aria-hidden="true"></span>';
+            opt.addEventListener('click', function () { selectLiveVoteTarget(opt); });
+          }
+          list.appendChild(opt);
+        });
+      }
+      // 投票済みなら全行を操作不能にする(解除時は sig が変わり作り直される)。
+      if (liveVoteLocked) {
+        list.querySelectorAll('.target-option').forEach(function (o) { o.setAttribute('disabled', 'disabled'); });
+      }
     }
-    document.getElementById('voteDecideBtn').disabled = true;
+    // 選んでいた相手が脱落した(処刑・襲撃)場合だけ選択を落とす。
+    const chosen = (liveVoteSelectedId && pub && pub.players) ? pub.players[liveVoteSelectedId] : null;
+    if (!chosen || !chosen.alive || liveVoteSelectedId === myUid) liveVoteSelectedId = null;
+    applyLiveVoteSelection();
     document.getElementById('voteCompletedBadge').classList.toggle('u-hidden', !liveVoteLocked);
     document.getElementById('voteDecideBtn').classList.toggle('u-hidden', liveVoteLocked);
     document.getElementById('voteBranchButtons').classList.add('u-hidden');
   }
 
+  // liveVoteSelectedId を DOM(選択マーク・確定ボタン)へ反映する。
+  function applyLiveVoteSelection() {
+    document.querySelectorAll('#voteTargetList .target-option').forEach(function (o) {
+      o.classList.toggle('is-selected', !!liveVoteSelectedId && o.dataset.pid === liveVoteSelectedId);
+    });
+    document.getElementById('voteDecideBtn').disabled = !liveVoteSelectedId || liveVoteLocked;
+  }
+
   function selectLiveVoteTarget(el) {
     if (liveVoteLocked) return;
-    document.querySelectorAll('#voteTargetList .target-option').forEach(function (o) { o.classList.remove('is-selected'); });
-    el.classList.add('is-selected');
     liveVoteSelectedId = el.dataset.pid;
-    document.getElementById('voteDecideBtn').disabled = false;
+    liveVoteSelectedRound = latestPublic ? latestPublic.round : liveVoteSelectedRound;
+    applyLiveVoteSelection();
   }
 
   function renderS15() {
@@ -4070,9 +4161,9 @@
       liveVoteLocked = true;
       liveVoteLockedRound = latestPublic ? latestPublic.round : liveVoteLockedRound;
       document.getElementById('voteConfirmDialog').setAttribute('hidden', 'hidden');
-      document.querySelectorAll('#voteTargetList .target-option').forEach(function (o) { o.setAttribute('disabled', 'disabled'); });
-      document.getElementById('voteDecideBtn').classList.add('u-hidden');
-      document.getElementById('voteCompletedBadge').classList.remove('u-hidden');
+      // 行の無効化・確定ボタン/バッジの切替は描画側に一本化する。
+      // (送信失敗で liveVoteLocked を戻したとき、確実に操作可能へ復帰させるため)
+      renderS15Live();
       showToast('選択を記録しました。');
       const targetId = liveVoteSelectedId;
       getLiveClient().then(function (client) {
@@ -4657,6 +4748,25 @@
   window.playOpeningAnimation = playOpeningAnimation;
   window.openMakingModal = openMakingModal;
   window.closeMakingModal = closeMakingModal;
+  // テスト用フック — tests/live-selection-harness.html から、公開/自分状態を差し替えて
+  // ライブ描画の回帰(再描画で入力中の選択が消える C-1/C-2)を検証するために使う。
+  // 状態を書き込んで描画関数を呼ぶだけで、本番の描画経路はこれを一切参照しない。
+  window.__liveRenderTestHooks = {
+    setPublic: function (pub) { latestPublic = pub; },
+    setSelf: function (self) { latestSelf = self; },
+    renderVote: renderS15Live,
+    renderNight: renderS11Live,
+    // ソロ進行ドライバ(E-1 恒久停止 / E-4 二重発火)の検証用。
+    hostDriver: hostDriver,
+    hostDriverTick: hostDriverTick,
+    resetHostDriver: function () {
+      hostDriver.aiTurnInFlight = null;
+      hostDriver.aiTurnDone = {};
+      hostDriver.aiTurnAttempts = {};
+      hostDriver.aiTurnRetryAt = 0;
+      hostDriver.lastSentType = null;
+    }
+  };
   // 音トグルの初期表示を localStorage の実状態に同期
   updateSoundToggleLabel();
 })();

@@ -34,6 +34,7 @@ import { defineSecret } from "firebase-functions/params";
 import { pickRoster } from "./ai/roster.mjs";
 import { runAiPhase } from "./ai/orchestrator.mjs";
 import { generateSpeech } from "./ai/llm.mjs";
+import { AI_TURN_CLAIM_TTL_MS, claimDecision, phaseDurationsFor } from "./ai/turn-policy.mjs";
 
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 
@@ -164,9 +165,17 @@ export const startWerewolfGame = onCall(async (req) => {
     .map((p) => ({ id: p.id, displayName: p.name, joinedAt: p.joinedAt }));
   if (players.length < MIN_PLAYERS) throw new HttpsError("failed-precondition", `${MIN_PLAYERS}人以上必要です。`);
 
+  // AIが同席する卓は、締切到達だけが解決条件でも待ち時間が支配的にならないよう
+  // 短いフェーズ長で開始する(既定は夜90秒/昼180秒/投票60秒)。
+  const aiSnap = await db().ref(`rooms/${roomId}/aiPlayers`).get();
+  const aiCount = Object.keys(aiSnap.val() || {}).length;
+
   let state;
   try {
-    state = createGame({ gameId: roomId, players, seed, roleIds, gmMode: "computer", hostId: uid });
+    state = createGame({
+      gameId: roomId, players, seed, roleIds, gmMode: "computer", hostId: uid,
+      phaseDurations: phaseDurationsFor(aiCount),
+    });
   } catch (error) {
     throw new HttpsError("invalid-argument", `構成が不正です: ${error.message}`);
   }
@@ -322,13 +331,38 @@ export const seatAiPlayers = onCall(async (req) => {
   return { seated };
 });
 
-/** 指定フェーズのAI行動(夜行動 / 投票 / 発話)を一括実行する。member限定。 */
-export const advanceAiTurn = onCall({ secrets: [ANTHROPIC_API_KEY] }, async (req) => {
+/**
+ * 指定フェーズのAI行動(夜行動 / 投票 / 発話)を一括実行する。
+ *
+ * ホスト限定かつ (round, phase) ごとに1回だけ。member 全員に開けておくと
+ * 同卓の誰でも何回でも LLM 呼び出しを発生させられる(課金誘発)。
+ * timeoutSeconds は明示する — 既定の60秒だと発話生成でタイムアウトしうる。
+ */
+export const advanceAiTurn = onCall({ secrets: [ANTHROPIC_API_KEY], timeoutSeconds: 180 }, async (req) => {
   const uid = requireUid(req);
   const roomId = String(req.data?.roomId ?? "");
   const phase = String(req.data?.phase ?? "");
-  const memberSnap = await db().ref(`roomMembers/${roomId}/${uid}`).get();
-  if (memberSnap.val() !== true) throw new HttpsError("permission-denied", "この部屋のメンバーではありません。");
+
+  const metaSnap = await db().ref(`rooms/${roomId}/meta`).get();
+  const meta = metaSnap.val();
+  if (!meta) throw new HttpsError("not-found", "部屋が存在しません。");
+  if (meta.hostId !== uid) throw new HttpsError("permission-denied", "進行役のみがAIの行動を進められます。");
+
+  const publicSnap = await db().ref(`rooms/${roomId}/game/public`).get();
+  const pub = publicSnap.val();
+  if (!pub) throw new HttpsError("failed-precondition", "ゲームが開始されていません。");
+  if (pub.phase !== phase) throw new HttpsError("failed-precondition", "フェーズが一致しません。");
+
+  // 同じフェーズの二重実行を止める。クライアントの再試行や、投票解決後に
+  // day へ戻る遷移で発話が二度走るのをサーバー側で確実に防ぐ。
+  const claimRef = db().ref(`rooms/${roomId}/game/aiTurns/${pub.round ?? 0}_${phase}`);
+  let decision = { grant: false, reason: "claimed" };
+  const claimTxn = await claimRef.transaction((current) => {
+    decision = claimDecision(current, Date.now(), AI_TURN_CLAIM_TTL_MS);
+    if (!decision.grant) return; // abort
+    return { startedAt: Date.now(), done: false };
+  });
+  if (!claimTxn.committed) return { actions: 0, messages: 0, errors: 0, skipped: decision.reason };
 
   const apiKey = ANTHROPIC_API_KEY.value();
   const deps = {
@@ -338,6 +372,16 @@ export const advanceAiTurn = onCall({ secrets: [ANTHROPIC_API_KEY] }, async (req
     pushChat: async (rid, m) => { await db().ref(`rooms/${rid}/game/chat`).push(m); },
     generate: ({ system, user }) => generateSpeech({ system, user, apiKey }),
     now: () => Date.now(),
+    logError: ({ phase: p, aiId, step, error }) =>
+      console.error(`advanceAiTurn: ${aiId} の ${p}/${step} に失敗`, error),
   };
-  return runAiPhase(deps, { roomId, phase });
+  try {
+    const result = await runAiPhase(deps, { roomId, phase });
+    await claimRef.update({ done: true, doneAt: Date.now(), ...result });
+    return result;
+  } catch (error) {
+    // フェーズ全体が落ちた場合は claim を解放し、次の呼び出しで再試行できるようにする。
+    await claimRef.remove();
+    throw error;
+  }
 });

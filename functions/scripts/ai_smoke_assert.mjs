@@ -164,11 +164,36 @@ async function main() {
   await dispatch(roomId, host, "START_GAME");
   await dispatch(roomId, host, "BEGIN_NIGHT");
 
+  // advanceAiTurn is claimed per (round, phase), so a retried call would legitimately
+  // come back as skipped. Call it exactly once and assert on that single result.
   log("advanceAiTurn(phase=night)...");
-  const advanceResult = await retry(() => callFn("advanceAiTurn", host.token, { roomId, phase: "night" }));
+  const advanceResult = await callFn("advanceAiTurn", host.token, { roomId, phase: "night" });
   log("advanceAiTurn result:", JSON.stringify(advanceResult));
   assert(typeof advanceResult.actions === "number", "advanceAiTurn did not return actions:number");
   assert(advanceResult.actions >= 1, `expected actions >= 1, got ${advanceResult.actions}`);
+  assert(typeof advanceResult.errors === "number", "advanceAiTurn did not return errors:number");
+  assert(advanceResult.errors === 0, `expected errors === 0, got ${advanceResult.errors}`);
+
+  // Same (round, phase) must not run twice: that is what stops a shared table's members
+  // from re-triggering LLM calls, and what stops the post-vote `day` from speaking twice.
+  log("advanceAiTurn(phase=night) again — expecting it to be skipped...");
+  const repeatResult = await callFn("advanceAiTurn", host.token, { roomId, phase: "night" });
+  log("advanceAiTurn repeat result:", JSON.stringify(repeatResult));
+  assert(repeatResult.skipped === "already-done", `expected skipped === "already-done", got ${JSON.stringify(repeatResult)}`);
+  assert(repeatResult.actions === 0, `expected no further actions, got ${repeatResult.actions}`);
+
+  // Only the host may drive the AI turn (a non-host member must be rejected).
+  log("advanceAiTurn as a non-host member — expecting permission-denied...");
+  const intruder = await signUp();
+  await adminDb.ref(`roomMembers/${roomId}/${intruder.uid}`).set(true);
+  let denied = false;
+  try {
+    await callFn("advanceAiTurn", intruder.token, { roomId, phase: "night" });
+  } catch (err) {
+    denied = /permission-denied/.test(String(err.message));
+    if (!denied) throw err;
+  }
+  assert(denied, "a non-host room member was allowed to call advanceAiTurn");
 
   console.log("OK: ai_smoke_assert — seatAiPlayers + advanceAiTurn(night) verified");
 }

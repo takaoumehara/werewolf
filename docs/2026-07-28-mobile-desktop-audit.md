@@ -23,9 +23,9 @@
 |---|---|---|---|
 | **A** | 実効ビューポートの前提が誤っている | 7画面 | モバイルで主要ボタンが画面外 |
 | **B** | オーバーレイの共通基盤が無い | 10件以上 | 誤タップ・閉じられない・PCで枠外 |
-| **C** | 再描画が入力中の状態を破壊する | 2件 | **ソロで投票・夜行動が成立しない** |
+| **C** | 再描画が入力中の状態を破壊する | 2件 | **ソロで投票・夜行動が成立しない** — **修正済み(2026-07-28)** |
 | **D** | HTMLのプレースホルダがJSと未結線 | 11箇所 | 表示される情報が嘘 |
-| **E** | ソロAI進行が例外に対して脆い | 5件 | ゲームが恒久停止する |
+| **E** | ソロAI進行が例外に対して脆い | 5件 | ゲームが恒久停止する — **修正済み(2026-07-28)** |
 | **F** | アプリファイルが2つに分岐している | 1件 | i18nが本番に載っていない |
 | **I** | アセットが未最適化のまま配信されている | 9件 | 会場Wi-Fiで初回4.5MB／画像庫117MB |
 
@@ -165,6 +165,12 @@ ESCキーは `closeCardFullscreen` にしか繋がっていない。背景タッ
 
 **ソロAI対戦で投票と夜行動が成立しない、最も深刻な機能バグ。**
 
+> **状態: 修正済み(2026-07-28)。** `renderS15Live()` / `renderS11Live()` を差分更新にした。
+> 名簿シグネチャ（ラウンド・自分のid・各プレイヤーの並びと生死・記録済みか）が
+> 変わったときだけ作り直し、それ以外は選択を維持したまま表示だけ整える。
+> 選択を捨てるのはラウンドが変わったとき、および選んでいた相手が脱落したときだけ。
+> 回帰テスト: `tests/live_selection_test.sh`（headless Chromium で実 DOM を検証）。
+
 ### C-1【P0】投票中、他人が投票するたび自分の選択が消える
 
 - **場所**: [mobile_app.html:3976](../mobile_app.html#L3976)
@@ -225,6 +231,12 @@ if (typeof state !== 'undefined' && state.myRole) {   // ← 4411行
 
 ## E. ソロAI進行が例外に対して脆い
 
+> **状態: 修正済み(2026-07-28)。** 内訳は下記の各項に追記。
+> 回帰テスト: `functions/ai/orchestrator.test.mjs`（隔離・並列・投稿順）、
+> `functions/ai/turn-policy.test.mjs`（フェーズ長・二重実行の判定）、
+> `tests/live_selection_test.sh`（クライアント側の打ち切りと二重発火）。
+> エミュレータ実測は `tests/ai_functions_smoke.sh` に追加済み（ホスト限定・二度目は skip）。
+
 ### E-1【P1】AI処理が1回失敗するとゲームが恒久停止し、毎秒リトライし続ける
 
 - **場所**: [mobile_app.html:2650-2665](../mobile_app.html#L2650-L2665), [2602-2622](../mobile_app.html#L2602-L2622)
@@ -253,6 +265,18 @@ if (typeof state !== 'undefined' && state.myRole) {   // ← 4411行
 [functions/index.js:330](../functions/index.js#L330) はルームメンバーであることしか確認しない。共有卓の任意の参加者が任意回数呼べる = **LLM課金を誘発できる**。
 
 ### 「AIが喋らない」の結論
+
+**修正の内訳（2026-07-28）**
+
+| 項 | 直した場所 | 内容 |
+|---|---|---|
+| E-1 | `functions/ai/orchestrator.mjs` | 各AIを try/catch で隔離し、戻り値に `errors` を追加。1体の失敗が全体を巻き込まない |
+| E-1 | `mobile_app.html` `hostDriverTick()` | 再試行を3回・バックオフ付きに制限し、打ち切り時は `aiTurnDone` を立てて進行を再開する。トーストで通知 |
+| E-2 | `functions/ai/orchestrator.mjs` | 発話生成を `Promise.all` で並列化（投稿は id 順に直列のまま）。夜/投票の `applyCommand` は `game` ノード全体の transaction なので直列を維持 |
+| E-2 | `functions/index.js` | `advanceAiTurn` に `timeoutSeconds: 180` を明示 |
+| E-3 | `functions/index.js` / `functions/ai/turn-policy.mjs` | AIが1体でも居る卓は夜30秒/昼90秒/投票30秒で開始する |
+| E-4 | `mobile_app.html` `hostDriverTick()` | 発火判定を `aiTurnKey` から `aiTurnDone` に変更。`R:vote → R:day` の復帰で二度目の発話が走らない |
+| E-4/E-5 | `functions/index.js` | `advanceAiTurn` をホスト限定にし、`game/aiTurns/{round}_{phase}` の claim で (round, phase) ごとに1回だけ通す。フェーズ不一致も拒否 |
 
 チャットの配線自体は**サーバからクライアントまで完全に繋がっている**（RPC → orchestrator → `rooms/{id}/game/chat` → `onChat` 購読 → `renderChatLog` → `#chatLog`。RTDBの読み取り権限も含めて全段照合済み）。したがって原因は購読の断線ではなく、**E-1（例外による停止）・E-2（タイムアウト）・E-3（180秒の空白）の複合**。
 
@@ -399,8 +423,8 @@ i18nコミット `e35d03f` は root `index.html` だけを変更している（`
 
 | 順 | 対象 | 理由 |
 |---|---|---|
-| 1 | **C（再描画が状態を破壊）+ E（ソロ進行の脆さ）** | ソロAI対戦が現状**成立していない**。修正範囲は狭く効果が最大 |
-| 2 | **D（プレースホルダ11箇所）** | 表示される情報が嘘。1箇所あたり数行で、まとめて直せる |
+| ~~1~~ | ~~**C（再描画が状態を破壊）+ E（ソロ進行の脆さ）**~~ | **完了(2026-07-28)** |
+| 2 | **D（プレースホルダ11箇所）** | 表示される情報が嘘。1箇所あたり数行で、まとめて直せる。**次はここから** |
 | 3 | **A（ビューポート）** | 全画面に影響。数値目標が既に確定しているので実装は機械的 |
 | 4 | **B（オーバーレイ共通基盤）** | 共通ヘルパー1つで10件が同時に解消。デスクトップ対応もここで片付く |
 | 5 | **I（アセット最適化のP0 2件）** | 動画 `preload="none"` とキャッシュヘッダは**設定変更だけ**で初回4.5MB→1.25MB |
@@ -419,5 +443,8 @@ i18nコミット `e35d03f` は root `index.html` だけを変更している（`
 - `tmp/measure.html` — 21画面 × ビューポート高さの一括計測ハーネス
 - `tmp/shot.html` — `showScreen()` 駆動 + オープニング自動スキップの撮影ハーネス
 - `tmp/audit-shots/` — 撮影結果
+- `tests/live-selection-harness.html` / `tests/live_selection_test.sh` — C/E の修正に伴い追加した
+  実ブラウザの回帰テスト。`mobile_app.html` を iframe に読み込み、`window.__liveRenderTestHooks`
+  経由で公開状態を差し替えながら描画と進行ドライバを叩く（`bash tests/live_selection_test.sh`）
 
 再現手順: `python3 -m http.server 8899` をリポジトリ直下で起動し、`http://localhost:8899/tmp/measure.html?w=393&h=712` を headless Chrome の `--dump-dom` で取得する。

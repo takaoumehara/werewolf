@@ -19,36 +19,60 @@ function seedFor(round, aiId) {
   return h >>> 0;
 }
 
+function reportError(deps, context, error) {
+  if (typeof deps.logError === "function") deps.logError({ ...context, error });
+  else console.error("[runAiPhase]", context, error);
+}
+
 export async function runAiPhase(deps, { roomId, phase }) {
   const authoritative = await deps.readAuthoritative(roomId);
   const aiPlayers = await deps.readAiPlayers(roomId);
-  if (!authoritative || !aiPlayers) return { actions: 0, messages: 0 };
+  if (!authoritative || !aiPlayers) return { actions: 0, messages: 0, errors: 0 };
   const ids = aliveAiIds(authoritative, aiPlayers);
   const round = authoritative.round ?? 0;
   let actions = 0;
   let messages = 0;
+  let errors = 0;
 
   const nameOf = (id) => authoritative.players[id]?.displayName ?? id;
   const validNamesFor = (selfId) =>
     Object.values(authoritative.players).filter((p) => p.alive && p.id !== selfId).map((p) => nameOf(p.id));
+  const inputFor = (aiId) =>
+    deriveBrainInput(authoritative, aiId, seedFor(round, aiId), aiPlayers[aiId].personality);
 
-  for (const aiId of ids) {
-    const persona = aiPlayers[aiId];
-    const seed = seedFor(round, aiId);
-    const input = deriveBrainInput(authoritative, aiId, seed, persona.personality);
+  // 夜行動と投票。applyCommand は rooms/{id}/game 全体の transaction なので、
+  // 並列化しても衝突して再試行が増えるだけ。直列のまま1体ずつ隔離する。
+  // ここで例外を外へ投げると、クライアントの aiTurnDone が永久に立たず
+  // RESOLVE_NIGHT / RESOLVE_VOTE が二度と送られなくなる（ゲームの恒久停止）。
+  if (phase === "night" || phase === "vote") {
+    for (const aiId of ids) {
+      try {
+        const input = inputFor(aiId);
+        if (phase === "night") {
+          const act = decideNightAction(input);
+          if (!act) continue;
+          await deps.applyCommand(roomId, aiId, "SUBMIT_NIGHT_ACTION", { kind: act.kind, targetId: act.targetId });
+        } else {
+          const { targetId } = decideVote(input);
+          await deps.applyCommand(roomId, aiId, "CAST_VOTE", { targetId });
+        }
+        actions++;
+      } catch (error) {
+        errors++;
+        reportError(deps, { phase, aiId, step: "applyCommand" }, error);
+      }
+    }
+    return { actions, messages, errors };
+  }
 
-    if (phase === "night") {
-      const act = decideNightAction(input);
-      if (act) { await deps.applyCommand(roomId, aiId, "SUBMIT_NIGHT_ACTION", { kind: act.kind, targetId: act.targetId }); actions++; }
-      continue;
-    }
-    if (phase === "vote") {
-      const { targetId } = decideVote(input);
-      await deps.applyCommand(roomId, aiId, "CAST_VOTE", { targetId });
-      actions++;
-      continue;
-    }
-    if (phase === "day") {
+  if (phase !== "day") return { actions, messages, errors };
+
+  // 発話は LLM 呼び出しが所要時間の大半を占める。直列だと AI 11体 × 最大2回で
+  // 関数のタイムアウトを確実に超えるため、生成だけ並列にする。
+  const drafts = await Promise.all(ids.map(async (aiId) => {
+    try {
+      const persona = aiPlayers[aiId];
+      const input = inputFor(aiId);
       const { targetId } = decideVote(input);
       const ctx = {
         name: persona.name, pronoun: persona.pronoun, toneSamples: persona.toneSamples,
@@ -64,18 +88,42 @@ export async function runAiPhase(deps, { roomId, phase }) {
       };
       const { system, user } = buildSpeechPrompt(ctx);
       let text = "";
+      let lastError = null;
       for (let attempt = 0; attempt < 2; attempt++) {
-        const raw = await deps.generate({ system, user });
-        const v = validateUtterance(raw, { maxChars: MAX_CHARS, validNames: ctx.validNames });
-        if (v.ok) { text = v.cleaned; break; }
+        try {
+          const raw = await deps.generate({ system, user });
+          lastError = null;
+          const v = validateUtterance(raw, { maxChars: MAX_CHARS, validNames: ctx.validNames });
+          if (v.ok) { text = v.cleaned; break; }
+        } catch (error) {
+          lastError = error; // 生成そのものの失敗だけ再試行する
+        }
       }
-      if (text) {
-        await deps.pushChat(roomId, {
-          authorId: aiId, authorName: persona.name, text, round, kind: "ai", at: deps.now(),
-        });
-        messages++;
-      }
+      // 検証に落ちただけ（text === ""）は正常系。生成が最後まで失敗した場合だけ error。
+      if (lastError) return { aiId, error: lastError };
+      return { aiId, persona, text };
+    } catch (error) {
+      return { aiId, error };
+    }
+  }));
+
+  // 投稿は id 順に直列で行い、チャットの並びを生成完了順に左右されないようにする。
+  for (const draft of drafts) {
+    if (draft.error) {
+      errors++;
+      reportError(deps, { phase, aiId: draft.aiId, step: "generate" }, draft.error);
+      continue;
+    }
+    if (!draft.text) continue;
+    try {
+      await deps.pushChat(roomId, {
+        authorId: draft.aiId, authorName: draft.persona.name, text: draft.text, round, kind: "ai", at: deps.now(),
+      });
+      messages++;
+    } catch (error) {
+      errors++;
+      reportError(deps, { phase, aiId: draft.aiId, step: "pushChat" }, error);
     }
   }
-  return { actions, messages };
+  return { actions, messages, errors };
 }

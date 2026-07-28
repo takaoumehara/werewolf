@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>live selection harness</title>
+</head>
+<body>
+<!--
+  mobile_app.html をライブモード(demo=1 を付けない)で iframe に読み込み、
+  __liveRenderTestHooks 経由で公開状態を差し替えながら投票/夜行動の描画を叩く。
+
+  検証したいのは「サーバから public が届くたびに再描画されても、入力中の選択が
+  残るか」という一点。実ブラウザでの DOM の状態でしか判定できないため、
+  tests/viewport-harness と同じく headless Chromium + --dump-dom で結果を回収する。
+  結果は #out に、開始/終了マーカーで囲んだ JSON として出す。
+-->
+<iframe id="app" src="/mobile_app.html" style="width:390px;height:760px;border:0"></iframe>
+<pre id="out">RESULT_START{"pending":true}RESULT_END</pre>
+<script>
+(function () {
+  'use strict';
+  var results = [];
+  function check(name, ok, detail) {
+    results.push({ name: name, ok: !!ok, detail: detail == null ? '' : String(detail) });
+  }
+
+  function publicView(opts) {
+    var players = {
+      p1: { id: 'p1', displayName: 'あなた', alive: true, death: null, revealedRoleId: null },
+      ai1: { id: 'ai1', displayName: '虎鉄', alive: true, death: null, revealedRoleId: null },
+      ai2: { id: 'ai2', displayName: '凛', alive: true, death: null, revealedRoleId: null },
+      ai3: { id: 'ai3', displayName: '沙耶', alive: true, death: null, revealedRoleId: null }
+    };
+    (opts.dead || []).forEach(function (id) {
+      players[id].alive = false;
+      players[id].death = { round: opts.round, cause: 'execution' };
+    });
+    return {
+      gameId: 'r1', revision: opts.revision, gmMode: 'computer',
+      phase: opts.phase || 'vote', round: opts.round, deadlineAt: null,
+      players: players, pendingVoteCount: opts.votes || 0, winner: null
+    };
+  }
+
+  function finish() {
+    var passed = results.filter(function (r) { return r.ok; }).length;
+    document.getElementById('out').textContent =
+      'RESULT_START' + JSON.stringify({ total: results.length, passed: passed, results: results }) + 'RESULT_END';
+  }
+
+  function sleep(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  // ソロ進行ドライバ(E-1 恒久停止 / E-4 二重発火)。
+  // hostDriverTick は 1 秒間隔のタイマーからも呼ばれるので、明示的に叩いた回数
+  // ちょうどではなく「発火したフェーズの並び」で判定する。
+  function runHostDriver(w, hooks) {
+    var calls = [];
+    var fail = false;
+    hooks.resetHostDriver();
+    w.appState.solo = true;
+    w.appState.view = 'host';
+    w.liveClient = {
+      uid: 'p1',
+      advanceAiTurn: function (arg) {
+        calls.push(arg.phase);
+        return fail ? Promise.reject(new Error('deadline-exceeded')) : Promise.resolve({ actions: 2, messages: 0, errors: 0 });
+      }
+    };
+
+    function at(round, phase) {
+      hooks.setPublic(publicView({ round: round, revision: round * 100 + calls.length, phase: phase }));
+      hooks.hostDriverTick();
+      return sleep(30);
+    }
+
+    // --- E-4: 投票解決後に day へ戻っても2度目の発話を発火しない --------
+    return at(1, 'day')
+      .then(function () { return at(1, 'vote'); })
+      .then(function () { return at(1, 'day'); })   // RESOLVE_VOTE 後の day
+      .then(function () {
+        check('E-4: 投票解決後の day で2度目のAI発話が発火しない',
+          calls.join(',') === 'day,vote', calls.join(','));
+
+        // --- E-1: 失敗し続けても打ち切って進行を再開できる ---------------
+        hooks.resetHostDriver();
+        calls.length = 0;
+        fail = true;
+        var key = '2:night';
+        var attempt = function () {
+          hooks.setPublic(publicView({ round: 2, revision: 900 + calls.length, phase: 'night' }));
+          hooks.hostDriverTick();
+          return sleep(20).then(function () {
+            // バックオフを跨いで再試行できるよう、待ち時刻をこちらで解除する
+            hooks.hostDriver.aiTurnRetryAt = 0;
+          });
+        };
+        return attempt().then(attempt).then(attempt).then(attempt).then(function () {
+          check('E-1: 失敗が続いても再試行は打ち切られる', calls.length <= 4, '呼び出し ' + calls.length + ' 回');
+          check('E-1: 打ち切り後は完了扱いになり進行が再開できる',
+            hooks.hostDriver.aiTurnDone[key] === true,
+            JSON.stringify(hooks.hostDriver.aiTurnDone));
+        });
+      });
+  }
+
+  function run(w) {
+    var hooks = w.__liveRenderTestHooks;
+    check('テストフックが公開されている', !!hooks);
+    if (!hooks) return finish();
+    w.liveClient = { uid: 'p1' };
+    var d = w.document;
+    var voteRow = function (pid) { return d.querySelector('#voteTargetList .target-option[data-pid="' + pid + '"]'); };
+    var nightRow = function (pid) { return d.querySelector('#liveNightTargetList .target-option[data-pid="' + pid + '"]'); };
+    var voteBtn = function () { return d.getElementById('voteDecideBtn'); };
+    var nightBtn = function () { return d.getElementById('liveNightDecideBtn'); };
+
+    /* ---- C-1: 投票 ---------------------------------------------------- */
+    hooks.setPublic(publicView({ round: 1, revision: 10, votes: 0 }));
+    hooks.renderVote();
+    check('投票: 対象行が描画される', !!voteRow('ai2'));
+    if (!voteRow('ai2')) return finish();
+    voteRow('ai2').click();
+    check('投票: 選択が反映される', voteRow('ai2').classList.contains('is-selected'));
+    check('投票: 確定ボタンが有効になる', voteBtn().disabled === false);
+
+    // AI が投票 → public の revision が変わり onPublic → renderS15Live が再度走る
+    hooks.setPublic(publicView({ round: 1, revision: 11, votes: 1 }));
+    hooks.renderVote();
+    check('C-1: 他人の投票で再描画されても選択が残る',
+      voteRow('ai2') && voteRow('ai2').classList.contains('is-selected'));
+    check('C-1: 再描画後も確定ボタンが有効なまま', voteBtn().disabled === false);
+
+    // 連続で AI 投票が入っても同じ
+    hooks.setPublic(publicView({ round: 1, revision: 12, votes: 3 }));
+    hooks.renderVote();
+    check('C-1: 連続再描画でも選択が残る',
+      voteRow('ai2') && voteRow('ai2').classList.contains('is-selected'));
+
+    // 選んでいた相手が脱落したら選択は落とす
+    hooks.setPublic(publicView({ round: 1, revision: 13, votes: 3, dead: ['ai2'] }));
+    hooks.renderVote();
+    check('投票: 脱落した対象の選択は解除される',
+      voteRow('ai2') && !voteRow('ai2').classList.contains('is-selected'));
+    check('投票: 選択解除で確定ボタンが無効に戻る', voteBtn().disabled === true);
+
+    // ラウンドが変わったら選択はリセットされる
+    hooks.setPublic(publicView({ round: 2, revision: 20, votes: 0 }));
+    hooks.renderVote();
+    voteRow('ai1').click();
+    check('投票: 新ラウンドで選択できる', voteRow('ai1').classList.contains('is-selected'));
+    hooks.setPublic(publicView({ round: 3, revision: 30, votes: 0 }));
+    hooks.renderVote();
+    check('投票: ラウンドが変わると選択はリセットされる',
+      voteRow('ai1') && !voteRow('ai1').classList.contains('is-selected'));
+    check('投票: リセット後は確定ボタンが無効', voteBtn().disabled === true);
+
+    /* ---- C-2: 夜の行動 ------------------------------------------------ */
+    hooks.setPublic(publicView({ round: 1, revision: 40, phase: 'night' }));
+    hooks.setSelf({ id: 'p1', displayName: 'あなた', roleId: 'prophet', alive: true, pendingAction: null });
+    hooks.renderNight();
+    check('夜: 対象行が描画される', !!nightRow('ai1'));
+    if (!nightRow('ai1')) return finish();
+    nightRow('ai1').click();
+    check('夜: 選択が反映される', nightRow('ai1').classList.contains('is-selected'));
+    check('夜: 決定ボタンが有効になる', nightBtn().disabled === false);
+
+    // AI の夜行動が 1 体ずつ適用され、そのたびに public が更新される
+    hooks.setPublic(publicView({ round: 1, revision: 41, phase: 'night' }));
+    hooks.renderNight();
+    check('C-2: AI の夜行動で再描画されても選択が残る',
+      nightRow('ai1') && nightRow('ai1').classList.contains('is-selected'));
+    check('C-2: 再描画後も決定ボタンが有効なまま', nightBtn().disabled === false);
+
+    hooks.setPublic(publicView({ round: 1, revision: 42, phase: 'night' }));
+    hooks.renderNight();
+    check('C-2: 連続再描画でも夜の選択が残る',
+      nightRow('ai1') && nightRow('ai1').classList.contains('is-selected'));
+
+    // 対象が脱落したら落とす
+    hooks.setPublic(publicView({ round: 1, revision: 43, phase: 'night', dead: ['ai1'] }));
+    hooks.renderNight();
+    check('夜: 脱落した対象は一覧から消え選択も解除される', !nightRow('ai1'));
+    check('夜: 選択解除で決定ボタンが無効に戻る', nightBtn().disabled === true);
+
+    // 次の夜では選択はリセットされる
+    hooks.setPublic(publicView({ round: 2, revision: 50, phase: 'night' }));
+    hooks.renderNight();
+    nightRow('ai2').click();
+    check('夜: 新ラウンドで選択できる', nightRow('ai2').classList.contains('is-selected'));
+    hooks.setPublic(publicView({ round: 3, revision: 60, phase: 'night' }));
+    hooks.renderNight();
+    check('夜: ラウンドが変わると選択はリセットされる',
+      nightRow('ai2') && !nightRow('ai2').classList.contains('is-selected'));
+
+    // 行動を記録済み(pendingAction あり)なら操作を受け付けない
+    hooks.setSelf({ id: 'p1', displayName: 'あなた', roleId: 'prophet', alive: true, pendingAction: { kind: 'divine', targetId: 'ai1' } });
+    hooks.renderNight();
+    check('夜: 記録済みなら決定ボタンは隠れる',
+      d.getElementById('liveNightRecordedNotice') &&
+      !d.getElementById('liveNightRecordedNotice').classList.contains('u-hidden'));
+
+    runHostDriver(w, hooks).then(finish, function (e) {
+      check('進行ドライバの検証が例外なく完走する', false, (e && e.message) || e);
+      finish();
+    });
+  }
+
+  var frame = document.getElementById('app');
+  frame.addEventListener('load', function () {
+    // 起動直後の非同期初期化(サウンド/オープニング)を通してから叩く
+    setTimeout(function () {
+      try { run(frame.contentWindow); }
+      catch (e) { check('ハーネスが例外なく完走する', false, (e && e.message) || e); finish(); }
+    }, 600);
+  });
+})();
+</script>
+</body>
+</html>
