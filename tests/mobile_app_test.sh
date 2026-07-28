@@ -25,7 +25,9 @@ check 'あと' "waiting count copy"
 if ! python3 -c "
 import sys
 data = open('mobile_app.html', encoding='utf-8').read()
-sys.exit(1 if any(ch in data for ch in '们你请确认设置说') else 0)
+# 簡体字だけに現れる字形を並べる。日本語でも使う字(置・当・来など)を入れると
+# 正常な本文を誤検出するので、必ず簡体字専用の字形だけにすること。
+sys.exit(1 if any(ch in data for ch in '们你请确认设说给对这个话时间为现关开门员长车马见东书让过还进') else 0)
 "; then echo "FAIL: Chinese chars found"; FAIL=1; fi
 [ $FAIL -eq 0 ] && echo "OK: mobile_app_test passed"
 exit $FAIL

@@ -589,6 +589,101 @@
   }
 
   /* -----------------------------------------------------------------
+     役職ピッカー(s07) — 用意した絵札をそのまま選択UIにする
+     ----------------------------------------------------------------- */
+  .role-picker {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-right: 2px;
+  }
+  .role-picker-group + .role-picker-group { margin-top: var(--sp-4, 16px); }
+  .role-picker-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--p-gold-hi, #E0C87E);
+  }
+  .role-picker-head .camp-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+  }
+  .role-picker-head .role-picker-tally {
+    margin-left: auto;
+    font-family: var(--font-body, inherit);
+    font-size: 11px;
+    letter-spacing: 0;
+    color: #8f8878;
+  }
+  .role-pick-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .role-pick { min-width: 0; }
+  .role-pick .roster-cell {
+    flex: none;
+    max-width: none;
+    width: 100%;
+  }
+  .role-pick.is-chosen .roster-cell {
+    border-color: var(--p-gold-hi, #E0C87E);
+    box-shadow: 0 0 0 2px rgba(224, 200, 126, 0.45), 0 4px 10px rgba(0, 0, 0, 0.5);
+  }
+  .role-pick:not(.is-chosen) .roster-cell { opacity: 0.62; }
+  .role-pick-badge {
+    position: absolute;
+    top: 5px;
+    right: 18px;
+    z-index: 4;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: var(--p-gold, #C9A84C);
+    color: #17140d;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 18px;
+    text-align: center;
+  }
+  .role-pick-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    margin-top: 5px;
+  }
+  .role-pick-stepper button {
+    /* 44pt には満たないが、隣接する行間 margin を含めた実タップ域で 44pt を確保する。
+       3列グリッドの幅制約下でこれ以上は広げられない。 */
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0;
+    font-size: 17px;
+    line-height: 1;
+  }
+  .role-pick-stepper .role-pick-count {
+    font-family: var(--font-heading);
+    font-size: 15px;
+    color: var(--sem-text, #EDE9DC);
+    min-width: 18px;
+    text-align: center;
+  }
+  .comp-presets {
+    display: flex;
+    gap: 8px;
+    margin-bottom: var(--sp-3, 12px);
+  }
+  .comp-presets .btn { flex: 1 1 0; min-height: 40px; padding: 8px 6px; font-size: 13px; }
+
+  /* -----------------------------------------------------------------
      画面共通レイアウト
      ----------------------------------------------------------------- */
   .top-bar {
@@ -1728,12 +1823,15 @@
       <!-- s07: 役職構成 -->
       <section class="screen" id="s07">
         <h2 class="screen-title">役職構成</h2>
-        <p class="screen-sub">役職ごとの人数を調整します。</p>
-        <p class="screen-sub" id="compositionSoloNote" style="display:none;color:#8f8878;font-size:12px;">ソロ版で使える役職は 人狼・予言者・市民 です(AI対応の役職から順次追加予定)。</p>
-        <p class="screen-sub" id="compositionWarning" style="display:none;color:#C97B7B;" role="alert"></p>
-        <div class="ledger-list" id="compositionList"></div>
+        <p class="screen-sub">配る役職を選びます。絵札を押すと大きく見られます。</p>
         <div class="composition-total" id="compositionTotal"></div>
-        <button type="button" class="btn btn--primary" onclick="handleS07Next()">配役を確定する</button>
+        <p class="screen-sub" id="compositionWarning" style="display:none;color:#C97B7B;" role="alert" aria-live="polite"></p>
+        <div class="comp-presets">
+          <button type="button" class="btn btn--secondary" id="compPresetRecommended">おすすめの構成</button>
+          <button type="button" class="btn btn--secondary" id="compPresetClear">すべて外す</button>
+        </div>
+        <div class="role-picker" id="rolePicker"></div>
+        <button type="button" class="btn btn--primary" style="margin-top:var(--sp-3);" onclick="handleS07Next()">配役を確定する</button>
       </section>
 
       <!-- s08: 配役通知 -->
@@ -2368,7 +2466,7 @@
         en: "Werewolf's Child",
         rubies: ["じん", "ろう", "", "こ", "", ""],
         camp: "werewolf",
-        desc_ja: "自分が死亡した際、残された人狼たちに強い怒りと力を给え、次の夜の襲撃数を一時的に増やす。",
+        desc_ja: "自分が死亡した際、残された人狼たちに強い怒りと力を与え、次の夜の襲撃数を一時的に増やす。",
         desc_en: "When dead, grants strong rage and power to the remaining werewolves, increasing night attacks."
     },
     {
@@ -2448,13 +2546,6 @@
   ];
   const SELF_ID = 'p1';
   const OTHER_ROLE_ASSIGN = { p2: 'werewolf', p3: 'werewolf', p4: 'prophet', p5: 'knights', p6: 'citizen', p7: 'citizen', p8: 'citizen' };
-
-  const RECOMMENDED_COMPOSITION = [
-    { id: 'werewolf', label: '人狼', count: 2 },
-    { id: 'prophet', label: '予言者', count: 1 },
-    { id: 'knights', label: '騎士団', count: 1 },
-    { id: 'citizen', label: '市民', count: 4 }
-  ];
 
   const NIGHT_ACTIONS = {
     prophet: { question: '誰を占いますか。', verb: '占う' },
@@ -2559,7 +2650,10 @@
     magician: { kind: 'swap', verb: '交換する', question: '入れ替える2人を選んでください。' },
     magician_c: { kind: 'swap', verb: '交換する', question: '入れ替える2人を選んでください。' },
     counselor: { kind: 'calm', verb: '鎮める', question: '誰を鎮めますか。' },
-    god: { kind: 'oracle', verb: '神託を受ける', question: '見届ける対象を1人選んでください。' }
+    god: { kind: 'oracle', verb: '神託を受ける', question: '見届ける対象を1人選んでください。' },
+    double: { kind: 'choose_copy', verb: '身代わりになる', question: '誰の役職を写しますか。' },
+    spy: { kind: 'relay', verb: '報せを送る', question: '人狼チームへ誰のことを報せますか。' },
+    hunter: { kind: 'death_shot', verb: '狙いを定める', question: '自分が倒れたとき、誰を道連れにしますか。' }
   };
 
   function liveAliveOthers() {
@@ -2918,10 +3012,16 @@
 
   window.handleS07Next = function () {
     if (MODE !== 'live') { showScreen('s08'); return; }
-    const total = composition.reduce(function (sum, c) { return sum + c.count; }, 0);
     const playerCount = latestPlayers.length;
+    // 開始を止めるのは「配れない構成」だけ。バランスの助言は警告表示に留める。
+    const total = compositionTotal();
     if (total !== playerCount) {
-      showToast('人数(' + playerCount + ')と構成の合計(' + total + ')が一致していません。');
+      showToast('選んだ役職が ' + total + ' 人、参加が ' + playerCount + ' 人です。数を合わせてください。');
+      return;
+    }
+    const wolves = KILLING_WOLF_IDS.reduce(function (sum, id) { return sum + compositionCountOf(id); }, 0);
+    if (wolves === 0) {
+      showToast('襲撃する人狼が1人も居ません。人狼を入れてください。');
       return;
     }
     const roleIds = [];
@@ -2971,34 +3071,11 @@
     // 6人以下は狼1に抑えることで必ず昼(議論)フェーズへ到達できる。
     const wolves = playerCount >= 10 ? 3 : playerCount >= 7 ? 2 : 1;
     const knights = playerCount >= 6 ? 1 : 0;
-    return [
-      { id: 'werewolf', label: '人狼', count: wolves },
-      { id: 'prophet', label: '予言者', count: 1 },
-      { id: 'knights', label: '騎士団', count: knights },
-      { id: 'citizen', label: '市民', count: Math.max(0, playerCount - wolves - 1 - knights) }
-    ];
-  }
-
-  // MVP1 solo clamp: remove non-MVP1 roles (knights, etc.) and fold their counts into citizen
-  function clampCompositionToMvp1(comp) {
-    const allowedIds = { werewolf: true, prophet: true, citizen: true };
-    let removedCount = 0;
-    const clamped = [];
-    for (let i = 0; i < comp.length; i++) {
-      if (allowedIds[comp[i].id]) {
-        clamped.push(comp[i]);
-      } else {
-        removedCount += comp[i].count;
-      }
-    }
-    // Fold removed counts into citizen
-    for (let i = 0; i < clamped.length; i++) {
-      if (clamped[i].id === 'citizen') {
-        clamped[i] = Object.assign({}, clamped[i], { count: clamped[i].count + removedCount });
-        break;
-      }
-    }
-    return clamped;
+    const necromancer = playerCount >= 8 ? 1 : 0;
+    const citizens = Math.max(0, playerCount - wolves - 1 - knights - necromancer);
+    return makeComposition({
+      werewolf: wolves, prophet: 1, knights: knights, necromancer: necromancer, citizen: citizens,
+    });
   }
 
   /* ===================================================================
@@ -3613,54 +3690,186 @@
   /* ===================================================================
      s07: 役職構成
      =================================================================== */
-  let composition = RECOMMENDED_COMPOSITION.map(function (c) { return { id: c.id, label: c.label, count: c.count }; });
+  // 構成は「用意した全役職 × 人数(0可)」で保持する。0 の役職は配役時に無視される。
+  // こうしておくと、どの役職も同じ導線で選べる(ソロ/共有卓で差を作らない)。
+  const PICKER_CAMPS = [
+    { camp: 'citizen', label: '市民チーム' },
+    { camp: 'werewolf', label: '人狼チーム' },
+    { camp: 'fox', label: '第三陣営' }
+  ];
+  // 2人1組で意味を持つ役職。半端に1人だけ選ぶと相方が居ない。
+  const PAIRED_ROLE_IDS = ['twins', 'betrayal_twin', 'lovers'];
+  // 実際に襲撃を行う人狼。0体だと夜が何も起きず勝負にならない。
+  const KILLING_WOLF_IDS = ['werewolf', 'werewolf_child', 'lone_wolf'];
 
-  function renderComposition() {
-    const list = document.getElementById('compositionList');
-    list.innerHTML = '';
-    let total = 0;
-    composition.forEach(function (c) {
-      total += c.count;
-      const row = document.createElement('div');
-      row.className = 'composition-row';
-      row.innerHTML =
-        '<span class="comp-diamond" aria-hidden="true"></span>' +
-        '<span class="role-label">' + c.label + '</span>' +
-        '<div class="stepper">' +
-          '<button type="button" class="btn btn--secondary" data-role="' + c.id + '" data-delta="-1">−</button>' +
-          '<span class="count">' + c.count + '</span>' +
-          '<button type="button" class="btn btn--secondary" data-role="' + c.id + '" data-delta="1">+</button>' +
-        '</div>';
-      list.appendChild(row);
-    });
-    // ライブ卓では実際の参加人数を表示する(デモ用固定配列 PLAYERS の数を出さない)
-    const joinedCount = (MODE === 'live' && latestPlayers.length) ? latestPlayers.length : PLAYERS.length;
-    document.getElementById('compositionTotal').innerHTML = '<span>合計</span><span><span class="num">' + total + '</span> 人 / 参加 ' + joinedCount + ' 人</span>';
-    // 初夜で決着し得る構成(襲撃1件で 狼数 >= 市民数 に到達)には事前に警告する
-    const warnEl = document.getElementById('compositionWarning');
-    if (warnEl) {
-      const wolfEntry = composition.filter(function (c) { return c.id === 'werewolf'; })[0];
-      const wolves = wolfEntry ? wolfEntry.count : 0;
-      const instantEnd = total > 0 && wolves > 0 && (wolves * 2 >= total - 1);
-      warnEl.textContent = instantEnd ? '⚠ この構成は最初の夜で決着することがあります。人狼を減らすか人数を増やすと、昼の議論まで楽しめます。' : '';
-      warnEl.style.display = instantEnd ? 'block' : 'none';
-    }
-    const soloNoteEl = document.getElementById('compositionSoloNote');
-    if (soloNoteEl) soloNoteEl.style.display = appState.solo ? 'block' : 'none';
-    list.querySelectorAll('button').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        adjustComposition(btn.dataset.role, parseInt(btn.dataset.delta, 10));
-      });
+  function makeComposition(counts) {
+    return rolesData.map(function (r) {
+      return { id: r.id, label: r.jp, camp: r.camp, count: (counts && counts[r.id]) || 0 };
     });
   }
 
-  function adjustComposition(roleId, delta) {
-    composition.forEach(function (c) {
-      if (c.id === roleId) {
-        c.count = Math.max(0, c.count + delta);
+  function compositionCountOf(roleId) {
+    const entry = composition.filter(function (c) { return c.id === roleId; })[0];
+    return entry ? entry.count : 0;
+  }
+
+  function compositionTotal() {
+    return composition.reduce(function (sum, c) { return sum + c.count; }, 0);
+  }
+
+  let composition = makeComposition({ werewolf: 2, prophet: 1, knights: 1, citizen: 4 });
+  // 自分で人数をいじったら、参加人数の変化でおすすめ構成に戻さない。
+  let compositionTouched = false;
+
+  /** 構成の不備を人が読める文にする。空配列なら開始してよい。 */
+  function compositionProblems(playerCount) {
+    const total = compositionTotal();
+    const problems = [];
+    if (total !== playerCount) {
+      problems.push('選んだ役職が ' + total + ' 人、参加が ' + playerCount + ' 人です。数を合わせてください。');
+    }
+    const wolves = KILLING_WOLF_IDS.reduce(function (sum, id) { return sum + compositionCountOf(id); }, 0);
+    if (total > 0 && wolves === 0) {
+      problems.push('襲撃する人狼が居ません。人狼・人狼の子ども・一匹狼のいずれかを1人以上入れてください。');
+    }
+    // 初夜で決着し得る構成(襲撃1件で 狼数 >= 市民数 に到達)
+    if (total > 0 && wolves > 0 && wolves * 2 >= total - 1) {
+      problems.push('この構成は最初の夜で決着することがあります。人狼を減らすか人数を増やすと、昼の議論まで楽しめます。');
+    }
+    PAIRED_ROLE_IDS.forEach(function (id) {
+      const count = compositionCountOf(id);
+      if (count % 2 === 1) {
+        const label = (rolesData.filter(function (r) { return r.id === id; })[0] || {}).jp || id;
+        problems.push(label + 'は2人1組です。奇数だと1人だけ相方が居ません。');
       }
     });
+    return problems;
+  }
+
+  // roleId → 差分更新に使うDOM参照。24枚のカードを毎回作り直すと、
+  // 下のほうの役職を押すたびにスクロール位置が先頭へ飛んでしまう。
+  const rolePickCells = {};
+
+  function buildRolePickCell(entry) {
+    const wrap = document.createElement('div');
+    wrap.className = 'role-pick';
+    // 絵札そのものを選択UIにする。押すと全画面で大きく見られる。
+    const cell = buildRosterCell(entry.id, entry.label, false);
+    cell.setAttribute('aria-label', entry.label + 'のカードを大きく見る');
+    const badge = document.createElement('span');
+    badge.className = 'role-pick-badge u-hidden';
+    cell.appendChild(badge);
+    wrap.appendChild(cell);
+
+    const stepper = document.createElement('div');
+    stepper.className = 'role-pick-stepper';
+    const minus = document.createElement('button');
+    minus.type = 'button';
+    minus.className = 'btn btn--secondary';
+    minus.textContent = '−';
+    minus.setAttribute('aria-label', entry.label + 'を減らす');
+    const count = document.createElement('span');
+    count.className = 'role-pick-count';
+    const plus = document.createElement('button');
+    plus.type = 'button';
+    plus.className = 'btn btn--secondary';
+    plus.textContent = '+';
+    plus.setAttribute('aria-label', entry.label + 'を増やす');
+    minus.addEventListener('click', function () { adjustComposition(entry.id, -1); });
+    plus.addEventListener('click', function () { adjustComposition(entry.id, 1); });
+    stepper.appendChild(minus);
+    stepper.appendChild(count);
+    stepper.appendChild(plus);
+    wrap.appendChild(stepper);
+    rolePickCells[entry.id] = { wrap: wrap, badge: badge, count: count, minus: minus };
+    return wrap;
+  }
+
+  function buildRolePicker() {
+    const picker = document.getElementById('rolePicker');
+    if (!picker || picker.dataset.built === '1') return;
+    picker.dataset.built = '1';
+    PICKER_CAMPS.forEach(function (group) {
+      const entries = composition.filter(function (c) { return c.camp === group.camp; });
+      if (entries.length === 0) return;
+      const section = document.createElement('div');
+      section.className = 'role-picker-group';
+      const head = document.createElement('div');
+      head.className = 'role-picker-head';
+      head.innerHTML =
+        '<span class="camp-dot" style="background:' + rosterFactionColor(group.camp) + ';"></span>' +
+        '<span>' + group.label + '</span>' +
+        '<span class="role-picker-tally" data-camp="' + group.camp + '"></span>';
+      section.appendChild(head);
+      const grid = document.createElement('div');
+      grid.className = 'role-pick-grid';
+      entries.forEach(function (entry) { grid.appendChild(buildRolePickCell(entry)); });
+      section.appendChild(grid);
+      picker.appendChild(section);
+    });
+  }
+
+  function renderComposition() {
+    buildRolePicker();
+    composition.forEach(function (entry) {
+      const refs = rolePickCells[entry.id];
+      if (!refs) return;
+      refs.count.textContent = String(entry.count);
+      refs.minus.disabled = entry.count === 0;
+      refs.badge.textContent = String(entry.count);
+      refs.badge.classList.toggle('u-hidden', entry.count === 0);
+      refs.wrap.classList.toggle('is-chosen', entry.count > 0);
+    });
+    PICKER_CAMPS.forEach(function (group) {
+      const tally = document.querySelector('#rolePicker .role-picker-tally[data-camp="' + group.camp + '"]');
+      if (!tally) return;
+      tally.textContent = composition
+        .filter(function (c) { return c.camp === group.camp; })
+        .reduce(function (sum, c) { return sum + c.count; }, 0) + ' 人';
+    });
+
+    // ライブ卓では実際の参加人数を表示する(デモ用固定配列 PLAYERS の数を出さない)
+    const joinedCount = (MODE === 'live' && latestPlayers.length) ? latestPlayers.length : PLAYERS.length;
+    const total = compositionTotal();
+    const totalEl = document.getElementById('compositionTotal');
+    if (totalEl) {
+      totalEl.innerHTML = '<span>選んだ役職</span><span><span class="num">' + total + '</span> 人 / 参加 ' + joinedCount + ' 人</span>';
+    }
+    const warnEl = document.getElementById('compositionWarning');
+    if (warnEl) {
+      const problems = compositionProblems(joinedCount);
+      warnEl.textContent = problems.length ? '⚠ ' + problems.join(' / ') : '';
+      warnEl.style.display = problems.length ? 'block' : 'none';
+    }
+  }
+
+  function adjustComposition(roleId, delta) {
+    compositionTouched = true;
+    composition.forEach(function (c) {
+      if (c.id === roleId) c.count = Math.max(0, c.count + delta);
+    });
     renderComposition();
+  }
+
+  function setupCompositionPresets() {
+    const recommended = document.getElementById('compPresetRecommended');
+    if (recommended) {
+      recommended.addEventListener('click', function () {
+        const joined = (MODE === 'live' && latestPlayers.length) ? latestPlayers.length : PLAYERS.length;
+        composition = computeDefaultComposition(joined);
+        compositionTouched = false;
+        renderComposition();
+        showToast('おすすめの構成に戻しました。');
+      });
+    }
+    const clear = document.getElementById('compPresetClear');
+    if (clear) {
+      clear.addEventListener('click', function () {
+        compositionTouched = true;
+        composition = makeComposition({});
+        renderComposition();
+      });
+    }
   }
 
   /* ===================================================================
@@ -4291,8 +4500,10 @@
     if (id === 's05') renderS05();
     if (id === 's06') renderS06();
     if (id === 's07') {
-      if (MODE === 'live') composition = computeDefaultComposition(latestPlayers.length || PLAYERS.length);
-      if (appState.solo) composition = clampCompositionToMvp1(composition);
+      // 一度でも自分で編集していれば、その構成を保つ(画面を出入りしても消えない)。
+      if (!compositionTouched && MODE === 'live') {
+        composition = computeDefaultComposition(latestPlayers.length || PLAYERS.length);
+      }
       renderComposition();
     }
     if (id === 's09') { renderS09(); playStinger('reveal'); }
@@ -4767,6 +4978,7 @@
       hostDriver.lastSentType = null;
     }
   };
+  setupCompositionPresets();
   // 音トグルの初期表示を localStorage の実状態に同期
   updateSoundToggleLabel();
 })();

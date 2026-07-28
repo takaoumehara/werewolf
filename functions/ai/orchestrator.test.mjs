@@ -56,6 +56,43 @@ test("nightフェーズでは狼はattack・占い師はdivineを出す（村人
   assert.equal(kinds.length, 2); // citizen p1 は人間・AIでもないので0、AI2体だけ
 });
 
+test("奇術師のAIは入れ替える2人目まで含めてコマンドを出す", async () => {
+  const auth = {
+    round: 1, phase: "night",
+    players: {
+      p1: { id: "p1", roleId: "citizen", team: "citizen", alive: true, displayName: "あなた" },
+      ai1: { id: "ai1", roleId: "magician", team: "citizen", alive: true, displayName: "虎鉄" },
+      ai2: { id: "ai2", roleId: "citizen", team: "citizen", alive: true, displayName: "凛" },
+    },
+    pendingVotes: {}, roleState: { privateResults: {} },
+  };
+  const deps = makeDeps({ authoritative: auth });
+  await runAiPhase(deps, { roomId: "r1", phase: "night" });
+  const swap = deps._applied.find((a) => a.payload?.kind === "swap");
+  assert.ok(swap, "swap コマンドが出ていない");
+  assert.equal(typeof swap.payload.secondTargetId, "string");
+  assert.notEqual(swap.payload.secondTargetId, swap.payload.targetId);
+});
+
+test("swap 以外の夜行動に secondTargetId は付かない", async () => {
+  const auth = {
+    round: 1, phase: "night",
+    players: {
+      p1: { id: "p1", roleId: "citizen", team: "citizen", alive: true, displayName: "あなた" },
+      ai1: { id: "ai1", roleId: "knights", team: "citizen", alive: true, displayName: "虎鉄" },
+      ai2: { id: "ai2", roleId: "hunter", team: "citizen", alive: true, displayName: "凛" },
+    },
+    pendingVotes: {}, roleState: { privateResults: {} },
+  };
+  const deps = makeDeps({ authoritative: auth });
+  await runAiPhase(deps, { roomId: "r1", phase: "night" });
+  const kinds = deps._applied.map((a) => a.payload.kind).sort();
+  assert.deepEqual(kinds, ["death_shot", "protect"]);
+  for (const applied of deps._applied) {
+    assert.ok(!("secondTargetId" in applied.payload), `${applied.payload.kind} に secondTargetId が付いている`);
+  }
+});
+
 test("dayフェーズでは検証を通った発話だけがchatに入る", async () => {
   const deps = makeDeps({ generate: async () => "これはAIの陰謀だ" }); // 禁止語→不合格
   const res = await runAiPhase(deps, { roomId: "r1", phase: "day" });

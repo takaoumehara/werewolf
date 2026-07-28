@@ -51,7 +51,11 @@ export async function runAiPhase(deps, { roomId, phase }) {
         if (phase === "night") {
           const act = decideNightAction(input);
           if (!act) continue;
-          await deps.applyCommand(roomId, aiId, "SUBMIT_NIGHT_ACTION", { kind: act.kind, targetId: act.targetId });
+          // secondTargetId は swap（奇術師）だけが使う。エンジンは undefined を
+          // 受け付けないので、無い場合は payload に載せない。
+          const payload = { kind: act.kind, targetId: act.targetId };
+          if (act.secondTargetId) payload.secondTargetId = act.secondTargetId;
+          await deps.applyCommand(roomId, aiId, "SUBMIT_NIGHT_ACTION", payload);
         } else {
           const { targetId } = decideVote(input);
           await deps.applyCommand(roomId, aiId, "CAST_VOTE", { targetId });

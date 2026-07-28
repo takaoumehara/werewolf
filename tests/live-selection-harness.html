@@ -105,6 +105,61 @@
       });
   }
 
+  // s07 役職ピッカー。用意した絵札のすべてが、どのモードでも選べる状態かを見る。
+  function runRolePicker(w) {
+    var d = w.document;
+    w.showScreen('s07');
+    var picker = d.getElementById('rolePicker');
+    check('役職ピッカーが描画される', !!picker && picker.children.length > 0);
+    if (!picker) return;
+
+    var cells = picker.querySelectorAll('.role-pick');
+    check('用意した24役職ぶんの枠がある', cells.length === 24, '実際は ' + cells.length);
+    check('陣営ごとに3グループに分かれている',
+      picker.querySelectorAll('.role-picker-group').length === 3,
+      String(picker.querySelectorAll('.role-picker-group').length));
+    check('各枠に絵札の画像が入っている',
+      picker.querySelectorAll('.role-pick .roster-char').length === cells.length);
+    check('絵札を押すとカードを大きく見られる',
+      !!picker.querySelector('.role-pick .roster-cell[role="button"]'));
+
+    // かつてソロから締め出されていた役職が、いまは選べること
+    ['magician', 'trapper', 'necromancer', 'god', 'double', 'hunter', 'spy', 'mysterious_fox', 'android', 'dictator']
+      .forEach(function (id) {
+        check('役職 ' + id + ' が選べる', !!picker.querySelector('.role-pick .roster-cell[aria-label]') &&
+          Array.prototype.some.call(cells, function (c) {
+            return c.querySelector('.roster-char') && c.querySelector('.roster-char').src.indexOf(id) !== -1;
+          }));
+      });
+
+    function totalText() { return d.getElementById('compositionTotal').textContent; }
+    function cellFor(index) { return cells[index]; }
+    var before = totalText();
+    var firstCellBefore = picker.querySelector('.role-pick');
+    cellFor(0).querySelectorAll('button')[1].click(); // ＋
+    check('＋で合計が増える', totalText() !== before, before + ' → ' + totalText());
+    check('数を変えても一覧は作り直されない(スクロール位置が先頭へ飛ばない)',
+      picker.querySelector('.role-pick') === firstCellBefore);
+    cellFor(0).querySelectorAll('button')[0].click(); // −
+    check('−で元に戻る', totalText() === before, before + ' → ' + totalText());
+
+    d.getElementById('compPresetClear').click();
+    check('「すべて外す」で選択が0になる', totalText().indexOf('0') !== -1, totalText());
+    var warn = d.getElementById('compositionWarning');
+    check('0人のときは不備が警告される', warn.style.display !== 'none' && warn.textContent.length > 0);
+
+    d.getElementById('compPresetRecommended').click();
+    var wolfCell = Array.prototype.filter.call(d.querySelectorAll('#rolePicker .role-pick'), function (c) {
+      var img = c.querySelector('.roster-char');
+      return img && /werewolf_ver/.test(img.src);
+    })[0];
+    check('おすすめ構成で人狼が1人以上入る',
+      !!wolfCell && Number(wolfCell.querySelector('.role-pick-count').textContent) >= 1);
+    check('おすすめ構成では不備の警告が出ない',
+      d.getElementById('compositionWarning').style.display === 'none',
+      d.getElementById('compositionWarning').textContent);
+  }
+
   function run(w) {
     var hooks = w.__liveRenderTestHooks;
     check('テストフックが公開されている', !!hooks);
@@ -200,6 +255,8 @@
     check('夜: 記録済みなら決定ボタンは隠れる',
       d.getElementById('liveNightRecordedNotice') &&
       !d.getElementById('liveNightRecordedNotice').classList.contains('u-hidden'));
+
+    runRolePicker(w);
 
     runHostDriver(w, hooks).then(finish, function (e) {
       check('進行ドライバの検証が例外なく完走する', false, (e && e.message) || e);

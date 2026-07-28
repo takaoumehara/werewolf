@@ -2,7 +2,7 @@ import { seededShuffle } from "./random.mjs";
 import { ROLE_DEFINITIONS, ROLE_IDS, getRoleDefinition, isKillingWerewolf } from "./roles.mjs";
 
 const PHASES = new Set(["lobby", "role_reveal", "night", "day", "vote", "finished"]);
-const NIGHT_ACTIONS = new Set(["attack", "protect", "divine", "medium", "trap", "swap", "calm", "oracle", "choose_copy", "relay"]);
+const NIGHT_ACTIONS = new Set(["attack", "protect", "divine", "medium", "trap", "swap", "calm", "oracle", "choose_copy", "relay", "death_shot"]);
 
 export class InvalidCommandError extends Error {
   constructor(message) {
@@ -48,6 +48,16 @@ function kill(state, playerId, cause, events, now) {
   if (player.roleId === "lovers") {
     const partnerId = state.roleState.lovers?.[playerId];
     if (partnerId) kill(state, partnerId, "lover_grief", events, now);
+  }
+  // ハンターの道連れ。撃つ相手は夜のうちに定めてある（death_shot）。
+  // 連鎖してもこの関数の冒頭で生存を見ているので停止する。
+  if (player.roleId === "hunter") {
+    const markId = state.roleState.deathShots?.[playerId];
+    if (markId && state.players[markId]?.alive) kill(state, markId, "hunter_death_shot", events, now);
+  }
+  // 人狼の子どもの死は、残った人狼に次の夜だけ余分な牙を与える。
+  if (player.roleId === "werewolf_child") {
+    state.roleState.wolfRageRound = state.round + 1;
   }
   events.push(event(state, "PLAYER_DIED", { playerId, cause }, now));
 }
@@ -126,11 +136,33 @@ function applyNight(state, events, now) {
   for (const action of actions.filter((candidate) => candidate.kind === "calm")) {
     state.players[action.targetId].flags.calmed = true;
   }
+  // ハンターの「最後の一撃」の相手を控えておく。撃たれるのは本人が死んだとき。
+  // 襲撃より先に登録することで、同じ夜に襲撃されても道連れが成立する。
+  for (const action of actions.filter((candidate) => candidate.kind === "death_shot")) {
+    state.roleState.deathShots[action.actorId] = action.targetId;
+  }
+
   const protectIds = new Set(actions.filter((a) => a.kind === "protect").map((a) => a.targetId));
-  const attacks = actions.filter((a) => a.kind === "attack");
-  const attack = attacks[0];
-  if (attack && !protectIds.has(attack.targetId)) {
+  // 人狼の子どもが前夜に死んでいれば、この夜だけ牙が2本になる。
+  const maxAttacks = state.roleState.wolfRageRound === state.round ? 2 : 1;
+  // 同じ相手を複数の人狼が狙っても1件として数える（actorId 昇順で先着を採る）。
+  const seenTargets = new Set();
+  const landedAttacks = [];
+  for (const action of actions.filter((a) => a.kind === "attack")) {
+    if (seenTargets.has(action.targetId)) continue;
+    seenTargets.add(action.targetId);
+    landedAttacks.push({ targetId: action.targetId, actorId: action.actorId });
+    if (landedAttacks.length >= maxAttacks) break;
+  }
+  landedAttacks.forEach((attack, index) => {
     const target = playerById(state, attack.targetId);
+    const blocked = protectIds.has(attack.targetId) || target.roleId === "mysterious_fox";
+    if (blocked) {
+      // 妖狐は人狼の襲撃では死なない。守護と公開上の見え方を揃え、正体が漏れないようにする。
+      if (index === 0) state.lastAttack = { targetId: attack.targetId, protected: true };
+      events.push(event(state, "ATTACK_BLOCKED", { targetId: attack.targetId }, now));
+      return;
+    }
     const trapperId = state.roleState.traps[attack.targetId];
     if (trapperId) {
       kill(state, attack.targetId, "trap_counterattack", events, now);
@@ -143,11 +175,8 @@ function applyNight(state, events, now) {
     } else {
       kill(state, attack.targetId, "werewolf_attack", events, now);
     }
-    state.lastAttack = { targetId: attack.targetId, protected: false };
-  } else if (attack) {
-    state.lastAttack = { targetId: attack.targetId, protected: true };
-    events.push(event(state, "ATTACK_BLOCKED", { targetId: attack.targetId }, now));
-  }
+    if (index === 0) state.lastAttack = { targetId: attack.targetId, protected: false };
+  });
   for (const action of actions.filter((candidate) => candidate.kind === "divine")) {
     const target = state.players[action.targetId];
     state.roleState.privateResults[action.actorId] ??= [];
@@ -220,7 +249,10 @@ export function createGame({ gameId, players, seed = 1, roleIds = [], gmMode = "
     gameId, revision: 0, seed, gmMode, hostId, phase: "lobby", round: 0, deadlineAt: null,
     phaseDurations: { night: 90_000, day: 180_000, vote: 60_000, ...phaseDurations },
     players: playerRecords,
-    roleState: { privateResults: {}, lovers, twins: pairMap("twins"), betrayalTwins: pairMap("betrayal_twin"), traps: {}, lastExecution: null },
+    roleState: {
+      privateResults: {}, lovers, twins: pairMap("twins"), betrayalTwins: pairMap("betrayal_twin"),
+      traps: {}, deathShots: {}, wolfRageRound: null, lastExecution: null,
+    },
     pendingActions: {}, pendingVotes: {}, winner: null, history: [], lastAttack: null, eventSequence: 0,
   };
 }
@@ -246,6 +278,8 @@ function rehydratePersistedContainers(state) {
   state.roleState.twins ??= {};
   state.roleState.betrayalTwins ??= {};
   state.roleState.traps ??= {};
+  state.roleState.deathShots ??= {};
+  state.roleState.wolfRageRound ??= null;
   state.roleState.lastExecution ??= null;
   state.deadlineAt ??= null;
   state.winner ??= null;
