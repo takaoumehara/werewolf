@@ -301,17 +301,27 @@ export async function applyServerCommand(roomId, actorId, type, payload = {}) {
   return outcome;
 }
 
-/** ホストがソロ卓に count 体のAIを着席させる。役職は startWerewolfGame が既存ロジックで配る。 */
+/**
+ * ホストが卓に count 体のAIを着席させる。ソロ卓でも人間の混じった卓でも同じ。
+ * 呼ぶたびに「AIはちょうど count 体」の状態にする(減らす方向も反映される)。
+ * 役職は startWerewolfGame が既存ロジックで配る。
+ */
 export const seatAiPlayers = onCall(async (req) => {
   const uid = requireUid(req);
   const roomId = String(req.data?.roomId ?? "");
-  const count = Math.max(0, Math.min(11, Number(req.data?.count ?? 0)));
+  const requested = Math.max(0, Math.min(MAX_PLAYERS_CAP - 1, Number(req.data?.count ?? 0)));
 
   const metaSnap = await db().ref(`rooms/${roomId}/meta`).get();
   const meta = metaSnap.val();
   if (!meta) throw new HttpsError("not-found", "部屋が存在しません。");
   if (meta.hostId !== uid) throw new HttpsError("permission-denied", "ホストのみが実行できます。");
   if (meta.status !== "waiting") throw new HttpsError("failed-precondition", "開始前のみ着席できます。");
+
+  const playersSnap = await db().ref(`rooms/${roomId}/players`).get();
+  const existing = playersSnap.val() || {};
+  const humanIds = Object.values(existing).filter((p) => p.role !== "ai").map((p) => p.id);
+  const capacity = Math.max(0, Math.min(meta.maxPlayers ?? MAX_PLAYERS_CAP, MAX_PLAYERS_CAP) - humanIds.length);
+  const count = Math.min(requested, capacity);
 
   const roster = pickRoster(count);
   const updates = {};
@@ -327,6 +337,13 @@ export const seatAiPlayers = onCall(async (req) => {
       verbalTic: persona.verbalTic, personality: persona.personality,
     };
   });
+  // 前回より減らした場合に余分なAIが席に残らないよう、範囲外のAIを消す。
+  for (const player of Object.values(existing)) {
+    if (player.role !== "ai" || seated.includes(player.id)) continue;
+    updates[`roomMembers/${roomId}/${player.id}`] = null;
+    updates[`rooms/${roomId}/players/${player.id}`] = null;
+    updates[`rooms/${roomId}/aiPlayers/${player.id}`] = null;
+  }
   await db().ref().update(updates);
   return { seated };
 });

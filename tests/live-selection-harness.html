@@ -61,6 +61,11 @@
     hooks.resetHostDriver();
     w.appState.solo = true;
     w.appState.view = 'host';
+    hooks.setPlayers([
+      { id: 'p1', name: 'あなた', role: 'host', connected: true, joinedAt: 1 },
+      { id: 'ai_1', name: '虎鉄', role: 'ai', connected: true, joinedAt: 2 },
+      { id: 'ai_2', name: '凛', role: 'ai', connected: true, joinedAt: 3 }
+    ]);
     w.liveClient = {
       uid: 'p1',
       advanceAiTurn: function (arg) {
@@ -158,6 +163,67 @@
     check('おすすめ構成では不備の警告が出ない',
       d.getElementById('compositionWarning').style.display === 'none',
       d.getElementById('compositionWarning').textContent);
+  }
+
+  // 3つの遊び方(ひとり用 / 人間+AI / 人間だけ)が同じ導線で成立するか。
+  function runTableModes(w, hooks) {
+    var d = w.document;
+    var calls = [];
+    hooks.resetHostDriver();
+    w.appState.view = 'host';
+    w.liveClient = {
+      uid: 'p1',
+      advanceAiTurn: function (arg) { calls.push(arg.phase); return Promise.resolve({ actions: 1, messages: 0, errors: 0 }); },
+      seatAiPlayers: function () { return Promise.resolve({ seated: [] }); }
+    };
+
+    var humansOnly = [
+      { id: 'p1', name: 'あなた', role: 'host', connected: true, joinedAt: 1 },
+      { id: 'p2', name: '友人A', role: 'player', connected: true, joinedAt: 2 },
+      { id: 'p3', name: '友人B', role: 'player', connected: true, joinedAt: 3 }
+    ];
+    var mixed = humansOnly.concat([{ id: 'ai_1', name: '虎鉄', role: 'ai', connected: true, joinedAt: 4 }]);
+
+    // --- 人間だけの卓: AIの手番を呼んではいけない ---
+    w.appState.solo = false;
+    hooks.setPlayers(humansOnly);
+    hooks.setPublic(publicView({ round: 1, revision: 700, phase: 'night' }));
+    hooks.hostDriverTick();
+    return sleep(30).then(function () {
+      check('人間だけの卓ではAIの手番を呼ばない', calls.length === 0, calls.join(','));
+
+      // --- 人間+AI の卓: ソロを選んでいなくてもAIが動く ---
+      hooks.resetHostDriver();
+      calls.length = 0;
+      hooks.setPlayers(mixed);
+      hooks.setPublic(publicView({ round: 1, revision: 701, phase: 'night' }));
+      hooks.hostDriverTick();
+      return sleep(30);
+    }).then(function () {
+      check('人間+AIの卓ではAIの手番が動く', calls.join(',') === 'night', calls.join(','));
+
+      // --- 待合の間: AI同席コントロールの出し分け ---
+      hooks.setPlayers(mixed);
+      w.appState.solo = false;
+      w.appState.view = 'host';
+      hooks.renderLobby();
+      var seat = d.getElementById('lobbyAiSeat');
+      check('共有卓のホストにはAI同席コントロールが出る', !seat.classList.contains('u-hidden'));
+      check('現在のAI人数が表示される', d.getElementById('lobbyAiCount').textContent === '1',
+        d.getElementById('lobbyAiCount').textContent);
+      check('ロビーの一覧でAIはAIと分かる',
+        d.getElementById('lobbyPlayerList').textContent.indexOf('AI') !== -1);
+
+      w.appState.view = 'player';
+      hooks.renderLobby();
+      check('参加者側にはAI同席コントロールを出さない', seat.classList.contains('u-hidden'));
+
+      w.appState.view = 'host';
+      w.appState.solo = true;
+      hooks.renderLobby();
+      check('ひとり用の卓では待合のAI同席コントロールを出さない', seat.classList.contains('u-hidden'));
+      w.appState.solo = false;
+    });
   }
 
   function run(w) {
@@ -258,10 +324,12 @@
 
     runRolePicker(w);
 
-    runHostDriver(w, hooks).then(finish, function (e) {
-      check('進行ドライバの検証が例外なく完走する', false, (e && e.message) || e);
-      finish();
-    });
+    runTableModes(w, hooks)
+      .then(function () { return runHostDriver(w, hooks); })
+      .then(finish, function (e) {
+        check('進行ドライバの検証が例外なく完走する', false, (e && e.message) || e);
+        finish();
+      });
   }
 
   var frame = document.getElementById('app');

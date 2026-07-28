@@ -683,6 +683,33 @@
   }
   .comp-presets .btn { flex: 1 1 0; min-height: 40px; padding: 8px 6px; font-size: 13px; }
 
+  /* AI同席コントロール(s05 待合の間) */
+  .ai-seat {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3, 12px);
+    margin-top: var(--sp-3, 12px);
+    padding: 10px 12px;
+    border: 1px solid rgba(201, 168, 76, 0.32);
+    border-radius: 10px;
+    background: rgba(201, 168, 76, 0.05);
+  }
+  .ai-seat-head { flex: 1 1 auto; min-width: 0; }
+  .ai-seat-title {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    color: var(--p-gold-hi, #E0C87E);
+    letter-spacing: 0.06em;
+  }
+  .ai-seat-note {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: #8f8878;
+  }
+  .ai-seat .stepper { flex: 0 0 auto; }
+
   /* -----------------------------------------------------------------
      画面共通レイアウト
      ----------------------------------------------------------------- */
@@ -1793,6 +1820,17 @@
         <p class="screen-sub">全員の準備が整うのを待っています。</p>
         <span class="num u-hidden" id="lobbyRoomCode" aria-hidden="true"></span>
         <div class="ledger-list player-list" id="lobbyPlayerList" style="margin-top:var(--sp-3);"></div>
+        <div class="ai-seat u-hidden" id="lobbyAiSeat">
+          <div class="ai-seat-head">
+            <span class="ai-seat-title">AIを同席させる</span>
+            <span class="ai-seat-note">人が足りないときも、混ぜて遊ぶときも。</span>
+          </div>
+          <div class="stepper">
+            <button type="button" class="btn btn--secondary" id="lobbyAiMinus" aria-label="AIを減らす">−</button>
+            <span class="count" id="lobbyAiCount">0</span>
+            <button type="button" class="btn btn--secondary" id="lobbyAiPlus" aria-label="AIを増やす">+</button>
+          </div>
+        </div>
         <div id="lobbyControls" style="margin-top:auto;"></div>
       </section>
 
@@ -2569,6 +2607,8 @@
   const urlParams = new URLSearchParams(location.search);
   const MODE = urlParams.get('demo') === '1' ? 'demo' : 'live';
   const MIN_PLAYERS = 3;
+  // functions/index.js の MAX_PLAYERS_CAP と揃える
+  const MAX_TABLE_SIZE = 12;
 
   // <script type="module"> 側が非同期で組み立てる GameClient を、読み込み順に
   // 依存せず受け取るためのハンドシェイク。デモモードでは live コードパスからしか
@@ -2675,6 +2715,14 @@
   // LLM 呼び出しが走り続け、かつ aiTurnDone が立たないままゲームが恒久停止する。
   const AI_TURN_MAX_ATTEMPTS = 3;
   const AI_TURN_RETRY_BACKOFF_MS = [2000, 5000];
+  /**
+   * この卓にAIが座っているか。ひとり用(自分1人+AI)と、人間+AIの共有卓を
+   * 同じ道で扱うため、モード選択の記憶ではなく実際の参加者から判定する。
+   */
+  function tableHasAi() {
+    return latestPlayers.some(function (p) { return p.role === 'ai'; });
+  }
+
   const hostDriver = { lastSentType: null, roleRevealEnteredAt: null, inFlight: false, lastRevisionAtSend: -1,
     // ソロモード: フェーズ(round+phase)ごとに1回だけAIの行動を駆動するための追跡状態。
     // 完了判定は aiTurnDone のみで行う(aiTurnInFlight は多重送信の抑止用)。
@@ -2699,9 +2747,9 @@
       return null;
     }
     if (pub.phase === 'night') {
-      // ソロモード: AIの夜行動(SUBMIT_NIGHT_ACTION)が完了するまで RESOLVE_NIGHT を
+      // AIが同席する卓: AIの夜行動(SUBMIT_NIGHT_ACTION)が完了するまで RESOLVE_NIGHT を
       // 保留する(force による手動進行も含む)。取りこぼし防止のためここで一律ガード。
-      if (appState.solo && !hostDriver.aiTurnDone[(pub.round || 0) + ':' + pub.phase]) return null;
+      if (tableHasAi() && !hostDriver.aiTurnDone[(pub.round || 0) + ':' + pub.phase]) return null;
       if (force) return 'RESOLVE_NIGHT';
       if (gmMode === 'ai' && pub.deadlineAt != null && now >= pub.deadlineAt) return 'RESOLVE_NIGHT';
       return null;
@@ -2714,8 +2762,8 @@
       return null;
     }
     if (pub.phase === 'vote') {
-      // ソロモード: AIの投票(CAST_VOTE)が完了するまで RESOLVE_VOTE を保留する。
-      if (appState.solo && !hostDriver.aiTurnDone[(pub.round || 0) + ':' + pub.phase]) return null;
+      // AIが同席する卓: AIの投票(CAST_VOTE)が完了するまで RESOLVE_VOTE を保留する。
+      if (tableHasAi() && !hostDriver.aiTurnDone[(pub.round || 0) + ':' + pub.phase]) return null;
       if (force) return 'RESOLVE_VOTE';
       if (gmMode === 'ai' && pub.deadlineAt != null && now >= pub.deadlineAt) return 'RESOLVE_VOTE';
       return null;
@@ -2743,10 +2791,12 @@
   function hostDriverTick() {
     if (MODE !== 'live' || appState.view !== 'host') return;
     const pub = latestPublic;
-    // ソロモードのAIプレイヤーのフェーズ行動を1回だけ駆動する。gmMode(自動/手動)を
-    // 問わず実行する — 人間GMの場合でも、AIが行動しなければ computeNextHostCommand の
-    // resolve ガード(下記)が解除されず、手動「進める」も永久にブロックされてしまうため。
-    if (appState.solo && pub && !pub.winner && pub.players) {
+    // AIプレイヤーのフェーズ行動を1回だけ駆動する。判定は appState.solo ではなく
+    // 実際に卓へ着いているAIの有無で行う — ひとり用と、人間+AIの共有卓を同じ道で扱うため。
+    // gmMode(自動/手動)は問わず実行する。人間GMの場合でも、AIが行動しなければ
+    // computeNextHostCommand の resolve ガードが解除されず、手動「進める」も
+    // 永久にブロックされてしまうため。
+    if (tableHasAi() && pub && !pub.winner && pub.players) {
       const aiPhase = pub.phase;
       const aiKey = (pub.round || 0) + ':' + aiPhase;
       // 発火の判定は aiTurnDone で行う。「まだ発火していないキーか」を aiTurnKey で
@@ -2900,6 +2950,7 @@
 
   window.handleChooseHost = function () {
     appState.view = 'host';
+    appState.solo = false; // ソロを選んだあとに戻ってきても共有卓として扱う
     if (MODE !== 'live') { showScreen('s03'); return; }
     showScreen('s03');
     getLiveClient().then(function (client) {
@@ -2915,6 +2966,7 @@
 
   window.handleChoosePlayer = function () {
     appState.view = 'player';
+    appState.solo = false;
     showScreen('s03');
   };
 
@@ -3044,8 +3096,10 @@
     }).then(function () {
       hostDriver.lastSentType = null;
       hostDriver.roleRevealEnteredAt = null;
-      hostDriver.aiTurnKey = null;
+      hostDriver.aiTurnInFlight = null;
       hostDriver.aiTurnDone = {};
+      hostDriver.aiTurnAttempts = {};
+      hostDriver.aiTurnRetryAt = 0;
       liveLastPhase = null;
       liveMorningShownForRound = -1;
       showScreen('s08');
@@ -3581,6 +3635,70 @@
   /* ===================================================================
      s05: ロビー
      =================================================================== */
+  /* -------------------------------------------------------------------
+     AI同席(s05)。ソロ卓も人間+AIの共有卓も、ここで人数を決める。
+     seatAiPlayers は「AIをちょうど N 体にする」ので、増減の両方に使える。
+     ------------------------------------------------------------------- */
+  let lobbyAiPending = null; // 送信中の目標人数。連打しても最後の指示に収束させる
+  let lobbyAiInFlight = false;
+
+  function lobbyAiCount() {
+    return latestPlayers.filter(function (p) { return p.role === 'ai'; }).length;
+  }
+  function lobbyHumanCount() {
+    return latestPlayers.filter(function (p) { return p.role !== 'ai'; }).length;
+  }
+
+  function renderLobbyAiSeat() {
+    const box = document.getElementById('lobbyAiSeat');
+    if (!box) return;
+    // 席の増減はホストだけ。ソロ卓は s02b で人数を決めているのでここでは出さない。
+    const show = MODE === 'live' && appState.view === 'host' && !appState.solo;
+    box.classList.toggle('u-hidden', !show);
+    if (!show) return;
+    const current = lobbyAiPending == null ? lobbyAiCount() : lobbyAiPending;
+    const capacity = Math.max(0, MAX_TABLE_SIZE - lobbyHumanCount());
+    document.getElementById('lobbyAiCount').textContent = String(current);
+    document.getElementById('lobbyAiMinus').disabled = lobbyAiInFlight || current <= 0;
+    document.getElementById('lobbyAiPlus').disabled = lobbyAiInFlight || current >= capacity;
+  }
+
+  function requestLobbyAiCount(next) {
+    lobbyAiPending = next;
+    renderLobbyAiSeat();
+    if (lobbyAiInFlight) return; // 完了時に最新の目標で追いかける
+    lobbyAiInFlight = true;
+    const target = lobbyAiPending;
+    getLiveClient().then(function (client) {
+      return client.seatAiPlayers({ count: target });
+    }).then(function () {
+      lobbyAiInFlight = false;
+      if (lobbyAiPending !== target) { requestLobbyAiCount(lobbyAiPending); return; }
+      lobbyAiPending = null;
+      renderLobbyAiSeat();
+    }).catch(function (e) {
+      lobbyAiInFlight = false;
+      lobbyAiPending = null;
+      console.error('seatAiPlayers failed', e);
+      showToast('AIの席を変更できませんでした。');
+      renderLobbyAiSeat();
+    });
+  }
+
+  function setupLobbyAiSeat() {
+    const minus = document.getElementById('lobbyAiMinus');
+    const plus = document.getElementById('lobbyAiPlus');
+    if (minus) minus.addEventListener('click', function () {
+      const current = lobbyAiPending == null ? lobbyAiCount() : lobbyAiPending;
+      if (current > 0) requestLobbyAiCount(current - 1);
+    });
+    if (plus) plus.addEventListener('click', function () {
+      const current = lobbyAiPending == null ? lobbyAiCount() : lobbyAiPending;
+      const capacity = Math.max(0, MAX_TABLE_SIZE - lobbyHumanCount());
+      if (current < capacity) requestLobbyAiCount(current + 1);
+    });
+  }
+
   function renderS05() {
     const roomCodeEl = document.getElementById('lobbyRoomCode');
     if (MODE === 'live') {
@@ -3590,15 +3708,27 @@
       const myUid = window.liveClient && window.liveClient.uid;
       latestPlayers.forEach(function (p, idx) {
         const isHost = p.role === 'host';
+        const isAi = p.role === 'ai';
         const row = document.createElement('div');
         row.className = 'player-row' + (p.connected ? ' is-completed' : '');
+        const badge = isHost ? 'ホスト' : isAi ? 'AI' : (p.connected ? '参加中' : '未接続');
         row.innerHTML =
           '<span class="idx">' + String(idx + 1).padStart(2, '0') + '</span>' +
-          '<span class="name">' + p.name + (p.id === myUid ? ' <span style="color:rgba(237,233,220,0.4);font-size:11px;">あなた</span>' : '') + '</span>' +
+          '<span class="name"></span>' +
           '<span class="diamond' + (isHost ? '' : ' diamond--outline') + '" aria-hidden="true"></span>' +
-          '<span class="status-badge' + (p.connected ? ' is-completed' : '') + '">' + (isHost ? 'ホスト' : (p.connected ? '参加中' : '未接続')) + '</span>';
+          '<span class="status-badge' + (p.connected ? ' is-completed' : '') + '">' + badge + '</span>';
+        // 表示名は他者入力なので textContent で入れる(XSS防止)
+        const nameEl = row.querySelector('.name');
+        nameEl.textContent = p.name;
+        if (p.id === myUid) {
+          const you = document.createElement('span');
+          you.style.cssText = 'color:rgba(237,233,220,0.4);font-size:11px;';
+          you.textContent = ' あなた';
+          nameEl.appendChild(you);
+        }
         liveList.appendChild(row);
       });
+      renderLobbyAiSeat();
       const liveControls = document.getElementById('lobbyControls');
       const count = latestPlayers.length;
       const liveCountLine = '<div class="lobby-count"><span class="lobby-count-num">' + count + '</span><span class="lobby-count-unit">人</span><span class="lobby-count-label">が参加しています</span></div>';
@@ -4965,6 +5095,8 @@
   window.__liveRenderTestHooks = {
     setPublic: function (pub) { latestPublic = pub; },
     setSelf: function (self) { latestSelf = self; },
+    setPlayers: function (players) { latestPlayers = players; },
+    renderLobby: renderS05,
     renderVote: renderS15Live,
     renderNight: renderS11Live,
     // ソロ進行ドライバ(E-1 恒久停止 / E-4 二重発火)の検証用。
@@ -4979,6 +5111,7 @@
     }
   };
   setupCompositionPresets();
+  setupLobbyAiSeat();
   // 音トグルの初期表示を localStorage の実状態に同期
   updateSoundToggleLabel();
 })();
