@@ -1,0 +1,576 @@
+:root {
+    --void: #11110e;
+    --iron: #1d1d17;
+    --raised: #28271f;
+    --bone: #e9e0cb;
+    --ash: #aaa294;
+    --copper: #bf8047;
+    --line: rgb(218 169 105 / 0.3);
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--void); }
+
+body {
+    min-height: 100svh;
+    margin: 0;
+    overflow-x: hidden;
+    color: var(--bone);
+    background:
+        radial-gradient(circle at 14% 10%, rgb(191 128 71 / 0.14), transparent 26rem),
+        radial-gradient(circle at 86% 88%, rgb(86 116 108 / 0.13), transparent 29rem),
+        linear-gradient(144deg, #1a1914, #0e0f0c 57%, #171710);
+    font-family: "Noto Serif JP", serif;
+}
+
+body::before {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image: repeating-linear-gradient(90deg, transparent 0 67px, rgb(217 169 105 / 0.028) 68px, transparent 69px);
+    content: "";
+    mask-image: linear-gradient(#000, transparent 82%);
+}
+
+button, input { font: inherit; }
+
+.access-key-demo {
+    width: min(100%, 1120px);
+    margin: 0 auto;
+    padding: clamp(20px, 5vw, 58px) clamp(15px, 4vw, 42px) clamp(45px, 8vw, 90px);
+}
+
+.access-key-demo__kicker,
+.access-key-demo__label,
+.access-key-demo__data dt,
+.access-key__catalog,
+.access-key__footer span,
+.access-key__footer small,
+.access-key-demo__contract h2 {
+    font-family: "Cinzel", serif;
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.17em;
+    text-transform: uppercase;
+}
+
+.access-key-demo__header {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(230px, 0.8fr);
+    gap: clamp(26px, 7vw, 92px);
+    align-items: end;
+    padding-bottom: clamp(29px, 5vw, 55px);
+    border-bottom: 1px solid var(--line);
+}
+
+.access-key-demo__kicker { margin: 0 0 10px; color: #d7a565; }
+
+.access-key-demo h1 {
+    max-width: 11em;
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 4.2rem);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    line-height: 1.22;
+}
+
+.access-key-demo__header p:not(.access-key-demo__kicker) {
+    max-width: 39rem;
+    margin: 16px 0 0;
+    color: var(--ash);
+    font-size: 0.84rem;
+    letter-spacing: 0.03em;
+    line-height: 1.9;
+}
+
+.access-key-demo__controller {
+    padding: 20px 0 0;
+    border-top: 1px solid rgb(217 169 105 / 0.4);
+}
+
+.access-key-demo__label { display: block; margin-bottom: 8px; color: #d7a565; }
+
+.access-key-demo__input-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+}
+
+.access-key-demo__input {
+    min-width: 0;
+    height: 46px;
+    padding: 0 12px;
+    border: 1px solid rgb(217 169 105 / 0.35);
+    border-radius: 2px;
+    color: var(--bone);
+    background: rgb(13 14 11 / 0.56);
+    font-family: "Cinzel", serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+
+.access-key-demo__button {
+    min-height: 46px;
+    padding: 0 13px;
+    border: 1px solid #bc7940;
+    border-radius: 2px;
+    color: #1b130d;
+    background: linear-gradient(115deg, #9e6132, #d2a061, #a66735);
+    font-size: 0.73rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    cursor: pointer;
+    transition: filter 180ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.access-key-demo__button:active { transform: translateY(1px); filter: brightness(0.9); }
+
+.access-key-demo__button:focus-visible,
+.access-key-demo__input:focus-visible,
+.access-key-demo__copy:focus-visible {
+    outline: 2px solid var(--bone);
+    outline-offset: 3px;
+}
+
+.access-key-demo__hint { margin: 10px 0 0; color: #777166; font-size: 0.68rem; line-height: 1.65; }
+
+.access-key-demo__templates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-top: 14px;
+}
+
+.access-key-demo__templates span {
+    margin-right: 3px;
+    color: #78968e;
+    font-family: "Cinzel", serif;
+    font-size: 0.54rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+
+.access-key-demo__templates button {
+    min-height: 28px;
+    padding: 0 7px;
+    border: 1px solid rgb(217 169 105 / 0.3);
+    border-radius: 2px;
+    color: var(--ash);
+    background: transparent;
+    font-size: 0.61rem;
+    cursor: pointer;
+}
+
+.access-key-demo__templates button:focus-visible {
+    outline: 2px solid var(--bone);
+    outline-offset: 3px;
+}
+
+.access-key-demo__workspace {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.9fr) minmax(260px, 0.7fr);
+    gap: clamp(30px, 7vw, 90px);
+    align-items: center;
+    padding: clamp(34px, 7vw, 78px) 0;
+}
+
+.access-key-demo__stage {
+    position: relative;
+    display: grid;
+    min-height: 560px;
+    place-items: center;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 50% 44%, rgb(191 128 71 / 0.13), transparent 42%),
+        linear-gradient(135deg, rgb(255 255 255 / 0.03), transparent 33%),
+        #171811;
+}
+
+.access-key-demo__stage::before,
+.access-key-demo__stage::after {
+    position: absolute;
+    width: 72px;
+    height: 72px;
+    border-color: rgb(217 169 105 / 0.4);
+    content: "";
+}
+
+.access-key-demo__stage::before { top: 15px; left: 15px; border-top: 1px solid; border-left: 1px solid; }
+.access-key-demo__stage::after { right: 15px; bottom: 15px; border-right: 1px solid; border-bottom: 1px solid; }
+
+.access-key-demo__data { margin: 0; }
+.access-key-demo__data div { padding: 16px 0; border-top: 1px solid var(--line); }
+.access-key-demo__data div:last-child { border-bottom: 1px solid var(--line); }
+.access-key-demo__data dt { margin: 0 0 8px; color: #78968e; font-size: 0.57rem; }
+.access-key-demo__data dd { margin: 0; color: var(--bone); font-size: 0.88rem; line-height: 1.65; word-break: break-all; }
+
+.access-key-demo__copy {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    margin: 10px 0 0;
+    padding: 0 9px;
+    border: 1px solid rgb(217 169 105 / 0.35);
+    border-radius: 2px;
+    color: #d7a565;
+    background: transparent;
+    font-size: 0.68rem;
+    cursor: pointer;
+}
+
+.access-key-demo__status { min-height: 1.5em; margin: 18px 0 0; color: #78968e; font-size: 0.74rem; line-height: 1.65; }
+
+.access-key-demo__contract {
+    margin-top: 20px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+}
+
+.access-key-demo__contract h2 { margin: 0 0 12px; color: #d7a565; }
+.access-key-demo__contract p { max-width: 64rem; margin: 0; color: var(--ash); font-size: 0.79rem; line-height: 1.9; }
+.access-key-demo__contract code { color: #e0c294; font-family: "Cinzel", serif; font-size: 0.72rem; }
+
+/* The common QR safety envelope. Decoration never overlaps this element. */
+.access-key {
+    position: relative;
+    width: min(100%, 342px);
+    min-height: 500px;
+    color: var(--edge);
+}
+
+.access-key__catalog {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
+    color: color-mix(in srgb, var(--edge) 85%, #fff 15%);
+    font-size: 0.5rem;
+    letter-spacing: 0.13em;
+    writing-mode: vertical-rl;
+}
+
+.access-key__artifact {
+    position: relative;
+    display: grid;
+    height: 420px;
+    place-items: start center;
+}
+
+.access-key__qr-quiet-zone {
+    position: relative;
+    z-index: 8;
+    display: grid;
+    width: 224px;
+    height: 224px;
+    padding: 11px;
+    place-items: center;
+    background: var(--qr-paper);
+}
+
+.access-key__qr {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+}
+
+.access-key__footer {
+    display: grid;
+    gap: 3px;
+    padding: 12px 20px 0;
+    border-top: 1px solid color-mix(in srgb, var(--edge) 42%, transparent);
+    text-align: center;
+}
+
+.access-key__footer span { color: var(--edge); font-size: 0.56rem; }
+.access-key__footer strong { color: var(--bone); font-family: "Cinzel", serif; font-size: 1.3rem; letter-spacing: 0.15em; }
+.access-key__footer small { color: var(--ash); font-size: 0.52rem; letter-spacing: 0.13em; }
+
+.access-key__moon,
+.access-key__ear,
+.access-key__gate-bar,
+.access-key__ring,
+.access-key__shaft,
+.access-key__teeth,
+.access-key__runes { display: none; }
+
+/* 01: a physical key grows from the QR head. */
+.access-key--forge-key .access-key__artifact { padding-top: 23px; }
+.access-key--forge-key .access-key__qr-quiet-zone {
+    border: 8px solid #181812;
+    outline: 1px solid var(--edge);
+    box-shadow: 0 0 0 8px #181812, 0 0 0 9px color-mix(in srgb, var(--edge) 42%, transparent), 0 18px 30px rgb(0 0 0 / 0.36);
+}
+
+.access-key--forge-key .access-key__shaft {
+    position: absolute;
+    top: 256px;
+    display: block;
+    width: 64px;
+    height: 121px;
+    border: 1px solid var(--metal);
+    background: linear-gradient(90deg, #23231b, var(--metal), #22231b);
+    box-shadow: inset 8px 0 rgb(255 255 255 / 0.05), inset -7px 0 rgb(0 0 0 / 0.17);
+}
+
+.access-key--forge-key .access-key__teeth {
+    position: absolute;
+    top: 365px;
+    display: flex;
+    align-items: end;
+    width: 153px;
+    height: 36px;
+    border-bottom: 1px solid var(--edge);
+}
+
+.access-key--forge-key .access-key__tooth {
+    display: block;
+    flex: 1;
+    height: calc(9px + var(--tooth-height) * 7px);
+    border: 1px solid var(--metal);
+    border-bottom: 0;
+    background: linear-gradient(90deg, #212119, var(--metal), #202119);
+}
+
+.access-key--forge-key .access-key__runes {
+    position: absolute;
+    top: 279px;
+    display: flex;
+    gap: 6px;
+    color: color-mix(in srgb, var(--edge) 75%, #fff 25%);
+    font-family: "Cinzel", serif;
+    font-size: 0.52rem;
+    letter-spacing: 0.02em;
+}
+
+/* 02: the QR sits inside a city lock mechanism. */
+.access-key--keyhole-relay .access-key__artifact { padding-top: 74px; }
+.access-key--keyhole-relay .access-key__artifact::before {
+    position: absolute;
+    top: 25px;
+    width: 294px;
+    height: 370px;
+    border: 1px solid var(--edge);
+    background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--metal) 24%, transparent), transparent 35%), linear-gradient(160deg, #302d22, #181913 66%);
+    clip-path: polygon(50% 0, 94% 12%, 100% 48%, 73% 68%, 65% 100%, 35% 100%, 27% 68%, 0 48%, 6% 12%);
+    content: "";
+}
+
+.access-key--keyhole-relay .access-key__qr-quiet-zone {
+    width: 202px;
+    height: 202px;
+    border: 7px solid #171811;
+    outline: 1px solid var(--edge);
+    box-shadow: 0 11px 25px rgb(0 0 0 / 0.38);
+}
+
+.access-key--keyhole-relay .access-key__ring {
+    position: absolute;
+    top: 45px;
+    display: block;
+    width: 252px;
+    height: 252px;
+    border: 1px solid var(--edge);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 10px rgb(0 0 0 / 0.17), inset 0 0 0 11px color-mix(in srgb, var(--edge) 28%, transparent);
+}
+
+.access-key--keyhole-relay .access-key__shaft {
+    position: absolute;
+    top: 274px;
+    display: block;
+    width: 68px;
+    height: 98px;
+    border: 1px solid color-mix(in srgb, var(--edge) 66%, transparent);
+    background: linear-gradient(90deg, #171812, var(--metal), #171812);
+    clip-path: polygon(24% 0, 76% 0, 87% 100%, 13% 100%);
+}
+
+.access-key--keyhole-relay .access-key__runes {
+    position: absolute;
+    top: 382px;
+    display: flex;
+    gap: 8px;
+    color: var(--ash);
+    font-family: "Cinzel", serif;
+    font-size: 0.5rem;
+}
+
+/* 03: a lunar seal carries the QR as a sealed core. */
+.access-key--lunar-seal .access-key__artifact { padding-top: 65px; }
+.access-key--lunar-seal .access-key__artifact::before {
+    position: absolute;
+    top: 31px;
+    width: 292px;
+    height: 292px;
+    border: 1px solid var(--edge);
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--metal) 29%, transparent), transparent 62%);
+    box-shadow: inset 0 0 0 11px rgb(0 0 0 / 0.17), inset 0 0 0 12px color-mix(in srgb, var(--edge) 26%, transparent);
+    content: "";
+}
+
+.access-key--lunar-seal .access-key__qr-quiet-zone {
+    width: 198px;
+    height: 198px;
+    border: 6px double var(--edge);
+    box-shadow: 0 11px 28px rgb(0 0 0 / 0.34);
+}
+
+.access-key--lunar-seal .access-key__moon {
+    position: absolute;
+    top: 42px;
+    left: 46px;
+    display: block;
+    width: 50px;
+    height: 50px;
+    border: 1px solid var(--edge);
+    border-radius: 50%;
+    box-shadow: inset 15px 0 0 #232319;
+}
+
+.access-key--lunar-seal .access-key__runes {
+    position: absolute;
+    top: 344px;
+    display: flex;
+    gap: 13px;
+    color: var(--edge);
+    font-family: "Cinzel", serif;
+    font-size: 0.65rem;
+}
+
+/* 04: a wolf ward holds the QR between its ears and muzzle, never across it. */
+.access-key--wolf-ward .access-key__artifact { padding-top: 76px; }
+.access-key--wolf-ward .access-key__artifact::before {
+    position: absolute;
+    top: 35px;
+    width: 294px;
+    height: 344px;
+    border: 1px solid color-mix(in srgb, var(--edge) 65%, transparent);
+    background: linear-gradient(160deg, #2a2920, #161711 68%);
+    clip-path: polygon(14% 0, 34% 10%, 50% 5%, 66% 10%, 86% 0, 82% 29%, 96% 49%, 79% 82%, 62% 100%, 38% 100%, 21% 82%, 4% 49%, 18% 29%);
+    content: "";
+}
+
+.access-key--wolf-ward .access-key__qr-quiet-zone {
+    width: 204px;
+    height: 204px;
+    border: 7px solid #171811;
+    outline: 1px solid var(--edge);
+    box-shadow: 0 10px 26px rgb(0 0 0 / 0.36);
+}
+
+.access-key--wolf-ward .access-key__ear {
+    position: absolute;
+    top: 25px;
+    display: block;
+    width: 58px;
+    height: 88px;
+    border: 1px solid var(--edge);
+    background: linear-gradient(135deg, var(--metal), #171811);
+    clip-path: polygon(50% 0, 100% 100%, 0 73%);
+}
+
+.access-key--wolf-ward .access-key__ear--left { left: 38px; transform: rotate(-12deg); }
+.access-key--wolf-ward .access-key__ear--right { right: 38px; transform: scaleX(-1) rotate(-12deg); }
+
+.access-key--wolf-ward .access-key__gate-bar {
+    position: absolute;
+    top: 308px;
+    display: block;
+    width: 116px;
+    height: 51px;
+    border: 1px solid color-mix(in srgb, var(--edge) 58%, transparent);
+    background: linear-gradient(90deg, #161711, var(--metal), #161711);
+    clip-path: polygon(0 10%, 100% 10%, 72% 100%, 28% 100%);
+}
+
+.access-key--wolf-ward .access-key__runes {
+    position: absolute;
+    top: 375px;
+    display: flex;
+    gap: 8px;
+    color: var(--edge);
+    font-family: "Cinzel", serif;
+    font-size: 0.5rem;
+}
+
+/* 05: an archive tablet uses the QR as an engraved registration field. */
+.access-key--archive-tablet .access-key__artifact {
+    width: 280px;
+    height: 398px;
+    margin: 10px auto 12px;
+    padding-top: 65px;
+    border: 1px solid color-mix(in srgb, var(--edge) 77%, #816342);
+    background: linear-gradient(112deg, transparent 0 45%, rgb(74 49 28 / 0.1) 48%, transparent 51%), var(--qr-paper);
+    box-shadow: 0 19px 35px rgb(0 0 0 / 0.34), inset 0 0 0 5px rgb(67 42 23 / 0.11), inset 0 0 0 6px rgb(255 242 205 / 0.47);
+}
+
+.access-key--archive-tablet .access-key__artifact::before,
+.access-key--archive-tablet .access-key__artifact::after {
+    position: absolute;
+    right: 19px;
+    left: 19px;
+    height: 18px;
+    border-top: 1px solid color-mix(in srgb, var(--metal) 68%, #51361e);
+    border-bottom: 1px solid color-mix(in srgb, var(--metal) 68%, #51361e);
+    content: "";
+}
+
+.access-key--archive-tablet .access-key__artifact::before { top: 20px; }
+.access-key--archive-tablet .access-key__artifact::after { bottom: 21px; }
+
+.access-key--archive-tablet .access-key__qr-quiet-zone {
+    width: 220px;
+    height: 220px;
+    border: 1px solid color-mix(in srgb, var(--metal) 70%, #51361e);
+    box-shadow: inset 0 0 0 5px rgb(71 43 25 / 0.1);
+}
+
+.access-key--archive-tablet .access-key__moon {
+    position: absolute;
+    top: 13px;
+    left: 27px;
+    display: block;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--metal);
+    border-radius: 50%;
+    box-shadow: inset 9px 0 0 var(--qr-paper);
+}
+
+.access-key--archive-tablet .access-key__runes {
+    position: absolute;
+    bottom: 44px;
+    display: flex;
+    gap: 11px;
+    color: color-mix(in srgb, var(--metal) 76%, #51361e);
+    font-family: "Cinzel", serif;
+    font-size: 0.6rem;
+}
+
+.access-key--archive-tablet .access-key__footer { padding-top: 6px; }
+
+@media (max-width: 700px) {
+    .access-key-demo__header,
+    .access-key-demo__workspace { grid-template-columns: 1fr; }
+    .access-key-demo__stage { min-height: 540px; }
+}
+
+@media (max-width: 360px) {
+    .access-key-demo { padding-right: 10px; padding-left: 10px; }
+    .access-key-demo__stage { min-height: 505px; }
+    .access-key { transform: scale(0.91); transform-origin: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

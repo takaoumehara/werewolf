@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -40 415 440">
+  <!--
+    Figure-ground reversal (same recipe as the archived
+    gate-wolf-figureground.svg — reusing its already-traced wolf silhouette,
+    since hand-typed wolf coordinates failed twice before; see
+    _archive/logos/svg/hidden-wolf-ruins.svg). At a glance this reads as a
+    single hooded silhouette with a crescent moon at its collar — one of the
+    "two facing masks" hoods, closed. Look again: the "empty" darkness inside
+    the hood is not empty. Its outline is the wolf's profile. One shape, two
+    readings, nothing added to signal the trick — mixing the mask/hood
+    motif, the moon, and the hidden-wolf concept into one mark.
+  -->
+  <defs>
+    <mask id="wolfCut2" maskUnits="userSpaceOnUse" x="-20" y="-40" width="415" height="440">
+      <rect x="-20" y="-40" width="415" height="440" fill="white"/>
+      <g transform="translate(0,365) scale(0.1,-0.1)" fill="black">
+        <path d="M1204 3583 c-23 -216 16 -619 75 -771 32 -81 39 -64 -120 -297 -167
+        -244 -189 -319 -137 -470 33 -96 33 -112 2 -157 -69 -103 -334 -348 -647 -599
+        -42 -34 -40 -49 7 -49 146 0 219 -91 166 -209 -13 -29 -20 -65 -20 -108 0 -80
+        -29 -119 -81 -108 -26 6 -30 4 -27 -11 4 -23 100 -63 151 -64 32 0 47 -9 101
+        -59 73 -68 116 -85 216 -85 98 -1 203 22 325 69 61 24 133 50 160 59 28 9 78
+        25 113 36 34 11 73 20 87 20 13 0 42 7 62 15 21 8 67 19 103 24 36 5 99 17
+        140 26 116 26 223 25 295 -3 242 -94 327 -166 596 -502 150 -188 139 -222 139
+        433 0 529 1 545 20 570 16 21 20 40 20 110 0 115 -15 103 251 196 75 26 158
+        58 185 72 l49 24 -2 135 c-7 860 -8 897 -22 914 -18 22 -139 78 -219 101 -77
+        23 -108 55 -117 123 -5 44 -33 151 -56 217 -6 17 -17 51 -25 76 -8 26 -47 111
+        -87 190 l-72 144 -72 3 c-86 3 -87 3 -37 -88 38 -70 90 -192 131 -305 18 -52
+        26 -99 30 -182 6 -109 5 -113 -25 -177 -31 -67 -64 -95 -96 -83 -9 4 -16 17
+        -16 30 0 27 -23 51 -60 62 -36 11 -50 24 -50 50 0 39 -23 35 -66 -11 -74 -79
+        -108 -53 -119 91 -3 50 -13 112 -22 138 -26 79 -8 216 52 408 22 69 23 69 -54
+        69 -57 0 -70 -3 -74 -17 -3 -10 -37 -87 -76 -171 -39 -85 -74 -171 -77 -192
+        -15 -95 -57 -126 -189 -140 -55 -6 -116 -15 -136 -20 -52 -14 -61 -8 -133 90
+        -99 135 -195 239 -292 315 -48 39 -103 85 -122 103 -28 26 -42 32 -77 32 l-43
+        0 -8 -67z m668 -1387 c24 -8 57 -17 73 -21 82 -19 82 -49 -2 -133 -72 -71
+        -113 -93 -243 -132 -143 -42 -175 -28 -131 59 12 22 21 47 21 56 0 23 44 96
+        77 127 62 58 123 71 205 44z m-335 -1066 c63 -38 52 -108 -14 -95 -29 5 -44
+        -1 -106 -41 -123 -81 -232 -141 -355 -194 -64 -28 -132 -57 -150 -65 -18 -8
+        -44 -15 -58 -15 -14 0 -43 -9 -65 -20 -35 -18 -43 -19 -67 -8 -49 24 -38 40
+        48 73 276 105 555 249 644 334 59 55 77 60 123 31z"/>
+      </g>
+    </mask>
+  </defs>
+
+  <!-- hood/cowl silhouette (pointed peak, echoing the two-facing-masks hoods) -->
+  <path
+    fill="#B9BDC4"
+    mask="url(#wolfCut2)"
+    d="M-10,400 L-10,150 Q40,10 187,-30 Q334,10 385,150 L385,400 Z"
+  />
+
+  <!-- crescent moon clasped at the hood's collar -->
+  <path
+    fill-rule="evenodd"
+    fill="#B9BDC4"
+    stroke="none"
+    d="M187,-40 A16,16 0 1 1 187,-8 A13,13 0 1 0 187,-40 Z"
+  />
+</svg>

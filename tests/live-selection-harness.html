@@ -401,6 +401,9 @@
       w.closeCardFullscreen();
     }
     var closeBtn = d.getElementById('rulesCloseBtn');
+    check('閉じるボタンは × の記号', closeBtn && closeBtn.textContent.trim() === '✕',
+      closeBtn ? closeBtn.textContent.trim() : 'なし');
+    check('× にも読み上げ用のラベルがある', closeBtn && !!closeBtn.getAttribute('aria-label'));
     if (closeBtn) closeBtn.click();
 
     // 役職確認: 一度めくれば、いつでも大きく見られる
@@ -420,7 +423,7 @@
   }
 
   // 監査B章: オーバーレイの共通基盤。暗転・背景ロック・閉じる手段・フォーカス。
-  function runOverlays(w) {
+  function runOverlays(w, hooks) {
     var d = w.document;
     var scrim = d.getElementById('overlayScrim');
     check('暗転レイヤーが存在する', !!scrim);
@@ -461,6 +464,21 @@
     var scrimZ = Number(w.getComputedStyle(scrim).zIndex);
     check('暗転はオーバーレイの真下に入る', scrimZ < drawerZ, scrimZ + ' vs ' + drawerZ);
 
+    // 投票を確定したあと暗転が残らないこと（残ると画面全体がぼやけたまま操作できなくなる）
+    hooks.setPublic(publicView({ round: 1, revision: 960, phase: 'vote' }));
+    hooks.renderVote();
+    var voteRow = d.querySelector('#voteTargetList .target-option[data-pid="ai2"]');
+    if (voteRow) {
+      voteRow.click();
+      w.openVoteConfirm();
+      check('投票の確認ダイアログで暗転が出る', !scrim.classList.contains('u-hidden'));
+      w.liveClient = { uid: 'p1', send: function () { return Promise.resolve({}); } };
+      w.finalizeVote();
+      check('投票を確定すると暗転が消える（画面がぼやけたまま残らない）',
+        scrim.classList.contains('u-hidden'));
+      check('投票を確定すると背景ロックも解ける', !d.body.classList.contains('has-overlay'));
+    }
+
     // カード全画面も同じ基盤に乗っている
     w.openCardFullscreen('werewolf');
     check('カード全画面でも暗転と背景ロックが効く',
@@ -473,7 +491,7 @@
   function runAccessibility(w, hooks) {
     var d = w.document;
     w.liveClient = { uid: 'p1' };
-    hooks.setPublic(publicView({ round: 1, revision: 950, phase: 'vote' }));
+    hooks.setPublic(publicView({ round: 5, revision: 950, phase: 'vote' }));
     hooks.renderVote();
     var row = d.querySelector('#voteTargetList .target-option[data-pid="ai2"]');
     check('投票の対象行がキーボードで到達できる',
@@ -485,7 +503,7 @@
     check('選ぶと確定ボタンが押せるようになる', d.getElementById('voteDecideBtn').disabled === false);
 
     hooks.setSelf({ id: 'p1', displayName: 'あなた', roleId: 'prophet', alive: true, pendingAction: null });
-    hooks.setPublic(publicView({ round: 1, revision: 951, phase: 'night' }));
+    hooks.setPublic(publicView({ round: 5, revision: 951, phase: 'night' }));
     hooks.renderNight();
     var nightRow = d.querySelector('#liveNightTargetList .target-option[data-pid="ai1"]');
     check('夜の対象行もキーボードで到達できる',
@@ -607,7 +625,7 @@
     runTruthfulDisplay(w, hooks);
     runNarration(w, hooks);
     runCardExposure(w);
-    runOverlays(w);
+    runOverlays(w, hooks);
     runAccessibility(w, hooks);
 
     runTableModes(w, hooks)

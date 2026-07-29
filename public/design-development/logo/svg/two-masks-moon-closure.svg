@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160">
+  <!--
+    Closure read: two mask profiles are each an OPEN contour (the back of
+    the head is never drawn — the brain closes it, same trick as the
+    gapped-eye technique). Left mask: unbroken line. Right mask: same line
+    broken by 4 short crack strokes. The moon between them is two
+    overlapping circles, positioned where a viewer's eye naturally lands
+    first (the gap), doing double duty as the pivot of an implied scale.
+  -->
+  <g stroke="#B9BDC4" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <!-- left mask profile (facing right), open at the back -->
+    <path d="
+      M18,40 C34,26 54,24 66,34 C78,44 82,60 80,76
+      C78,92 68,106 54,114 C46,118 40,120 36,118
+      M66,34 C70,42 71,50 70,58
+    "/>
+
+    <!-- right mask profile (facing left), same silhouette mirrored, cracked -->
+    <path d="
+      M202,40 C186,26 166,24 154,34 C142,44 138,60 140,76
+      C142,92 152,106 166,114 C174,118 180,120 184,118
+    " stroke-dasharray="20 3 16 3 22 3 999"/>
+    <path d="M154,34 C150,42 149,50 150,58" stroke-dasharray="6 3 999"/>
+
+    <g stroke-width="1.6">
+      <path d="M160,50 L167,58 L162,64"/>
+      <path d="M148,80 L156,84"/>
+      <path d="M158,100 L165,104"/>
+    </g>
+
+    <!-- eyes, open arcs -->
+    <path d="M52,58 C57,53 63,53 68,58"/>
+    <path d="M150,58 C155,53 161,53 166,58"/>
+  </g>
+
+  <!-- crescent moon in the gap, pivot of the implied scale -->
+  <path
+    fill-rule="evenodd"
+    fill="#B9BDC4"
+    stroke="none"
+    d="M110,26 A13,13 0 1 1 110,52 A10,10 0 1 0 110,26 Z"
+  />
+</svg>

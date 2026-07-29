@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!--
+    Closure read: the seal ring is never a solid circle — it is 32 short
+    radial ticks with visible gaps between them (same trick as the classic
+    12-dot-pair circle demo). The left half of the face is a single closed
+    silhouette (whole, unbroken). The right half is the SAME silhouette but
+    interrupted by 5 short crack strokes — just enough breaks to read as
+    "fractured" without drawing full fracture texture. The moon is two
+    overlapping circles, same technique as gapped-eye-moon.svg.
+  -->
+  <g stroke="#B9BDC4" fill="none">
+    <g stroke-width="2.6" stroke-linecap="round">
+      <path d="
+        M100,8 L100,16 M118,9.6 L117,17.5 M135.7,14.4 L133.3,22 M152,22.9 L148.2,29.9
+        M166.5,34.6 L161.4,40.6 M178.5,49 L172.4,53.8 M187.6,65.6 L180.9,68.9
+        M193.4,83.6 L186.2,85.6 M195.5,102.3 L188.2,102.3 M193.8,120.9 L186.5,119.2
+        M188.4,138.6 L181.6,135.6 M179.6,154.5 L173.9,150 M167.9,167.9 L163.4,162.4
+        M153.9,178.2 L150.9,171.4 M138.1,185.2 L136.4,177.9 M121.2,188.7 L120.6,181.3
+        M100,192 L100,184 M78.8,188.7 L79.4,181.3 M62,185.2 L63.6,177.9
+        M46.1,178.2 L49.1,171.4 M32.1,167.9 L36.6,162.4 M20.4,154.5 L26.1,150
+        M11.6,138.6 L18.4,135.6 M6.2,120.9 L13.5,119.2 M4.5,102.3 L11.8,102.3
+        M6.6,83.6 L13.8,85.6 M12.4,65.6 L19.1,68.9 M21.5,49 L27.6,53.8
+        M33.5,34.6 L38.6,40.6 M48,22.9 L51.8,29.9 M64.3,14.4 L66.7,22
+        M81,9.6 L83,17.5
+      "/>
+    </g>
+
+    <path stroke-width="3" d="
+      M100,42 C124,42 138,64 138,95 C138,128 120,152 100,158
+    "/>
+    <path stroke-width="3" d="
+      M100,42 C76,42 62,64 62,95 C62,128 80,152 100,158
+    " stroke-dasharray="26 4 14 4 18 4 10 4 999"/>
+    <g stroke-width="1.6">
+      <path d="M78,58 L84,66 L80,73"/>
+      <path d="M70,88 L77,92"/>
+      <path d="M72,116 L79,119 L75,126"/>
+      <path d="M88,140 L83,147"/>
+    </g>
+
+    <path stroke-width="2.4" stroke-linecap="round" d="M80,90 C86,84 94,84 100,90"/>
+    <path stroke-width="2.4" stroke-linecap="round" d="M100,90 C106,84 114,84 120,90"/>
+
+    <path
+      fill-rule="evenodd"
+      fill="#B9BDC4"
+      stroke="none"
+      d="
+        M100,10 A15,15 0 1 1 100,40 A12,12 0 1 0 100,10 Z
+      "
+    />
+  </g>
+</svg>

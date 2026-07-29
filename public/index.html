@@ -750,6 +750,19 @@
   }
   .setting-row .btn { flex: 0 0 auto; min-width: 84px; min-height: 44px; }
 
+  /* オーバーレイの閉じるボタン。文字ではなく × の記号にする。 */
+  .overlay-close {
+    flex: 0 0 auto;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 19px;
+    line-height: 1;
+    border-radius: 50%;
+  }
+
   /* -----------------------------------------------------------------
      画面共通レイアウト
      ----------------------------------------------------------------- */
@@ -2272,7 +2285,7 @@
 <div class="rules-drawer" id="rulesDrawer">
   <div class="rules-drawer-header">
     <h2 class="screen-title" style="color:var(--sem-accent);margin:0;font-size:18px;">📜 ルール & 役職ガイド</h2>
-    <button type="button" class="btn btn--quiet" id="rulesCloseBtn" style="min-height:44px;padding:4px 14px;">閉じる</button>
+    <button type="button" class="btn btn--quiet overlay-close" id="rulesCloseBtn" aria-label="閉じる" title="閉じる">✕</button>
   </div>
 
   <div class="rules-tab-nav">
@@ -2391,7 +2404,7 @@
 <div class="bottom-sheet" id="makingModal">
   <div style="display:flex;justify-content:space-between;align-items:center;">
     <h2 class="screen-title" style="color:var(--sem-accent);margin:0;font-size:18px;">🎨 メイキング & カードデザイン</h2>
-    <button type="button" class="btn btn--quiet" onclick="closeMakingModal()">閉じる</button>
+    <button type="button" class="btn btn--quiet overlay-close" onclick="closeMakingModal()" aria-label="閉じる" title="閉じる">✕</button>
   </div>
   <p class="screen-sub" style="margin-top:6px;">カードイラストの閲覧・レイヤー調整・ポジショニングエディターを開きます。</p>
   <hr class="engraved-rule">
@@ -2418,7 +2431,7 @@
 <div class="bottom-sheet" id="devDrawer">
   <div style="display:flex;justify-content:space-between;align-items:center;">
     <h2 class="screen-title" style="color:var(--sem-accent);margin:0;">開発者メニュー</h2>
-    <button type="button" class="btn btn--quiet" id="devDrawerCloseBtn">閉じる</button>
+    <button type="button" class="btn btn--quiet overlay-close" id="devDrawerCloseBtn" aria-label="閉じる" title="閉じる">✕</button>
   </div>
   <hr class="engraved-rule">
   <div style="max-height:60dvh;overflow-y:auto;">
@@ -3708,9 +3721,11 @@
       bgId = 'magician';
       charFile = 'magician_ver_c.png';
     }
+    // カードを大きく見せる場面は長辺1200pxを使う。同時に出るのは1枚なので、
+     // 原画(3〜5MB)ではなくこちら(数百KB)で十分に綺麗に見える。
     return {
-      bg: 'backgrounds-72/' + bgId + '_bg.png',
-      char: '00_transparent-illustrations-72-a-refined/' + charFile
+      bg: 'cards/backgrounds-72/' + bgId + '_bg.webp',
+      char: 'cards/00_transparent-illustrations-72-a-refined/' + charFile.replace('.png', '.webp')
     };
   }
 
@@ -5069,7 +5084,7 @@
       if (!liveVoteSelectedId || liveVoteLocked) return;
       liveVoteLocked = true;
       liveVoteLockedRound = latestPublic ? latestPublic.round : liveVoteLockedRound;
-      document.getElementById('voteConfirmDialog').setAttribute('hidden', 'hidden');
+      window.closeVoteConfirm();
       // 行の無効化・確定ボタン/バッジの切替は描画側に一本化する。
       // (送信失敗で liveVoteLocked を戻したとき、確実に操作可能へ復帰させるため)
       renderS15Live();
@@ -5085,7 +5100,7 @@
       return;
     }
     voteLocked = true;
-    document.getElementById('voteConfirmDialog').setAttribute('hidden', 'hidden');
+    window.closeVoteConfirm();
     document.querySelectorAll('#voteTargetList .target-option').forEach(function (o) { o.setAttribute('disabled', 'disabled'); });
     document.getElementById('voteDecideBtn').classList.add('u-hidden');
     document.getElementById('voteCompletedBadge').classList.remove('u-hidden');
@@ -5128,12 +5143,15 @@
   function rosterFactionColor(camp) {
     return camp === 'werewolf' ? '#C25B5B' : (camp === 'third' ? '#6F8E86' : '#6E8B6A');
   }
+  /* 一覧のセルは長辺400pxのサムネイルを使う。原画は1568×2744/3〜5MBあり、
+     役職構成では24枚が同時に出るため、原画のままだと画面を開くだけで86MB落ちてくる。
+     サムネイルは tools/build-thumbnails.py で生成し、リポジトリに含めている。 */
   function rosterImgSrc(id) {
-    if (id === 'magician') return '00_transparent-illustrations-72-a-refined/magician_ver_c.png';
-    return '00_transparent-illustrations-72-a-refined/' + id + '_ver_a.png';
+    if (id === 'magician') return 'thumbs/00_transparent-illustrations-72-a-refined/magician_ver_c.webp';
+    return 'thumbs/00_transparent-illustrations-72-a-refined/' + id + '_ver_a.webp';
   }
   function rosterBgSrc(id) {
-    return 'backgrounds-72/' + id + '_bg.png';
+    return 'thumbs/backgrounds-72/' + id + '_bg.webp';
   }
   /* 人数に応じた列数(6以下=2列 / 7〜12=3列 / 13以上=4列)。最終行の余りは
      .roster-grid の flex-wrap + justify-content:center により自動で中央寄せになる。 */
@@ -5406,7 +5424,13 @@
     const phaseGuideEl = document.getElementById('rulesCurrentPhaseGuide');
     if (currentPhaseEl && phaseGuideEl) {
       const phaseText = currentPhaseEl.textContent.trim();
-      phaseGuideEl.textContent = '現在は「' + phaseText + '」です。制限時間内に議論や行動を行ってください。';
+      const guide = {
+        '夜': '夜です。能力を持つ人だけが、静かに相手を選びます。ほかの人は待つだけで構いません。',
+        '昼': '昼です。昨夜のできごとを話し合い、誰が人狼かを探ります。',
+        '投票': '投票です。追放したい相手をひとり選んでください。',
+        '結果': 'ゲームが終わりました。全員の役職が明かされます。'
+      };
+      phaseGuideEl.textContent = guide[phaseText] || (phaseText + 'の進行中です。');
     }
 
     // ソロ対戦向けの「自分の役職」タブ調整: 覗き見リスクがないため

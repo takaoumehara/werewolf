@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人狼ゲーム ロゴデザイン提案 (Werewolf Game Logo Designs)</title>
+    
+    <!-- Google Fonts: Outfit & Cinzel Decorative -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #0f1013;
+            --card-bg: rgba(25, 27, 33, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-gold: #c5a880;
+            --text-main: #f0f0f3;
+            --text-muted: #a0a5b5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 0%, rgba(197, 168, 128, 0.05), transparent 60%);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header block */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 40px;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 38px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #ffffff;
+            margin-bottom: 12px;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 24px auto;
+            line-height: 1.6;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(197, 168, 128, 0.15);
+        }
+
+        .btn.active {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+            color: var(--bg-dark);
+        }
+
+        /* Grid */
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 30px;
+            margin-bottom: 80px;
+        }
+
+        /* Card */
+        .logo-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(197, 168, 128, 0.3);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4), 0 0 20px rgba(197, 168, 128, 0.08);
+        }
+
+        .logo-img-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 100%; /* square 1:1 */
+            background: #15171d;
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .logo-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .logo-card:hover .logo-img {
+            transform: scale(1.05);
+        }
+
+        .logo-info {
+            padding: 24px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-num {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 14px;
+            color: var(--accent-gold);
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .logo-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .logo-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 11, 14, 0.95);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 20px;
+        }
+
+        .modal.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: #181b22;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+            transform: scale(0.95);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .modal.open .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent-gold);
+            border-color: var(--accent-gold);
+        }
+
+        .modal-left {
+            width: 50%;
+            background: #101217;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .modal-preview-img {
+            max-width: 100%;
+            max-height: 450px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .modal-right {
+            width: 50%;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .modal-num {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 16px;
+            color: var(--accent-gold);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .modal-title {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .modal-desc {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .modal-badge {
+            background: rgba(197, 168, 128, 0.1);
+            border: 1px solid rgba(197, 168, 128, 0.2);
+            color: var(--accent-gold);
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            align-self: flex-start;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                flex-direction: column;
+            }
+            .modal-left, .modal-right {
+                width: 100%;
+            }
+            .modal-left {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 30px;
+            }
+            .modal-right {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1 id="page-title">人狼ゲーム ロゴ提案</h1>
+            <p class="subtitle" id="page-subtitle">ゲームの世界観、Gペンのクラシックでダークなエッチングアートに合わせた8つのロゴコンセプト。お気に入りのものをお選びください。</p>
+            <div class="controls">
+                <button class="btn active" id="btn-ja" onclick="setLang('ja')">日本語 (JA)</button>
+                <button class="btn" id="btn-en" onclick="setLang('en')">English (EN)</button>
+            </div>
+        </header>
+
+        <div class="logo-grid" id="grid-container"></div>
+    </div>
+
+    <!-- Modal for Zoom -->
+    <div class="modal" id="logo-modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <div class="modal-left">
+                <img class="modal-preview-img" id="modal-img" src="" alt="Logo Zoom">
+            </div>
+            <div class="modal-right">
+                <span class="modal-badge" id="modal-badge">CONCEPT</span>
+                <div class="modal-num" id="modal-num"></div>
+                <div class="modal-title" id="modal-title"></div>
+                <div class="modal-desc" id="modal-desc"></div>
+                <button class="btn active" id="modal-vote-btn" onclick="voteLogo()">このロゴを選択</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const logoData = [
+            {
+                id: 1,
+                jpTitle: "中世の古風な紋章 (Heraldic Shield)",
+                enTitle: "Heraldic Shield Crest",
+                jpDesc: "【ご指定デザイン】オールドシルバーとヴィンテージゴールドをあしらった、中世の盾の形をしたエンブレム。Gペンによる細密なハッチングエッチングを完璧に再現し、ゲームの持つ伝統的かつ高貴なダークファンタジー世界観に最もマッチするロゴです。",
+                enDesc: "A dark gothic heraldic crest emblem. Featuring a snarling silver wolf head inside a medieval shield decorated with filigree engravings and gold trim. Perfectly matches the game's high-contrast G-pen engraving style.",
+                badgeJp: "一押し・紋章",
+                badgeEn: "RECOMMENDED CREST"
+            },
+            {
+                id: 2,
+                jpTitle: "幾何学・満月と狼の牙",
+                enTitle: "Geometric Crescent Fangs",
+                jpDesc: "満月の円形ラインと、鋭い狼の牙の形をモダンな幾何学デザインとして組み合わせた円形のシンボルマーク。フラットな現代的感覚を持ちながらも、くすんだスチールグレーと深紅の配色でミステリアスな緊張感を放ちます。",
+                enDesc: "A minimalist modern geometric logo representing a werewolf. Abstractly combining a crescent moon shape and sharp wolf fangs into a clean circle, invoking mysterious tension.",
+                badgeJp: "ミニマル",
+                badgeEn: "MINIMALIST"
+            },
+            {
+                id: 3,
+                jpTitle: "インク画・咆哮する人狼",
+                enTitle: "Antique Ink Snarl",
+                jpDesc: "Gペンのインクを荒々しく擦り付けたかのような、ヴィンテージな木版画（ウッドカット）風のインクアートロゴ。人狼の持つ野性的で恐ろしい側面にフォーカスし、高コントラストな黒インクのコントラストで表現しています。",
+                enDesc: "An antique G-pen style woodcut engraving logo of a snarling werewolf, capturing the raw, wild, and frightening side of the beast with stark black ink contrasts.",
+                badgeJp: "インクアート",
+                badgeEn: "VINTAGE WOODCUT"
+            },
+            {
+                id: 4,
+                jpTitle: "ルーンモノグラム",
+                enTitle: "Mystical Rune Monogram",
+                jpDesc: "古代の北欧ルーン文字と、狼の爪跡を魔術的に組み合わせたモノグラム調の紋章ロゴ。薄暗く光るシルバーブルーの輪郭線が、霊媒師や呪術といった魔力・オカルトの世界観を引き立たせます。",
+                enDesc: "A mystical monogram crest logo combining ancient Nordic rune symbols with a wolf claw scratch shape, emphasizing occult spellcraft and spiritual elements.",
+                badgeJp: "魔術的",
+                badgeEn: "OCCULT RUNE"
+            },
+            {
+                id: 5,
+                jpTitle: "ゴシックレターマーク",
+                enTitle: "Gothic Letter Mark",
+                jpDesc: "大文字の『W』の装飾文字のなかに、咆哮する狼のシルエットを溶け込ませたレターマークロゴ。王室の金属レリーフのような質感で、エレガントでありながらダークな高貴さを漂わせます。",
+                enDesc: "A decorative letter mark logo. The letter 'W' features a roaring wolf silhouette incorporated into its curves, stylized with an ancient silver engraving texture.",
+                badgeJp: "タイポグラフィ",
+                badgeEn: "TYPOGRAPHY"
+            },
+            {
+                id: 6,
+                jpTitle: "二重露光・森と満月",
+                enTitle: "Double Exposure Forest",
+                jpDesc: "遠吠えをする狼のシルエットの内部に、不気味な黒い松林を投影したダブルエクスポージャーロゴ。背後に浮かぶ不気味なテクスチャ加工の満月が、プレイヤーを人狼ゲームの孤独な夜へと引き込みます。",
+                enDesc: "A graphic double exposure silhouette logo of a howling wolf with a pine forest inside its body, set against a dark textured moon, conveying the lonely night of the game.",
+                badgeJp: "グラフィカル",
+                badgeEn: "DOUBLE EXPOSURE"
+            },
+            {
+                id: 7,
+                jpTitle: "双狼と古びた鉄鍵",
+                enTitle: "Twin Wolves & Iron Key",
+                jpDesc: "対になった二頭の狼の間に、古代の鉄の鍵を配置したルネサンス期風のシンメトリーエンブレム。人狼の秘密（鍵）を解き明かすゲーム性を暗示する、アンティークなブロンズの質感が美しいロゴです。",
+                enDesc: "A symmetrical Renaissance emblem featuring twin wolves facing each other with an ancient iron key between them, suggesting the unraveling of the werewolf secret.",
+                badgeJp: "シンメトリー",
+                badgeEn: "SYMMETRICAL"
+            },
+            {
+                id: 8,
+                jpTitle: "鎖と鉄骨の獣骨",
+                enTitle: "Chained Wolf Skull",
+                jpDesc: "鉄の鎖に繋がれた銀の狼の頭蓋骨をモチーフにした、ハードで退廃的なゴシックホラーロゴ。ダークファンタジーのハードコアな緊張感を漂わせる、クラシックな彫刻タッチで描かれています。",
+                enDesc: "A dark fantasy gothic horror logo featuring a silver wolf skull surrounded by medieval iron chains, reflecting decadent and tension-filled aesthetics.",
+                badgeJp: "ホラー",
+                badgeEn: "DECADENT GOTHIC"
+            }
+        ];
+
+        let lang = 'ja';
+
+        function renderGrid() {
+            const container = document.getElementById("grid-container");
+            container.innerHTML = "";
+
+            logoData.forEach(logo => {
+                const card = document.createElement("div");
+                card.className = "logo-card";
+                card.onclick = () => openModal(logo.id);
+
+                const title = lang === 'ja' ? logo.jpTitle : logo.enTitle;
+                const desc = lang === 'ja' ? logo.jpDesc : logo.enDesc;
+                const badge = lang === 'ja' ? logo.badgeJp : logo.badgeEn;
+
+                card.innerHTML = `
+                    <div class="logo-img-wrapper">
+                        <img class="logo-img" src="logos/logo_${logo.id}.png" alt="${title}">
+                    </div>
+                    <div class="logo-info">
+                        <div class="logo-num">Direction 0${logo.id}</div>
+                        <div class="logo-title">${title}</div>
+                        <div class="logo-desc">${desc}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function setLang(newLang) {
+            lang = newLang;
+            document.getElementById("btn-ja").classList.toggle("active", lang === 'ja');
+            document.getElementById("btn-en").classList.toggle("active", lang === 'en');
+            
+            const titleEl = document.getElementById("page-title");
+            const subEl = document.getElementById("page-subtitle");
+            
+            if (lang === 'ja') {
+                titleEl.textContent = "人狼ゲーム ロゴ提案";
+                subEl.textContent = "ゲームの世界観、Gペンのクラシックでダークなエッチングアートに合わせた8つのロゴコンセプト。お気に入りのものをお選びください。";
+            } else {
+                titleEl.textContent = "Werewolf Game Logo Designs";
+                subEl.textContent = "Eight distinct logo directions carefully crafted to match the game's classic dark G-pen etching atmosphere. Choose your favorite concept.";
+            }
+
+            renderGrid();
+        }
+
+        let activeLogoId = null;
+
+        function openModal(id) {
+            const logo = logoData.find(l => l.id === id);
+            if (!logo) return;
+            activeLogoId = id;
+
+            document.getElementById("modal-img").src = `logos/logo_${logo.id}.png`;
+            document.getElementById("modal-num").textContent = `Direction 0${logo.id}`;
+            document.getElementById("modal-title").textContent = lang === 'ja' ? logo.jpTitle : logo.enTitle;
+            document.getElementById("modal-desc").textContent = lang === 'ja' ? logo.jpDesc : logo.enDesc;
+            document.getElementById("modal-badge").textContent = lang === 'ja' ? logo.badgeJp : logo.badgeEn;
+
+            const voteBtn = document.getElementById("modal-vote-btn");
+            voteBtn.textContent = lang === 'ja' ? "このロゴを選択" : "Select this Logo";
+
+            document.getElementById("logo-modal").classList.add("open");
+        }
+
+        function closeModal() {
+            document.getElementById("logo-modal").classList.remove("open");
+        }
+
+        function voteLogo() {
+            const logo = logoData.find(l => l.id === activeLogoId);
+            const title = lang === 'ja' ? logo.jpTitle : logo.enTitle;
+            alert(lang === 'ja' ? 
+                `「${title}」が選択されました！ロゴ確定および透過PNG書き出しの準備に入ります。` : 
+                `"${title}" selected! Preparing high-res transparent export.`);
+            closeModal();
+        }
+
+        // Init
+        renderGrid();
+    </script>
+</body>
+</html>

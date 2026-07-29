@@ -9,7 +9,7 @@
      3. Component  — 実際に見た目が成立する完全なスタイル。
    ========================================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=LINE+Seed+JP:wght@400;700;800&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Antique+Soft&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=LINE+Seed+JP:wght@400;700;800&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
 
 /* =========================================================================
    1. PRIMITIVE LAYER — 生の値
@@ -410,6 +410,8 @@ body {
   border-color: transparent;
   color: var(--sem-text-dim, var(--p-ash));
   font-weight: 400;
+  /* 「閉じる」は控えめな見た目でも、タップ域は 44pt を下回らせない */
+  min-height: 44px;
 }
 
 .btn--quiet:hover {
@@ -920,7 +922,8 @@ body {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: var(--sp-8);
+  /* ホームインジケータに重ならないよう safe-area を足す */
+  bottom: calc(var(--sp-8) + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   min-height: 40px;
   padding: var(--sp-2) var(--sp-4);
@@ -1425,6 +1428,20 @@ body {
   background: linear-gradient(180deg, #20191a, #0c0a09);
   border-bottom: 3px solid var(--p-citizen);
 }
+.role-card-thumb-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 20%;
+  opacity: 0.9;
+}
+.role-card-thumb-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(8, 7, 10, 0.85) 100%);
+}
+.role-card-thumb img { z-index: 2; }
 .role-card-thumb.faction-werewolf { border-bottom-color: var(--p-werewolf); }
 .role-card-thumb.faction-third { border-bottom-color: var(--p-third); }
 .role-card-thumb img {

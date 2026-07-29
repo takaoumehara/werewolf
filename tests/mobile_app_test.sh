@@ -29,10 +29,20 @@ data = open('mobile_app.html', encoding='utf-8').read()
 # 正常な本文を誤検出するので、必ず簡体字専用の字形だけにすること。
 sys.exit(1 if any(ch in data for ch in '们你请确认设说给对这个话时间为现关开门员长车马见东书让过还进') else 0)
 "; then echo "FAIL: Chinese chars found"; FAIL=1; fi
-# public/index.html は Firebase Hosting の配信元。mobile_app.html を直して
-# ここへ同期し忘れると、修正が本番に出ないまま「直った」ことになる。
+# public/ は tools/build-public.sh が組み立てる配信物。index.html は
+# mobile_app.html の写しなので、直したあと組み立て直さないと本番に出ない。
 if ! cmp -s mobile_app.html public/index.html; then
-  echo "FAIL: public/index.html が mobile_app.html と一致しません(cp mobile_app.html public/index.html を実行してください)"
+  echo "FAIL: public/index.html が mobile_app.html と一致しません(bash tools/build-public.sh を実行してください)"
+  FAIL=1
+fi
+# 一覧のセルに原画(3〜5MB)を使うと、役職構成を開くだけで86MB落ちてくる。
+if grep -qE "'(00_transparent-illustrations|backgrounds-72)" mobile_app.html; then
+  echo "FAIL: 原画を直接参照しています(thumbs/ か cards/ を使ってください)"
+  FAIL=1
+fi
+# 配信物に原画そのものが混ざっていないこと
+if [ -d public/00_transparent-illustrations-72-a-refined ] || [ -d public/backgrounds-72 ]; then
+  echo "FAIL: public/ に原画フォルダが入っています(bash tools/build-public.sh で作り直してください)"
   FAIL=1
 fi
 
