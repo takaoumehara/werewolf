@@ -48,6 +48,8 @@ Cloud Functions は Blaze プラン必須（既にデプロイ実績があるの
 
 ## デプロイコマンド
 
+**`--project jinro-bb5a5` を必ず付けること。** 理由は下の「よくある事故」を参照。
+
 ```bash
 # 出す前に必ず全テストを通す
 bash tests/mobile_app_test.sh        # public/index.html の同期もここで検証される
@@ -57,15 +59,45 @@ bash tests/design_system_test.sh
 (cd game-engine && npm test)
 node --test functions/ai/*.test.mjs
 
+# 出す先を固定する（一度やれば以後このディレクトリでは覚える）
+firebase use jinro-bb5a5
+
 # 画面だけ出す（いちばん安全。AIの挙動を変えていないときはこれで足りる）
-firebase deploy --only hosting
+firebase deploy --only hosting --project jinro-bb5a5
 
 # サーバ側も出す
-firebase deploy --only functions
+firebase deploy --only functions --project jinro-bb5a5
 
 # データベースのルール（下記の遮断に注意）
-firebase deploy --only database
+firebase deploy --only database --project jinro-bb5a5
 ```
+
+### よくある事故 — 別プロジェクトへ出そうとして失敗する
+
+`firebase deploy` は `.firebaserc` の default より、**CLI が端末ごとに覚えている
+「使用中プロジェクト」を優先する**（過去に別のディレクトリで `firebase use` を
+実行していると、それが残る）。実際に次のエラーが出た:
+
+```
+Error: Failed to get Firebase project snap-pair-f2b1d.
+Error: Missing permissions ... snap-pair-f2b1d@appspot.gserviceaccount.com
+```
+
+`.firebaserc` は `jinro-bb5a5` を指しているのに、まったく別のプロジェクトへ
+出そうとしていた。**`--project jinro-bb5a5` を明示すれば、この記憶に関係なく
+正しい先へ出る。** いま出そうとしている先は次で確認できる:
+
+```bash
+firebase use              # 使用中プロジェクトを表示
+```
+
+### 認証まわりのつまずき
+
+| 症状 | 原因と対処 |
+|---|---|
+| `Already logged in` と出るのに `credentials are no longer valid` | 認証の許可が取り消されている。`firebase login --reauth` |
+| `projects:list` に `jinro-bb5a5` が出ない | そのアカウントに権限が無い。`firebase login:add` で別アカウントを足し、`--account` で指定する |
+| `firebase logout --token <token>` を実行した | **そのアカウントの Firebase CLI の認証がすべて無効になる**（端末のログインも切れる）。`firebase login --reauth` で復帰 |
 
 初回は `public/` の 127MB がまるごと上がる。会場の回線では時間がかかる。
 
