@@ -56,9 +56,13 @@ A / B / C / D / E / G(P0,P1) / I(P0,P1) 完了。あわせて、監査の対象�
 ### 未検証
 
 - **エミュレータ系**（`tests/ai_functions_smoke.sh` / `tests/functions_smoke_test.sh`）は
-  この環境に firebase CLI と `functions/node_modules` が無いため未実行。
+  **この環境では原理的に動かない**。firebase CLI と functions の依存は入れて試したが、
+  Database エミュレータが起動時に `firebase-public.firebaseio.com` へ出ようとして
+  組織の外向き通信ポリシーに 403 で拒否される。エラーは
+  `database.rules.json:Unable to parse JSON: ... "denied by "...` と出るが、
+  **`database.rules.json` 自体は正しい JSON**（プロキシの拒否本文を読んでいる）。
   `functions/scripts/ai_smoke_assert.mjs` には advanceAiTurn のホスト限定・
-  二度目は skip の検証を足してある。**CLI のある環境で一度回すこと。**
+  二度目は skip の検証を足してある。**制限のない環境で一度回すこと。**
 - **実機での確認**（safe-area の +53px、iOS の読み上げ音声、TTSの初回ジェスチャ制限）。
   headless は `env(safe-area-inset-*)` を 0 として扱う。
 
@@ -78,7 +82,8 @@ A / B / C / D / E / G(P0,P1) / I(P0,P1) 完了。あわせて、監査の対象�
 
 1. **実機確認** — safe-area の +53px、iOS の読み上げ音声、TTSの初回ジェスチャ制限。
    headless では検証できない。
-2. **エミュレータ確認** — `bash tests/ai_functions_smoke.sh`（firebase CLI が要る）。
+2. **エミュレータ確認** — `bash tests/ai_functions_smoke.sh`。この環境では
+   `*.firebaseio.com` が組織ポリシーで遮断されていて動かない（詳細は `docs/deploy.md`）。
 3. **I-2 カード画像の再エンコード** — 5.77MB/枚の原画をサムネイルに使っている。
    画像処理が要るのでコード変更では終わらない。
 4. **F の方針決定** — root `index.html`(i18nあり) と `mobile_app.html`(本番) のどちらを
@@ -88,6 +93,7 @@ A / B / C / D / E / G(P0,P1) / I(P0,P1) 完了。あわせて、監査の対象�
 
 ## Files to Read First
 
+0. `docs/deploy.md` — デプロイに必要なものと手順。何が揃っていて何が足りないかの実測結果
 1. `docs/2026-07-28-mobile-desktop-audit.md` — 監査の正本。修正済みの章には冒頭に注記、
    末尾に「監査に無かった問題」の追補表がある
 2. `tests/live-selection-harness.html` — 実ブラウザ検証の入口。
