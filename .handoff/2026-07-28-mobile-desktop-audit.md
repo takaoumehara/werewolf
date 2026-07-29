@@ -5,8 +5,9 @@
 ## Objective
 
 本番 https://jinro-bb5a5.web.app の全面検証と改善。
-**監査(A〜I)は完了。C・E・A・D の修正と、遊べる役職の全面解放・3モードの導線・
-記録者の読み上げ(TTS)まで完了。残りは B(オーバーレイ) / G(a11y) / I(アセット) / F(ファイル分岐)。**
+**監査(A〜I)の指摘は、方針決定と画像再エンコードが要るものを除いてすべて対応済み。**
+A / B / C / D / E / G(P0,P1) / I(P0,P1) 完了。あわせて、監査の対象外だった
+「遊べる役職が4つだけだった」問題、3モードの導線、記録者の読み上げ(TTS)も実装済み。
 
 作業ブランチ: `claude/werewolf-solo-ai-fix-zc4emn`
 
@@ -23,6 +24,9 @@
 | **D** | 画面に出ていた11箇所の嘘の数字と名前を実データへ |
 | **TTS** | 記録者の読み上げを実装（設計書で計画されながら未着手だった機能） |
 | **A** | 実機の高さ(690/712pt)で主要ボタンが画面外へ沈む問題 |
+| **B** | オーバーレイ共通基盤(暗転・背景ロック・ESC/暗転タップ・フォーカス・z-index・デスクトップの枠内収納) |
+| **G** | 画面遷移のフォーカス移動、対象選択のキーボード操作、aria-live、入力ラベル |
+| **I** | 動画の preload、キャッシュヘッダ、未使用フォント削除と並列取得、背面での音停止、タイマーのtransform化 |
 
 詳細は `docs/2026-07-28-mobile-desktop-audit.md` の各章の冒頭注記と、末尾の「追補」表。
 
@@ -32,7 +36,7 @@
 |---|---|
 | `cd game-engine && npm test` | **78/78 pass** |
 | `node --test functions/ai/*.test.mjs` | **39/39 pass** |
-| `bash tests/live_selection_test.sh` | **89/89 pass**（実ブラウザ） |
+| `bash tests/live_selection_test.sh` | **116/116 pass**（実ブラウザ） |
 | `bash tests/viewport_fit_test.sh` | **pass**（690/712 の両方で21画面） |
 | `bash tests/mobile_app_test.sh` / `design_system_test.sh` | pass |
 
@@ -70,16 +74,17 @@
 
 ## Immediate Next Steps
 
-監査レポートの「推奨する着手順」の4番目から。
+コードで直せる指摘は出し切っている。残りは判断か、コード外の作業。
 
-1. **B（オーバーレイ共通基盤）** — 共通の開閉ヘルパー1つで10件が同時に解消する。
-   スクリム（ユーザーの「コントラストが少なすぎる」の正体）、背景スクロールロック、
-   フォーカストラップ、ARIA、デスクトップでの枠外飛び出しがすべてここ。
-2. **G（アクセシビリティ）** — 画面遷移のフォーカス移動と、対象選択のキーボード操作。
-   後者は「決定ボタンが選択するまで disabled」なのでキーボードだけだと進めない。
-3. **I（アセットのP0 2件）** — 動画の `preload="none"` と `firebase.json` のキャッシュヘッダ。
-   設定変更だけで初回4.5MB→1.25MB。
-4. **F** — root `index.html`（i18nあり）と `mobile_app.html`（本番）の分岐。方針決定が先。
+1. **実機確認** — safe-area の +53px、iOS の読み上げ音声、TTSの初回ジェスチャ制限。
+   headless では検証できない。
+2. **エミュレータ確認** — `bash tests/ai_functions_smoke.sh`（firebase CLI が要る）。
+3. **I-2 カード画像の再エンコード** — 5.77MB/枚の原画をサムネイルに使っている。
+   画像処理が要るのでコード変更では終わらない。
+4. **F の方針決定** — root `index.html`(i18nあり) と `mobile_app.html`(本番) のどちらを
+   正本にするか。いまは `public/index.html` が `mobile_app.html` と一致することを
+   `tests/mobile_app_test.sh` が保証している。
+5. **UX再設計** — 最初の相談だったカード主役の体験設計。監査とは別トラック。
 
 ## Files to Read First
 

@@ -29,5 +29,12 @@ data = open('mobile_app.html', encoding='utf-8').read()
 # 正常な本文を誤検出するので、必ず簡体字専用の字形だけにすること。
 sys.exit(1 if any(ch in data for ch in '们你请确认设说给对这个话时间为现关开门员长车马见东书让过还进') else 0)
 "; then echo "FAIL: Chinese chars found"; FAIL=1; fi
+# public/index.html は Firebase Hosting の配信元。mobile_app.html を直して
+# ここへ同期し忘れると、修正が本番に出ないまま「直った」ことになる。
+if ! cmp -s mobile_app.html public/index.html; then
+  echo "FAIL: public/index.html が mobile_app.html と一致しません(cp mobile_app.html public/index.html を実行してください)"
+  FAIL=1
+fi
+
 [ $FAIL -eq 0 ] && echo "OK: mobile_app_test passed"
 exit $FAIL

@@ -419,6 +419,94 @@
       !!roster && !!roster.querySelector('.roster-cell[role="button"]'));
   }
 
+  // 監査B章: オーバーレイの共通基盤。暗転・背景ロック・閉じる手段・フォーカス。
+  function runOverlays(w) {
+    var d = w.document;
+    var scrim = d.getElementById('overlayScrim');
+    check('暗転レイヤーが存在する', !!scrim);
+    if (!scrim) return;
+    check('何も開いていなければ暗転は出ない', scrim.classList.contains('u-hidden'));
+
+    var rulesBtn = d.getElementById('rulesBtn');
+    var drawer = d.getElementById('rulesDrawer');
+    rulesBtn.click();
+    check('ルールを開くと暗転が出る', !scrim.classList.contains('u-hidden'));
+    check('開いている間は背景をスクロールさせない', d.body.classList.contains('has-overlay'));
+    check('背後のアプリを支援技術から隠す',
+      d.querySelector('.desktop-layout').getAttribute('aria-hidden') === 'true');
+    check('フォーカスがドロワーの中へ移る', drawer.contains(d.activeElement),
+      d.activeElement ? d.activeElement.id || d.activeElement.tagName : 'なし');
+
+    // 暗転をタップして閉じる（閉じる手段がボタン1つしか無かった）
+    scrim.click();
+    check('暗転をタップすると閉じる', !drawer.classList.contains('is-open'));
+    check('閉じたら暗転も消える', scrim.classList.contains('u-hidden'));
+    check('閉じたら背景ロックも解ける', !d.body.classList.contains('has-overlay'));
+    check('閉じたら背後を支援技術に戻す',
+      !d.querySelector('.desktop-layout').hasAttribute('aria-hidden'));
+    check('閉じたらフォーカスが開いたボタンへ戻る', d.activeElement === rulesBtn,
+      d.activeElement ? d.activeElement.id || d.activeElement.tagName : 'なし');
+
+    // ESC で閉じる
+    rulesBtn.click();
+    check('もう一度開ける', drawer.classList.contains('is-open'));
+    d.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    check('ESCで閉じる', !drawer.classList.contains('is-open'));
+
+    // 開発者ホットスポットがドロワーの閉じるボタンを奪わない
+    var hotspotZ = Number(w.getComputedStyle(d.getElementById('devHotspot')).zIndex);
+    var drawerZ = Number(w.getComputedStyle(drawer).zIndex);
+    check('開発者ホットスポットはオーバーレイより後ろ', hotspotZ < drawerZ,
+      hotspotZ + ' vs ' + drawerZ);
+    var scrimZ = Number(w.getComputedStyle(scrim).zIndex);
+    check('暗転はオーバーレイの真下に入る', scrimZ < drawerZ, scrimZ + ' vs ' + drawerZ);
+
+    // カード全画面も同じ基盤に乗っている
+    w.openCardFullscreen('werewolf');
+    check('カード全画面でも暗転と背景ロックが効く',
+      !d.body.classList.contains('has-overlay') === false);
+    w.closeCardFullscreen();
+    check('カード全画面を閉じると解ける', !d.body.classList.contains('has-overlay'));
+  }
+
+  // 監査G章: キーボードとスクリーンリーダー。
+  function runAccessibility(w, hooks) {
+    var d = w.document;
+    w.liveClient = { uid: 'p1' };
+    hooks.setPublic(publicView({ round: 1, revision: 950, phase: 'vote' }));
+    hooks.renderVote();
+    var row = d.querySelector('#voteTargetList .target-option[data-pid="ai2"]');
+    check('投票の対象行がキーボードで到達できる',
+      row && row.getAttribute('tabindex') === '0' && row.getAttribute('role') === 'button');
+    // Enter で選べる（決定ボタンは選ぶまで disabled なので、ここが要）
+    row.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    check('Enterで投票先を選べる', row.classList.contains('is-selected'));
+    check('選択状態が aria-pressed にも出る', row.getAttribute('aria-pressed') === 'true');
+    check('選ぶと確定ボタンが押せるようになる', d.getElementById('voteDecideBtn').disabled === false);
+
+    hooks.setSelf({ id: 'p1', displayName: 'あなた', roleId: 'prophet', alive: true, pendingAction: null });
+    hooks.setPublic(publicView({ round: 1, revision: 951, phase: 'night' }));
+    hooks.renderNight();
+    var nightRow = d.querySelector('#liveNightTargetList .target-option[data-pid="ai1"]');
+    check('夜の対象行もキーボードで到達できる',
+      nightRow && nightRow.getAttribute('tabindex') === '0');
+    nightRow.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    check('Enterで夜の対象を選べる', nightRow.classList.contains('is-selected'));
+
+    // 画面遷移でフォーカスが移る
+    w.showScreen('s01');
+    w.showScreen('s05');
+    check('画面が変わるとフォーカスも移る', d.activeElement === d.getElementById('s05'),
+      d.activeElement ? d.activeElement.id || d.activeElement.tagName : 'なし');
+
+    check('トーストが読み上げられる',
+      d.getElementById('toast').getAttribute('aria-live') === 'polite');
+    check('接続状態が読み上げられる',
+      d.getElementById('connBanner').getAttribute('aria-live') === 'polite');
+    check('表示名の入力にラベルがある',
+      !!d.getElementById('displayNameInput').getAttribute('aria-label'));
+  }
+
   function run(w) {
     var hooks = w.__liveRenderTestHooks;
     check('テストフックが公開されている', !!hooks);
@@ -519,6 +607,8 @@
     runTruthfulDisplay(w, hooks);
     runNarration(w, hooks);
     runCardExposure(w);
+    runOverlays(w);
+    runAccessibility(w, hooks);
 
     runTableModes(w, hooks)
       .then(function () { return runHostDriver(w, hooks); })

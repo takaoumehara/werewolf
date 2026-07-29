@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>人狼ゲーム — モバイル UI プロトタイプ</title>
 <script data-qrcode-generator src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
+<!-- 書体は design-system.css の @import からも参照されるが、それだと
+     「CSS取得→解析→@import発見→取得」の直列になる。ここで先に始める。 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=LINE+Seed+JP:wght@400;700;800&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="design-system.css">
 <style>
   /* -----------------------------------------------------------------
@@ -156,9 +161,11 @@
      PC/デスクトップ大画面用 レスポンシブ・かっこいいコンソールレイアウト
      ----------------------------------------------------------------- */
   /* ===== タブレット & デスクトップ(≥860px): アプリを"端末フレーム"として中央固定表示 ===== */
-  /* pointer:fine を足してタッチ端末を除く。iPhone Pro Max の横向きは 932pt あり、
-     幅だけで判定すると実機が「端末フレーム」に押し込まれて中身が切れる。 */
-  @media (min-width: 860px) and (pointer: fine) {
+  /* しきい値を 1100px に上げてタッチ端末を除く。iPhone Pro Max の横向きは
+     932pt、iPad の縦は 1024pt あり、860px だと実機が「端末フレーム」へ
+     押し込まれて中身が切れていた。pointer メディアクエリは端末差が大きく
+     headless でも検証できないので、幅だけで判定する。 */
+  @media (min-width: 1100px) {
     body {
       background: #060709 url('design-development/key-visuals/kv_shadow_ruins.png') no-repeat center center fixed;
       background-size: cover;
@@ -1325,7 +1332,13 @@
   .council-track span {
     display: block;
     height: 100%;
+    width: 100%;
     background: var(--sem-accent, var(--p-gold));
+    /* width を毎秒書き換えると180秒ぶんリフローが走る。
+       transform なら合成のみで済む。 */
+    transform-origin: left center;
+    transition: transform 240ms linear;
+    will-change: transform;
   }
   .council-remain {
     width: 100%;
@@ -1689,6 +1702,78 @@
     letter-spacing: 0.12em;
   }
   /* -----------------------------------------------------------------
+     オーバーレイ共通基盤
+     ドロワー・シート・ダイアログ・カード全画面が、それぞれ別々に開閉していた。
+     暗転レイヤーが無く、背景がスクロールし、背後の要素を誤タップでき、
+     フォーカスも逃げていた。ここで層を1つに統一する。
+
+     層の順序(数字は overlay-scrim を基準にした相対値):
+       1000 scrim / 1010 sheet・drawer / 1020 dialog / 1030 card-fullscreen
+     ----------------------------------------------------------------- */
+  .overlay-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(7, 8, 10, 0.72);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    opacity: 1;
+    transition: opacity var(--t-phase, 240ms) var(--ease-standard, ease);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .overlay-scrim { transition: none; }
+  }
+  /* オーバーレイを開いている間は背景を動かさない */
+  body.has-overlay { overflow: hidden; }
+
+  /* 既存の z-index(50/55/70/1200)を1つの尺度に揃える */
+  .bottom-sheet { z-index: 1010; }
+  .rules-drawer { z-index: 1010; }
+  .dialog { z-index: 1020; }
+  .card-fullscreen { z-index: 1030; }
+  /* 開発者用の透明ホットスポットが、ドロワーの「閉じる」より前面に居た */
+  .dev-hotspot { z-index: 40; }
+  body.has-overlay .dev-hotspot { pointer-events: none; }
+
+  /* 入れ子スクロールを外へ伝播させない */
+  .rules-drawer,
+  .rules-tab-panel,
+  .bottom-sheet { overscroll-behavior: contain; }
+
+  /* デスクトップでは端末フレームの中に収める。ブラウザ全幅へ張り付いて
+     サイドバーを覆っていた(監査B-9)。枠の位置はサイドバーの有無で変わるので、
+     JS が --shell-* に実測値を入れる。 */
+  @media (min-width: 1100px) {
+    .overlay-scrim,
+    .card-fullscreen,
+    .dialog {
+      inset: auto;
+      top: var(--shell-top, 0px);
+      left: var(--shell-left, 0px);
+      width: var(--shell-w, 100vw);
+      height: var(--shell-h, 100dvh);
+      border-radius: 44px;
+    }
+    .rules-drawer {
+      top: var(--shell-top, 0px);
+      bottom: auto;
+      left: auto;
+      right: calc(100vw - var(--shell-left, 0px) - var(--shell-w, 100vw));
+      height: var(--shell-h, 100dvh);
+      width: min(88%, 360px);
+      max-width: var(--shell-w, 402px);
+      border-radius: 0 44px 44px 0;
+    }
+    .bottom-sheet {
+      left: var(--shell-left, 0px);
+      right: auto;
+      width: var(--shell-w, 100vw);
+      bottom: calc(100dvh - var(--shell-top, 0px) - var(--shell-h, 100dvh));
+      max-height: calc(var(--shell-h, 100dvh) * 0.85);
+    }
+  }
+
+  /* -----------------------------------------------------------------
      短いビューポート向けの詰め
      デザイン確認は 852pt(全画面)で行われたが、実機の Safari はアドレスバーと
      ツールバーを差し引いた 690〜712pt で動き、そこへ safe-area の 53px が乗る。
@@ -1735,8 +1820,10 @@
     <a href="making.html" class="op-btn">📜 Making</a>
     <button class="op-btn" id="op-skip-btn">SKIP ✕</button>
   </div>
+  <!-- preload="none": QR参加(?room=CODE)でオープニングを飛ばす人にまで
+       4MB超の動画が降っていた。再生する分岐でだけ load() する。 -->
   <video class="op-video" id="op-video"
-         playsinline muted preload="auto"
+         playsinline muted preload="none"
          poster="design-development/opening/opening_poster.jpg">
     <source src="design-development/opening/opening_gekka.mp4" type="video/mp4">
   </video>
@@ -1788,7 +1875,7 @@
       </div>
     </div>
 
-    <div class="conn-banner u-hidden" id="connBanner">接続状態を確認しています。</div>
+    <div class="conn-banner u-hidden" id="connBanner" role="status" aria-live="polite">接続状態を確認しています。</div>
 
     <div class="phase-header u-hidden" id="globalPhaseHeader">
       <div>
@@ -1873,7 +1960,7 @@
         <div class="field-block" style="margin-top:var(--sp-6);">
           <div class="field-eyebrow">表示名</div>
           <div class="text-field name-field">
-            <input type="text" id="displayNameInput" placeholder="あかり" value="あかり" maxlength="12">
+            <input type="text" id="displayNameInput" placeholder="あかり" value="あかり" maxlength="12" aria-label="表示名">
           </div>
         </div>
         <div class="field-block" style="margin-top:var(--sp-6);">
@@ -2032,7 +2119,7 @@
           <h2 class="screen-title" style="text-align:center;">評議</h2>
           <p class="screen-sub" style="text-align:center;">昨夜の出来事を話し合ってください。</p>
           <div class="council-timer" id="discussionCountdown">03:00</div>
-          <div class="council-track"><span id="discussionBar" style="width:76%;"></span></div>
+          <div class="council-track"><span id="discussionBar" style="transform:scaleX(0.76);"></span></div>
           <div class="council-remain"><span>残り時間</span><span class="council-remain-num" id="discussionRemainNum">--:--</span></div>
           <div class="council-prev">
             <div class="field-eyebrow" style="margin-bottom:5px;">前夜の記録</div>
@@ -2172,6 +2259,11 @@
 
 <!-- RulesDrawer -->
 <!-- 役職カード フルスクリーン表示(タップで閉じる) -->
+<!-- オーバーレイ共通の暗転レイヤー。開いているオーバーレイと1対1で連動する。
+     これが無かったために、前面パネルと背景の輝度比が約1.05:1しか無く
+     「何かが開いている」ことが視覚的に伝わっていなかった。 -->
+<div class="overlay-scrim u-hidden" id="overlayScrim" aria-hidden="true"></div>
+
 <div id="cardFullscreen" class="card-fullscreen u-hidden" role="dialog" aria-modal="true" aria-label="役職カード" onclick="closeCardFullscreen()">
   <div class="card-fullscreen-slot" id="cardFullscreenSlot"></div>
   <p class="card-fullscreen-hint">タップで閉じる</p>
@@ -2282,7 +2374,7 @@
 
   <!-- Tab 3: 役職図鑑 (Rolepedia) -->
   <div class="rules-tab-panel" id="rulesTabPanelRoles">
-    <input type="text" class="role-search-box" id="roleSearchInput" placeholder="🔍 役職名や能力名で検索..." />
+    <input type="text" class="role-search-box" id="roleSearchInput" placeholder="🔍 役職名や能力名で検索..." aria-label="役職を検索" />
     <div class="role-filter-chips" id="roleFilterChips">
       <button type="button" class="role-chip is-selected" data-filter="all">すべて</button>
       <button type="button" class="role-chip" data-filter="citizen">市民陣営</button>
@@ -2407,7 +2499,7 @@
 </div>
 
 <!-- トースト -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- 生成サウンドエンジン(Web Audio・音源ファイル不要)。読込失敗してもゲームは動作する -->
 <script src="game-client/sound-engine.js"></script>
@@ -3238,7 +3330,7 @@
     slot.innerHTML = '';
     slot.appendChild(buildCardWrapper(roleId));
     overlay.classList.remove('u-hidden');
-    document.body.style.overflow = 'hidden';
+    pushOverlay(overlay, { close: closeCardFullscreen });
     requestAnimationFrame(function () { fitCardToSlot(slot); });
   }
 
@@ -3246,16 +3338,14 @@
     const overlay = document.getElementById('cardFullscreen');
     if (!overlay || overlay.classList.contains('u-hidden')) return;
     overlay.classList.add('u-hidden');
-    document.body.style.overflow = '';
+    popOverlay(overlay);
   }
 
   function openMyRoleCardFullscreen() {
     openCardFullscreen(currentSelfRoleId());
   }
 
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeCardFullscreen();
-  });
+  // ESC と暗転タップは共通のオーバーレイ基盤が担う。
   window.addEventListener('resize', function () {
     const overlay = document.getElementById('cardFullscreen');
     if (overlay && !overlay.classList.contains('u-hidden')) fitCardToSlot(document.getElementById('cardFullscreenSlot'));
@@ -3308,6 +3398,101 @@
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     btn.setAttribute('aria-label', on ? '環境音の切り替え(現在オン)' : '環境音の切り替え(現在オフ)');
   }
+
+  /* ===================================================================
+     オーバーレイ共通基盤
+     ドロワー・シート・ダイアログ・カード全画面が、それぞれ独立に開閉して
+     いたため、暗転が無く／背景がスクロールし／背後を誤タップでき／
+     フォーカスも逃げていた。開閉の周辺処理だけをここへ集める
+     (要素ごとの表示切り替えは各所の既存コードのまま)。
+     =================================================================== */
+  const overlayStack = [];
+  const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
+
+  /** デスクトップの「端末フレーム」の実位置。オーバーレイをその中へ収めるために測る。 */
+  function syncShellBounds() {
+    const shell = document.querySelector('.app-shell');
+    if (!shell) return;
+    const r = shell.getBoundingClientRect();
+    const root = document.documentElement;
+    root.style.setProperty('--shell-top', r.top + 'px');
+    root.style.setProperty('--shell-left', r.left + 'px');
+    root.style.setProperty('--shell-w', r.width + 'px');
+    root.style.setProperty('--shell-h', r.height + 'px');
+  }
+
+  function updateOverlayChrome() {
+    const scrim = document.getElementById('overlayScrim');
+    const open = overlayStack.length > 0;
+    if (scrim) scrim.classList.toggle('u-hidden', !open);
+    document.body.classList.toggle('has-overlay', open);
+    // 背後のアプリを支援技術からも隠す。Tab で背後へ抜けるのも止める。
+    const shell = document.querySelector('.desktop-layout');
+    if (shell) {
+      if (open) { shell.setAttribute('aria-hidden', 'true'); shell.inert = true; }
+      else { shell.removeAttribute('aria-hidden'); shell.inert = false; }
+    }
+    if (open) syncShellBounds();
+  }
+
+  /**
+   * オーバーレイを開いたことを登録する。
+   * opts.close   — ESC / 暗転タップで呼ぶ閉じ方(省略すると閉じられない扱い)
+   * opts.trigger — 閉じたときにフォーカスを戻す先(省略すると開いた時点の位置)
+   */
+  function pushOverlay(el, opts) {
+    if (!el || overlayStack.some(function (o) { return o.el === el; })) return;
+    overlayStack.push({
+      el: el,
+      close: (opts && opts.close) || null,
+      restoreTo: (opts && opts.trigger) || document.activeElement,
+    });
+    updateOverlayChrome();
+    // 中の最初の操作対象へフォーカスを移す。無ければ器そのものへ。
+    const first = el.querySelector(FOCUSABLE);
+    if (first) first.focus();
+    else { el.setAttribute('tabindex', '-1'); el.focus(); }
+  }
+
+  function popOverlay(el) {
+    const idx = overlayStack.findIndex(function (o) { return o.el === el; });
+    if (idx === -1) return;
+    const entry = overlayStack.splice(idx, 1)[0];
+    updateOverlayChrome();
+    // 開く前に触っていた場所へ戻す(戻り先が消えていれば何もしない)。
+    if (entry.restoreTo && document.contains(entry.restoreTo)) entry.restoreTo.focus();
+  }
+
+  function closeTopOverlay() {
+    const top = overlayStack[overlayStack.length - 1];
+    if (top && top.close) top.close();
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (overlayStack.length === 0) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeTopOverlay(); return; }
+    if (e.key !== 'Tab') return;
+    // フォーカスを最前面のオーバーレイの中に閉じ込める。
+    const top = overlayStack[overlayStack.length - 1].el;
+    const items = Array.prototype.filter.call(top.querySelectorAll(FOCUSABLE), function (el) {
+      return el.offsetParent !== null || el === document.activeElement;
+    });
+    if (items.length === 0) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+
+  window.addEventListener('resize', syncShellBounds);
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const scrim = document.getElementById('overlayScrim');
+    // 暗転をタップしたら最前面のオーバーレイを閉じる。閉じる手段が
+    // ボタン1つしか無く、押し損ねると閉じられなかった(監査B-5)。
+    if (scrim) scrim.addEventListener('click', closeTopOverlay);
+    syncShellBounds();
+  });
 
   /* ===================================================================
      記録者の読み上げ(TTS)
@@ -3464,6 +3649,7 @@
   }, { once: true });
 
   function showScreen(id) {
+    const changed = appState.screen !== id;
     appState.screen = id;
     const sections = document.querySelectorAll('.screen');
     for (let i = 0; i < sections.length; i++) {
@@ -3471,6 +3657,16 @@
     }
     updatePhaseHeader(id);
     onScreenEnter(id);
+    // 画面が変わったらフォーカスを新しい画面へ移す。display:none で祖先ごと
+    // 消えるためフォーカスが <body> に落ち、毎回 Tab のやり直しになっていた。
+    // オーバーレイが開いている間は奪わない。
+    if (changed && overlayStack.length === 0) {
+      const section = document.getElementById(id);
+      if (section) {
+        section.setAttribute('tabindex', '-1');
+        try { section.focus({ preventScroll: true }); } catch (e) { section.focus(); }
+      }
+    }
     if (MODE === 'live' && typeof updateHostAdvanceButton === 'function') updateHostAdvanceButton();
   }
 
@@ -3624,6 +3820,8 @@
     const video = document.getElementById('op-video');
 
     if (!overlay) return;
+    // preload="none" にしてあるので、再生するここで初めて取得を始める。
+    if (video && video.preload === 'none') { video.preload = 'auto'; try { video.load(); } catch (_) {} }
     overlay.classList.remove('hidden');
     opRevealed = false;
     if (tapStart) tapStart.style.display = 'none';
@@ -4314,7 +4512,9 @@
   // liveNightSelected を DOM(選択マーク・決定ボタン)へ反映する。
   function applyLiveNightSelection() {
     document.querySelectorAll('#liveNightTargetList .target-option').forEach(function (o) {
-      o.classList.toggle('is-selected', liveNightSelected.indexOf(o.dataset.pid) !== -1);
+      const on = liveNightSelected.indexOf(o.dataset.pid) !== -1;
+      o.classList.toggle('is-selected', on);
+      o.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     const btn = document.getElementById('liveNightDecideBtn');
     if (!btn) return;
@@ -4359,7 +4559,7 @@
     liveNightSelected = liveNightSelected.filter(function (id) { return aliveIds.indexOf(id) !== -1; });
     let optionsHtml = '';
     targets.forEach(function (p) {
-      optionsHtml += '<div class="target-option" data-pid="' + p.id + '" onclick="selectLiveNightTarget(this)"><span>' + p.displayName + '</span><span class="status-badge">生存</span></div>';
+      optionsHtml += '<div class="target-option" role="button" tabindex="0" aria-pressed="false" data-pid="' + p.id + '" onclick="selectLiveNightTarget(this)"><span>' + p.displayName + '</span><span class="status-badge">生存</span></div>';
     });
     panel.innerHTML =
       '<div style="display:flex;justify-content:space-between;align-items:flex-end;">' +
@@ -4374,6 +4574,14 @@
       '<button type="button" class="btn btn--primary" id="liveNightDecideBtn" disabled style="margin-top:var(--sp-3);width:100%;" onclick="confirmLiveNightAction()">' + cfg.verb + '</button>' +
       '<p class="center-note">選択は記録者にのみ伝わります。</p>' +
       '<div class="inline-notice u-hidden" id="liveNightRecordedNotice" style="margin-top:var(--sp-3);"></div>';
+    document.querySelectorAll('#liveNightTargetList .target-option').forEach(function (o) {
+      o.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+          e.preventDefault();
+          window.selectLiveNightTarget(o);
+        }
+      });
+    });
     if (liveNightLocked) {
       document.querySelectorAll('#liveNightTargetList .target-option').forEach(function (o) { o.setAttribute('disabled', 'disabled'); });
       document.getElementById('liveNightDecideBtn').classList.add('u-hidden');
@@ -4565,7 +4773,7 @@
       if (!pub || pub.deadlineAt == null) {
         if (countdownEl) countdownEl.textContent = '--:--';
         if (remainEl) remainEl.textContent = '--:--';
-        if (bar) bar.style.width = '100%';
+        if (bar) bar.style.transform = 'scaleX(1)';
         return;
       }
       const remainMs = Math.max(0, pub.deadlineAt - Date.now());
@@ -4574,7 +4782,7 @@
       if (countdownEl) countdownEl.textContent = clock;
       // 大きなタイマーと「残り時間」が食い違わないよう、同じ値を入れる。
       if (remainEl) remainEl.textContent = clock;
-      if (bar) bar.style.width = Math.max(0, Math.min(100, (remainSec / 180) * 100)) + '%';
+      if (bar) bar.style.transform = 'scaleX(' + Math.max(0, Math.min(1, remainSec / 180)) + ')';
       if (remainMs <= 0) clearIntervalIfAny();
     }
     tick();
@@ -4620,7 +4828,7 @@
     const countdownEl = document.getElementById('discussionCountdown');
     if (countdownEl) countdownEl.textContent = formatClock(Math.max(0, discussionSecondsLeft));
     const bar = document.getElementById('discussionBar');
-    if (bar) bar.style.width = Math.max(0, (discussionSecondsLeft / 180) * 100) + '%';
+    if (bar) bar.style.transform = 'scaleX(' + Math.max(0, Math.min(1, discussionSecondsLeft / 180)) + ')';
   }
 
   /* ===================================================================
@@ -4734,7 +4942,9 @@
             opt.innerHTML = num + '<span class="vote-name">' + p.displayName + (isSelf ? '(あなた)' : '') + '</span><span class="status-badge">' + (isSelf ? '投票不可' : '脱落') + '</span>';
           } else {
             opt.innerHTML = num + '<span class="vote-name">' + p.displayName + '</span><span class="vote-mark" aria-hidden="true"></span>';
-            opt.addEventListener('click', function () { selectLiveVoteTarget(opt); });
+            // キーボードだけでも選べるようにする。決定ボタンは選ぶまで disabled なので、
+            // ここが操作できないとこの画面から一歩も進めなかった。
+            makeTargetOptionAccessible(opt, p.displayName, function () { selectLiveVoteTarget(opt); });
           }
           list.appendChild(opt);
         });
@@ -4765,9 +4975,26 @@
   // liveVoteSelectedId を DOM(選択マーク・確定ボタン)へ反映する。
   function applyLiveVoteSelection() {
     document.querySelectorAll('#voteTargetList .target-option').forEach(function (o) {
-      o.classList.toggle('is-selected', !!liveVoteSelectedId && o.dataset.pid === liveVoteSelectedId);
+      const on = !!liveVoteSelectedId && o.dataset.pid === liveVoteSelectedId;
+      o.classList.toggle('is-selected', on);
+      if (o.hasAttribute('role')) o.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     document.getElementById('voteDecideBtn').disabled = !liveVoteSelectedId || liveVoteLocked;
+  }
+
+  /**
+   * <div> で作った対象行を、ボタンと同じようにキーボードでも押せるようにする。
+   * buildRosterCell が既に同じ形(tabindex + role + keydown)で実装している。
+   */
+  function makeTargetOptionAccessible(el, label, activate) {
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('aria-pressed', 'false');
+    if (label) el.setAttribute('aria-label', label + ' に投票する');
+    el.addEventListener('click', activate);
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); activate(); }
+    });
   }
 
   function selectLiveVoteTarget(el) {
@@ -4794,7 +5021,7 @@
         opt.innerHTML = num + '<span class="vote-name">' + p.name + '(あなた)</span><span class="status-badge">投票不可</span>';
       } else {
         opt.innerHTML = num + '<span class="vote-name">' + p.name + '</span><span class="vote-mark" aria-hidden="true"></span>';
-        opt.addEventListener('click', function () { selectVoteTarget(opt); });
+        makeTargetOptionAccessible(opt, p.name, function () { selectVoteTarget(opt); });
       }
       list.appendChild(opt);
     });
@@ -4818,17 +5045,23 @@
       const pub = latestPublic;
       const target = pub && pub.players ? pub.players[liveVoteSelectedId] : null;
       document.getElementById('voteConfirmTitle').textContent = (target ? target.displayName : '対象') + ' に投票しますか';
-      document.getElementById('voteConfirmDialog').removeAttribute('hidden');
+      const dialog = document.getElementById('voteConfirmDialog');
+      dialog.removeAttribute('hidden');
+      pushOverlay(dialog, { close: window.closeVoteConfirm });
       return;
     }
     if (!voteSelectedId || voteLocked) return;
     const target = PLAYERS.filter(function (p) { return p.id === voteSelectedId; })[0];
     document.getElementById('voteConfirmTitle').textContent = target.name + ' に投票しますか';
-    document.getElementById('voteConfirmDialog').removeAttribute('hidden');
+    const demoDialog = document.getElementById('voteConfirmDialog');
+    demoDialog.removeAttribute('hidden');
+    pushOverlay(demoDialog, { close: window.closeVoteConfirm });
   };
 
   window.closeVoteConfirm = function () {
-    document.getElementById('voteConfirmDialog').setAttribute('hidden', 'hidden');
+    const dialog = document.getElementById('voteConfirmDialog');
+    dialog.setAttribute('hidden', 'hidden');
+    popOverlay(dialog);
   };
 
   window.finalizeVote = function () {
@@ -5082,6 +5315,13 @@
     { id: "lovers", jp: "恋人", en: "Lovers", camp: "third", campName: "第三陣営/市民", desc: "恋に落ちた二人。どちらか一方が死亡した場合、もう片方も即座に死亡します。", advice: "パートナーを死なせないよう互いを庇い合い、最後まで二人で生き残りましょう。" }
   ];
 
+  function closeRulesDrawer() {
+    const drawer = document.getElementById('rulesDrawer');
+    if (!drawer) return;
+    drawer.classList.remove('is-open');
+    popOverlay(drawer);
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     const rulesBtn = document.getElementById('rulesBtn');
     const rulesDrawer = document.getElementById('rulesDrawer');
@@ -5091,12 +5331,11 @@
       rulesBtn.addEventListener('click', function () {
         rulesDrawer.classList.add('is-open');
         updateRulesDrawerState();
+        pushOverlay(rulesDrawer, { close: closeRulesDrawer, trigger: rulesBtn });
       });
     }
     if (rulesCloseBtn && rulesDrawer) {
-      rulesCloseBtn.addEventListener('click', function () {
-        rulesDrawer.classList.remove('is-open');
-      });
+      rulesCloseBtn.addEventListener('click', closeRulesDrawer);
     }
 
     // Rules Drawer Tabs switching
@@ -5357,18 +5596,24 @@
   function openDevDrawer() {
     previousScreenBeforeOverlay = appState.screen;
     document.getElementById('devDrawer').classList.add('is-open');
+    pushOverlay(document.getElementById('devDrawer'), { close: closeDevDrawer });
   }
   function closeDevDrawer() {
     document.getElementById('devDrawer').classList.remove('is-open');
+    popOverlay(document.getElementById('devDrawer'));
   }
 
   function openMakingModal() {
     const modal = document.getElementById('makingModal');
-    if (modal) modal.classList.add('is-open');
+    if (!modal) return;
+    modal.classList.add('is-open');
+    pushOverlay(modal, { close: closeMakingModal });
   }
   function closeMakingModal() {
     const modal = document.getElementById('makingModal');
-    if (modal) modal.classList.remove('is-open');
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    popOverlay(modal);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -5395,13 +5640,17 @@
      退出確認ダイアログ
      =================================================================== */
   window.openExitDialog = function () {
-    document.getElementById('exitDialog').removeAttribute('hidden');
+    const dialog = document.getElementById('exitDialog');
+    dialog.removeAttribute('hidden');
+    pushOverlay(dialog, { close: window.closeExitDialog });
   };
   window.closeExitDialog = function () {
-    document.getElementById('exitDialog').setAttribute('hidden', 'hidden');
+    const dialog = document.getElementById('exitDialog');
+    dialog.setAttribute('hidden', 'hidden');
+    popOverlay(dialog);
   };
   window.confirmExit = function () {
-    document.getElementById('exitDialog').setAttribute('hidden', 'hidden');
+    window.closeExitDialog();
     closeDevDrawer();
     showToast('退出しました。');
     showScreen('s01');

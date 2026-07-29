@@ -582,6 +582,20 @@
     return ready;
   }
 
+  // 画面が背面に回っている間は音を止める。オシレータ3本 + 4秒ごとのLFO更新 +
+  // シマー/鼓動のタイマーが動き続け、発熱とバッテリー消耗の一因になっていた。
+  document.addEventListener('visibilitychange', function () {
+    if (!ctx) return;
+    if (document.hidden) {
+      if (ctx.state === 'running') ctx.suspend();
+    } else if (!muted && ctx.state === 'suspended') {
+      ctx.resume();
+    }
+  });
+  window.addEventListener('pagehide', function () {
+    if (ctx && ctx.state === 'running') ctx.suspend();
+  });
+
   window.gekkaSound = {
     init: init,
     setPhase: setPhase,
