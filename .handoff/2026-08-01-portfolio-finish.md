@@ -16,15 +16,9 @@
 本番 https://jinro-bb5a5.web.app へのデプロイは**ユーザーが自分の端末で実行**する
 （この環境に認証情報が無い / `*.firebaseio.com` が組織ポリシーで 403）。
 
-| コマンド | 結果 |
-|---|---|
-| `cd game-engine && npm test` | 78/78 pass |
-| `node --test functions/ai/*.test.mjs` | 39/39 pass |
-| `bash tests/live_selection_test.sh` | 121/121 pass（実ブラウザ） |
-| `bash tests/viewport_fit_test.sh` / `mobile_app_test.sh` / `design_system_test.sh` | pass |
-| エミュレータ系（`ai_functions_smoke.sh` 等） | **この環境では原理的に不可**（`docs/deploy.md`） |
-
-**完成度の自己評価は 55/100。** 動くが、初見の人には遊び方が伝わらない。
+全て green: `game-engine` 78/78 · `functions/ai` 39/39 · `tests/live_selection_test.sh` 121/121（実ブラウザ） ·
+`viewport_fit` / `mobile_app` / `design_system` pass。エミュレータ系（`ai_functions_smoke.sh` 等）だけは
+**この環境では原理的に動かない**（`docs/deploy.md`）。**完成度の自己評価は 55/100** — 動くが遊び方が伝わらない。
 
 ## docs/
 
