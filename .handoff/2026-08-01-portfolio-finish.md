@@ -7,7 +7,8 @@
 **最優先はユーザーの明言どおり「一旦終わらせてポートフォリオとして発表できる状態にする」**。
 機能追加ではなく、初見の人が遊べて、用意した絵札が見える状態にすること。
 
-作業ブランチ: `claude/werewolf-solo-ai-fix-zc4emn`（main `8419a13` と同一。マージ済み）
+作業ブランチ: `claude/werewolf-solo-ai-fix-zc4emn`（main `8419a13` からの派生。コードは全てマージ済み）
+このカプセル自体は **draft PR #1** で上がっている（https://github.com/takaoumehara/werewolf/pull/1 · CI green）。
 
 ## Verified State
 
@@ -34,8 +35,9 @@
 | deploy.md | agreed | 2026-07-29 | `ANTHROPIC_API_KEY` シークレット未確認 |
 | firebase-live-access-key.md | agreed | 2026-07-28 | none |
 | integration-roadmap.html | reference | 2026-07-28 | none |
-| superpowers/plans/*.md（9件）| 実装済み | 2026-07-26 | none |
-| superpowers/specs/*.md（7件）| 設計正本 | 2026-07-23 | none |
+| superpowers/plans/*.md（9件）| 実装済み | 2026-07-19〜07-26 | 最新は `2026-07-26-solo-polish-plan.md` |
+| superpowers/specs/*.md（7件）| 設計正本 | 2026-07-19〜07-23 | none |
+| audit-evidence/ | 証跡（PNG 1枚）| 2026-07-28 | none |
 | verification.md | — | — | **not run yet** |
 | security.md | — | — | **not run yet** |
 | ship-readiness.md | — | — | **not run yet** |
@@ -43,7 +45,8 @@
 
 ## Running Processes & Active Ports
 
-なし。テストは自前で `python3 -m http.server`（8901 / 8908）を起動し終了時に落とす。
+常駐プロセスなし。テストは自前で `python3 -m http.server`（8901 / 8908）を起動し終了時に落とす。
+PR #1 の自己点検を1時間ごとに入れてあるが、**これはセッション内だけの予約**でセッションが終われば消える。
 
 ## Immediate Next Steps
 
