@@ -34,7 +34,9 @@ import { defineSecret } from "firebase-functions/params";
 import { pickRoster } from "./ai/roster.mjs";
 import { runAiPhase } from "./ai/orchestrator.mjs";
 import { generateSpeech } from "./ai/llm.mjs";
-import { AI_TURN_CLAIM_TTL_MS, claimDecision, phaseDurationsFor } from "./ai/turn-policy.mjs";
+import {
+  AI_TURN_CLAIM_TTL_MS, claimDecision, claimKey, normalizeWave, phaseDurationsFor,
+} from "./ai/turn-policy.mjs";
 
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 
@@ -54,7 +56,21 @@ function db() {
 // 紛らわしい文字(0/O/1/I 等)を除いた合言葉用アルファベット
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 6;
-const CODE_TTL_MS = 5 * 60 * 1000;
+/**
+ * 合言葉の寿命。
+ *
+ * 5分だった。人数を決めて役職を組んでQRを配る間に必ず切れるし、撮影中にも切れる。
+ * ただし「延ばす」だけでは足りない — 寿命が切れる前でも、ブラウザを再読み込みすれば
+ * roomId を失って戻れなかった（復帰導線が存在しなかった）。そこで役割を分けた:
+ *
+ *   合言葉 = 新規参加のための鍵。寿命は「その卓を1回遊び切る」に足りる長さ。
+ *            実際の締切は時計ではなく卓の状態（waiting のあいだだけ新規参加可）。
+ *   復帰   = 合言葉を使わない。roomMembers に自分の uid があるかどうかだけで判定する
+ *            （resumeRoom）。だから寿命とは無関係にいつでも戻れる。
+ *
+ * 時計の寿命を残してあるのは、6文字の合言葉空間を無期限に占有させないため。
+ */
+const CODE_TTL_MS = 12 * 60 * 60 * 1000;
 const MAX_PLAYERS_CAP = 12;
 const MIN_PLAYERS = 3;
 
@@ -116,7 +132,19 @@ export const joinSnapRoom = onCall(async (req) => {
   const codeSnap = await db().ref(`pairingCodes/${code}`).get();
   if (!codeSnap.exists()) throw new HttpsError("not-found", "合言葉が見つかりません。");
   const { roomId, maxPlayers, expiresAt } = codeSnap.val();
-  if (Date.now() > expiresAt) throw new HttpsError("deadline-exceeded", "合言葉の有効期限が切れています。");
+
+  // 既にこの部屋の一員なら、寿命も卓の状態も問わず通す（復帰・再読み込みの保険）。
+  // 締め出す相手は「まだ入っていない人」だけでよい。
+  const alreadyMember = (await db().ref(`roomMembers/${roomId}/${uid}`).get()).val() === true;
+  if (!alreadyMember) {
+    if (Date.now() > expiresAt) throw new HttpsError("deadline-exceeded", "合言葉の有効期限が切れています。");
+    // 新規参加の締切は時計ではなく卓の状態で決める。始まった卓に途中から
+    // 人を入れると配役が壊れるため、ここだけは status で弾く。
+    const status = (await db().ref(`rooms/${roomId}/meta/status`).get()).val();
+    if (status && status !== "waiting") {
+      throw new HttpsError("failed-precondition", "この卓はもう始まっています。");
+    }
+  }
 
   const txn = await db().ref(`rooms/${roomId}/joinState`).transaction((current) => {
     const state = current || { count: 0, members: {} };
@@ -143,6 +171,38 @@ export const joinSnapRoom = onCall(async (req) => {
   await db().ref().update(updates);
 
   return { roomId };
+});
+
+/**
+ * 一度入った部屋へ戻る。合言葉を使わない。
+ *
+ * 判定は roomMembers/{roomId}/{uid} だけ。匿名認証の uid はブラウザに残るので、
+ * 再読み込み・タブを閉じた・回線が落ちた のいずれからでも同じ席へ戻れる。
+ * 合言葉の寿命とも、卓が playing か finished かとも無関係にする — 途中復帰は
+ * まさに「始まったあと」に必要になるものだから。
+ */
+export const resumeRoom = onCall(async (req) => {
+  const uid = requireUid(req);
+  const roomId = String(req.data?.roomId ?? "");
+  if (!roomId) throw new HttpsError("invalid-argument", "部屋が指定されていません。");
+
+  const isMember = (await db().ref(`roomMembers/${roomId}/${uid}`).get()).val() === true;
+  if (!isMember) throw new HttpsError("permission-denied", "この卓の参加者ではありません。");
+
+  const metaSnap = await db().ref(`rooms/${roomId}/meta`).get();
+  const meta = metaSnap.val();
+  if (!meta) throw new HttpsError("not-found", "この卓はもうありません。");
+
+  const now = Date.now();
+  await db().ref(`rooms/${roomId}/players/${uid}`).update({ connected: true, lastSeenAt: now });
+
+  const phase = (await db().ref(`rooms/${roomId}/game/public/phase`).get()).val() ?? "lobby";
+  return {
+    roomId,
+    isHost: meta.hostId === uid,
+    status: meta.status ?? "waiting",
+    phase,
+  };
 });
 
 /** ホストだけがゲームを開始できる。役職を割り当て、公開/秘密ビューを分けて書き出す。 */
@@ -359,6 +419,7 @@ export const advanceAiTurn = onCall({ secrets: [ANTHROPIC_API_KEY], timeoutSecon
   const uid = requireUid(req);
   const roomId = String(req.data?.roomId ?? "");
   const phase = String(req.data?.phase ?? "");
+  const wave = normalizeWave(phase, req.data?.wave ?? 1);
 
   const metaSnap = await db().ref(`rooms/${roomId}/meta`).get();
   const meta = metaSnap.val();
@@ -372,28 +433,33 @@ export const advanceAiTurn = onCall({ secrets: [ANTHROPIC_API_KEY], timeoutSecon
 
   // 同じフェーズの二重実行を止める。クライアントの再試行や、投票解決後に
   // day へ戻る遷移で発話が二度走るのをサーバー側で確実に防ぐ。
-  const claimRef = db().ref(`rooms/${roomId}/game/aiTurns/${pub.round ?? 0}_${phase}`);
+  const claimRef = db().ref(`rooms/${roomId}/game/aiTurns/${claimKey(pub.round ?? 0, phase, wave)}`);
   let decision = { grant: false, reason: "claimed" };
   const claimTxn = await claimRef.transaction((current) => {
     decision = claimDecision(current, Date.now(), AI_TURN_CLAIM_TTL_MS);
     if (!decision.grant) return; // abort
     return { startedAt: Date.now(), done: false };
   });
-  if (!claimTxn.committed) return { actions: 0, messages: 0, errors: 0, skipped: decision.reason };
+  if (!claimTxn.committed) return { actions: 0, messages: 0, errors: 0, speechMode: "none", skipped: decision.reason };
 
-  const apiKey = ANTHROPIC_API_KEY.value();
+  // 鍵が無ければ generate を渡さない。orchestrator はそれを見てローカル発話へ落とす。
+  // 「鍵が無い」を例外にすると、昼のたびに全AIが失敗して卓が無言になる。
+  let apiKey = "";
+  try { apiKey = ANTHROPIC_API_KEY.value() || ""; } catch (e) { apiKey = ""; }
+
   const deps = {
     readAuthoritative: async (rid) => (await db().ref(`rooms/${rid}/game/authoritative`).get()).val(),
     readAiPlayers: async (rid) => (await db().ref(`rooms/${rid}/aiPlayers`).get()).val() || {},
+    readChat: async (rid) => (await db().ref(`rooms/${rid}/game/chat`).get()).val() || {},
     applyCommand: (rid, actorId, type, payload) => applyServerCommand(rid, actorId, type, payload),
     pushChat: async (rid, m) => { await db().ref(`rooms/${rid}/game/chat`).push(m); },
-    generate: ({ system, user }) => generateSpeech({ system, user, apiKey }),
+    generate: apiKey ? ({ system, user }) => generateSpeech({ system, user, apiKey }) : null,
     now: () => Date.now(),
     logError: ({ phase: p, aiId, step, error }) =>
       console.error(`advanceAiTurn: ${aiId} の ${p}/${step} に失敗`, error),
   };
   try {
-    const result = await runAiPhase(deps, { roomId, phase });
+    const result = await runAiPhase(deps, { roomId, phase, wave });
     await claimRef.update({ done: true, doneAt: Date.now(), ...result });
     return result;
   } catch (error) {

@@ -2430,6 +2430,12 @@
         <h2 class="screen-title">部屋を選ぶ</h2>
         <p class="screen-sub">新しく始めるか、合言葉で参加するか。</p>
         <div class="opt-cards">
+          <!-- 途中復帰。前に入った卓が残っているときだけ出す(renderResumeCard) -->
+          <button type="button" class="opt-card u-hidden" id="resumeCard" onclick="handleResumeRoom()">
+            <span class="opt-card-tag"><i></i>続きから</span>
+            <span class="opt-card-title">前の卓に戻る</span>
+            <span class="opt-card-desc" id="resumeCardDesc">中断したところから続けます。合言葉は要りません。</span>
+          </button>
           <button type="button" class="opt-card is-selected" onclick="handleChooseHost()">
             <span class="opt-card-tag"><i></i>進行役 / ホスト</span>
             <span class="opt-card-title">新しくゲームを始める</span>
@@ -3545,7 +3551,57 @@
   const hostDriver = { lastSentType: null, roleRevealEnteredAt: null, inFlight: false, lastRevisionAtSend: -1,
     // ソロモード: フェーズ(round+phase)ごとに1回だけAIの行動を駆動するための追跡状態。
     // 完了判定は aiTurnDone のみで行う(aiTurnInFlight は多重送信の抑止用)。
-    aiTurnInFlight: null, aiTurnDone: {}, aiTurnAttempts: {}, aiTurnRetryAt: 0 };
+    aiTurnInFlight: null, aiTurnDone: {}, aiTurnAttempts: {}, aiTurnRetryAt: 0,
+    // 昼の発話の波。1波目は全員の第一声、2波目以降は人間の発言への返し。
+    dayWave: {}, replyTimer: null, replyInFlight: false, speechModeNotified: false };
+
+  /* AIが「いま何で喋っているか」を一度だけ知らせる。
+     鍵が無くても卓は無言にならない(サーバー側でローカル発話へ落ちる)が、
+     何も言わずに簡易モードで進むと「これがAIの実力」と誤解される。 */
+  function noteAiSpeechMode(res) {
+    if (!res || hostDriver.speechModeNotified) return;
+    if (res.speechMode === 'local') {
+      hostDriver.speechModeNotified = true;
+      showToast('AIの発話は簡易モードです（APIキー未設定）。進行はそのまま続きます。');
+    } else if (res.speechMode === 'degraded') {
+      hostDriver.speechModeNotified = true;
+      showToast('AIの発話サーバーに繋がりません。簡易モードで続けます。');
+    }
+  }
+
+  /**
+   * 人間が発言したら、AIに返させる（第二波）。
+   *
+   * 1波目は昼の開始と同時に流れるので、そのあと人間が何を書いても誰も反応しなかった。
+   * 連投しても波は増やさない（少し待ってからまとめて1回）。上限はサーバー側の
+   * MAX_DAY_WAVES が持つので、押し切れば必ず止まる。
+   */
+  function requestAiReplyWave() {
+    if (MODE !== 'live' || appState.view !== 'host') return; // 進行役だけがAIを動かせる
+    const pub = latestPublic;
+    if (!pub || pub.winner || pub.phase !== 'day' || !tableHasAi()) return;
+    if (hostDriver.replyTimer) clearTimeout(hostDriver.replyTimer);
+    hostDriver.replyTimer = setTimeout(function () {
+      hostDriver.replyTimer = null;
+      const now = latestPublic;
+      if (!now || now.winner || now.phase !== 'day' || hostDriver.replyInFlight) return;
+      const round = now.round || 0;
+      const wave = (hostDriver.dayWave[round] || 1) + 1;
+      if (wave > 3) return; // サーバーの上限と同じ。これ以上は投げない
+      hostDriver.dayWave[round] = wave;
+      hostDriver.replyInFlight = true;
+      getLiveClient().then(function (client) {
+        return client.advanceAiTurn({ phase: 'day', wave: wave });
+      }).then(function (res) {
+        hostDriver.replyInFlight = false;
+        noteAiSpeechMode(res);
+      }).catch(function (e) {
+        hostDriver.replyInFlight = false;
+        // 返事が来ないだけ。進行そのものは止めない。
+        console.error('advanceAiTurn(reply wave) failed', e);
+      });
+    }, 1400);
+  }
 
   function computeNextHostCommand(pub, opts) {
     const force = !!(opts && opts.force);
@@ -3627,10 +3683,12 @@
           Date.now() >= hostDriver.aiTurnRetryAt) {
         hostDriver.aiTurnInFlight = aiKey;
         getLiveClient().then(function (client) {
-          return client.advanceAiTurn({ phase: aiPhase });
-        }).then(function () {
+          return client.advanceAiTurn({ phase: aiPhase, wave: 1 });
+        }).then(function (res) {
           hostDriver.aiTurnInFlight = null;
           hostDriver.aiTurnDone[aiKey] = true;
+          if (aiPhase === 'day') hostDriver.dayWave[pub.round || 0] = 1;
+          noteAiSpeechMode(res);
         }).catch(function (e) {
           hostDriver.aiTurnInFlight = null;
           const attempts = (hostDriver.aiTurnAttempts[aiKey] || 0) + 1;
@@ -3802,6 +3860,40 @@
     appState.view = 'player';
     appState.solo = false;
     showScreen('s03');
+  };
+
+  /* ===================================================================
+     途中復帰 — 合言葉ではなく「席」に戻る
+     合言葉には寿命があり、しかも卓が始まると新規参加としては使えない。
+     一方 roomMembers の自分の uid には寿命が無いので、そちらを頼りに戻る。
+     控え(roomId)はブラウザに保存してあり、サーバーは uid だけを見て通す。
+     =================================================================== */
+  function renderResumeCard() {
+    const card = document.getElementById('resumeCard');
+    if (!card) return;
+    if (MODE !== 'live') { card.classList.add('u-hidden'); return; }
+    getLiveClient().then(function (client) {
+      const saved = client.getResumePoint && client.getResumePoint();
+      card.classList.toggle('u-hidden', !saved);
+    }).catch(function () { card.classList.add('u-hidden'); });
+  }
+
+  window.handleResumeRoom = function () {
+    if (MODE !== 'live') { showScreen('s02'); return; }
+    getLiveClient().then(function (client) {
+      return client.resumeRoom();
+    }).then(function (info) {
+      appState.view = info.isHost ? 'host' : 'player';
+      attachLiveSubscriptions();
+      // 卓の実際のフェーズへは syncLiveScreen が連れて行く。ここでは
+      // 「役職を確認する」ところまで戻せば十分(privateViews は残っている)。
+      showScreen(info.status === 'waiting' ? 's05' : 's08');
+    }).catch(function (e) {
+      console.error('resumeRoom failed', e);
+      const card = document.getElementById('resumeCard');
+      if (card) card.classList.add('u-hidden');
+      showToast('前の卓には戻れませんでした。新しく始めてください。');
+    });
   };
 
   let soloCount = 5;
@@ -5575,11 +5667,15 @@
     const input = document.getElementById('chatInput');
     const text = input ? input.value : '';
     if (input) input.value = '';
-    getLiveClient().then(function (client) { return client.postChat(text); }).catch(function (e) { console.error(e); });
+    if (!String(text || '').trim()) return false;
+    getLiveClient().then(function (client) { return client.postChat(text); })
+      .then(requestAiReplyWave)
+      .catch(function (e) { console.error(e); });
     return false;
   }
   function postChatText(text) {
     getLiveClient().then(function (client) { return client.postChat(text); })
+      .then(requestAiReplyWave)
       .catch(function (e) { console.error(e); });
   }
 
@@ -6231,6 +6327,7 @@
     }
     if (id === 's19') setPhase('finished');
     if (id === 's01' || id === 's02' || id === 's02b') setPhase('day');
+    if (id === 's02') renderResumeCard();
 
     // カードスロットは可変幅なので、表示直後に再フィットする
     requestAnimationFrame(function () {

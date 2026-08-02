@@ -90,6 +90,7 @@ export function createGameClient({ config, useEmulator = false } = {}) {
   const dispatchWerewolfCommandFn = httpsCallable(fns, "dispatchWerewolfCommand");
   const seatAiPlayersFn = httpsCallable(fns, "seatAiPlayers");
   const advanceAiTurnFn = httpsCallable(fns, "advanceAiTurn");
+  const resumeRoomFn = httpsCallable(fns, "resumeRoom");
 
   let currentUid = null;
   let currentRoomId = null;
@@ -147,8 +148,37 @@ export function createGameClient({ config, useEmulator = false } = {}) {
     };
   }
 
+  // 途中復帰のための控え。合言葉ではなく roomId を持つ — 合言葉には寿命があるが、
+  // 席そのもの(roomMembers の uid)には寿命が無いため、こちらの方が確実に戻れる。
+  // 匿名認証の uid は Firebase Auth がローカルに保存するので、再読み込みしても同じ人のまま。
+  const RESUME_KEY = "jinro.lastRoom";
+  const RESUME_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+
+  function saveResumePoint(roomId) {
+    try {
+      if (roomId) localStorage.setItem(RESUME_KEY, JSON.stringify({ roomId, at: Date.now() }));
+    } catch (e) { /* プライベート閲覧では保存できない。復帰できないだけで遊べる */ }
+  }
+
+  function readResumePoint() {
+    try {
+      const raw = localStorage.getItem(RESUME_KEY);
+      if (!raw) return null;
+      const saved = JSON.parse(raw);
+      if (!saved || !saved.roomId) return null;
+      // 古すぎる控えは出さない。「戻る」を押して失敗するより、最初から出ない方がよい。
+      if (Date.now() - (saved.at || 0) > RESUME_MAX_AGE_MS) return null;
+      return saved;
+    } catch (e) { return null; }
+  }
+
+  function clearResumePoint() {
+    try { localStorage.removeItem(RESUME_KEY); } catch (e) { /* 消せなくても害はない */ }
+  }
+
   function setRoomId(roomId) {
     currentRoomId = roomId;
+    saveResumePoint(roomId);
     rebindAll();
   }
 
@@ -205,11 +235,30 @@ export function createGameClient({ config, useEmulator = false } = {}) {
     return r.data;
   }
 
-  async function advanceAiTurn({ phase } = {}) {
+  async function advanceAiTurn({ phase, wave } = {}) {
     await ready;
     if (!currentRoomId) throw new Error("roomId is not set yet");
-    const r = await advanceAiTurnFn({ roomId: currentRoomId, phase });
+    const r = await advanceAiTurnFn({ roomId: currentRoomId, phase, wave: wave || 1 });
     return r.data;
+  }
+
+  /**
+   * 前に入った卓へ戻る。合言葉は要らない(寿命があり、しかも卓が始まると使えない)。
+   * サーバーは roomMembers/{roomId}/{uid} だけを見る。
+   * 戻れなかったときは控えを消す — 押すたびに同じ失敗を繰り返させないため。
+   */
+  async function resumeRoom({ roomId } = {}) {
+    await ready;
+    const target = roomId || readResumePoint()?.roomId;
+    if (!target) throw new Error("no room to resume");
+    try {
+      const r = await resumeRoomFn({ roomId: target });
+      setRoomId(target);
+      return r.data;
+    } catch (error) {
+      clearResumePoint();
+      throw error;
+    }
   }
 
   async function postChat(text) {
@@ -231,6 +280,9 @@ export function createGameClient({ config, useEmulator = false } = {}) {
     renameSelf,
     seatAiPlayers,
     advanceAiTurn,
+    resumeRoom,
+    getResumePoint: readResumePoint,
+    clearResumePoint,
     postChat,
     onMeta: (cb) => subscribe("meta", cb),
     onPlayers: (cb) => subscribe("players", cb),

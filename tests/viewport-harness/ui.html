@@ -156,6 +156,22 @@
         }
       });
 
+      /* 7. 途中復帰の導線とAIの返し ------------------------------------- */
+      // 「前の卓に戻る」は控えがあるときだけ出す。demo では常に隠れているのが正。
+      var resume = d.getElementById('resumeCard');
+      if (!resume) problems.push('「前の卓に戻る」(#resumeCard)が無い');
+      else {
+        w.showScreen('s02');
+        if (!resume.classList.contains('u-hidden')) {
+          problems.push('復帰の控えが無いのに「前の卓に戻る」が出ている');
+        }
+        if (typeof w.handleResumeRoom !== 'function') problems.push('handleResumeRoom が公開されていない');
+      }
+      // 人間の発言がAIの返し(第二波)を呼ぶ配線が残っているか。
+      if (!/requestAiReplyWave/.test(String(w.handleChatSend))) {
+        problems.push('発言してもAIの返し(第二波)が呼ばれない');
+      }
+
       finish({ problems: problems, thumbCount: d.querySelectorAll('.role-card-thumb').length });
     })();
   });

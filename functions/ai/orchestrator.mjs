@@ -1,10 +1,15 @@
 import { decideVote, decideNightAction } from "../../game-engine/src/ai-brain.mjs";
-import { deriveBrainInput } from "./context.mjs";
+import { deriveBrainInput, deriveChatDigest, deriveTableLog } from "./context.mjs";
 import { buildSpeechPrompt } from "./prompt.mjs";
 import { validateUtterance } from "./validate.mjs";
+import { localUtterance } from "./fallback.mjs";
 
 const MAX_CHARS = 100;
 const ROLE_LABEL = { citizen: "村人", prophet: "村人", werewolf: "村人" }; // 表向きは全員「村人」を公言（MVP1: CO機構なし）
+
+// 第二波（人間の発言への返し）で口を開くAIの上限。全員に返させると
+// 会話が渋滞し、LLM 呼び出しも人数分増える。
+const REPLY_WAVE_MAX_SPEAKERS = 2;
 
 const aliveAiIds = (authoritative, aiPlayers) =>
   Object.values(authoritative.players)
@@ -24,15 +29,27 @@ function reportError(deps, context, error) {
   else console.error("[runAiPhase]", context, error);
 }
 
-export async function runAiPhase(deps, { roomId, phase }) {
+/**
+ * 第二波で返事をするAIを選ぶ。純関数。
+ * 名指しされたAIを最優先する — 呼ばれたのに黙っているのが一番不自然なため。
+ */
+export function pickRepliers(ids, nameOf, humanText, limit = REPLY_WAVE_MAX_SPEAKERS) {
+  const text = humanText ?? "";
+  const named = ids.filter((id) => text.includes(nameOf(id)));
+  const rest = ids.filter((id) => !named.includes(id));
+  return [...named, ...rest].slice(0, limit).sort();
+}
+
+export async function runAiPhase(deps, { roomId, phase, wave = 1 }) {
   const authoritative = await deps.readAuthoritative(roomId);
   const aiPlayers = await deps.readAiPlayers(roomId);
-  if (!authoritative || !aiPlayers) return { actions: 0, messages: 0, errors: 0 };
+  if (!authoritative || !aiPlayers) return { actions: 0, messages: 0, errors: 0, fallbacks: 0, speechMode: "none" };
   const ids = aliveAiIds(authoritative, aiPlayers);
   const round = authoritative.round ?? 0;
   let actions = 0;
   let messages = 0;
   let errors = 0;
+  let fallbacks = 0;
 
   const nameOf = (id) => authoritative.players[id]?.displayName ?? id;
   const validNamesFor = (selfId) =>
@@ -66,16 +83,33 @@ export async function runAiPhase(deps, { roomId, phase }) {
         reportError(deps, { phase, aiId, step: "applyCommand" }, error);
       }
     }
-    return { actions, messages, errors };
+    return { actions, messages, errors, fallbacks, speechMode: "none" };
   }
 
-  if (phase !== "day") return { actions, messages, errors };
+  if (phase !== "day") return { actions, messages, errors, fallbacks, speechMode: "none" };
+
+  // 卓の発言ログ。これを渡していなかったので、AIは人間が何を書いても反応せず、
+  // 毎ラウンド同じ独り言を並べていた。
+  const aliveNames = Object.values(authoritative.players).filter((p) => p.alive).map((p) => nameOf(p.id));
+  const chat = typeof deps.readChat === "function" ? await deps.readChat(roomId) : null;
+  const digest = deriveChatDigest(chat, { limit: 6, aliveNames });
+  const tableLog = deriveTableLog(authoritative, nameOf);
+
+  // 第一波は全員の第一声。第二波は人間の発言への返しなので、返す相手が居なければ
+  // 何もしない（空振りで LLM を焼かない）。
+  const isReplyWave = wave >= 2;
+  if (isReplyWave && !digest.lastHuman) {
+    return { actions, messages, errors, fallbacks, speechMode: "none", skipped: "no-human-utterance" };
+  }
+  const speakers = isReplyWave ? pickRepliers(ids, nameOf, digest.lastHuman?.text) : ids;
+
+  const canGenerate = typeof deps.generate === "function";
 
   // 発話は LLM 呼び出しが所要時間の大半を占める。直列だと AI 11体 × 最大2回で
   // 関数のタイムアウトを確実に超えるため、生成だけ並列にする。
-  const drafts = await Promise.all(ids.map(async (aiId) => {
+  const drafts = await Promise.all(speakers.map(async (aiId) => {
+    const persona = aiPlayers[aiId];
     try {
-      const persona = aiPlayers[aiId];
       const input = inputFor(aiId);
       const { targetId } = decideVote(input);
       const ctx = {
@@ -86,10 +120,19 @@ export async function runAiPhase(deps, { roomId, phase }) {
         reasonTags: input.divineResults.some((r) => r.result === "werewolf") ? ["占い結果が黒"] : ["言動が不自然"],
         voteTargetName: targetId ? nameOf(targetId) : null,
         composureText: persona.personality.aggression > 60 ? "苛立っている" : "落ち着いている",
-        structuredLog: `生存: ${input.alivePlayerIds.map(nameOf).join("、")}`,
-        recentUtterances: [],
+        structuredLog: tableLog,
+        recentUtterances: digest.recentUtterances,
         validNames: validNamesFor(aiId),
+        personality: persona.personality,
+        replyTo: isReplyWave ? digest.lastHuman : null,
       };
+
+      // 鍵が無い（generate 未提供）ときは最初からローカル生成に落とす。
+      // 「鍵が無い」は失敗ではなく設定状態なので、errors には数えない。
+      if (!canGenerate) {
+        return { aiId, persona, text: localUtterance(ctx, seedFor(round, aiId) + wave), source: "local" };
+      }
+
       const { system, user } = buildSpeechPrompt(ctx);
       let text = "";
       let lastError = null;
@@ -103,11 +146,15 @@ export async function runAiPhase(deps, { roomId, phase }) {
           lastError = error; // 生成そのものの失敗だけ再試行する
         }
       }
-      // 検証に落ちただけ（text === ""）は正常系。生成が最後まで失敗した場合だけ error。
-      if (lastError) return { aiId, error: lastError };
-      return { aiId, persona, text };
+      if (text) return { aiId, persona, text, source: "llm" };
+      // 生成が落ちた場合も、検証を2回とも通らなかった場合も、卓を無言にはしない。
+      // ローカル発話へ落として必ず一言残す（source が local なので後から追える）。
+      return {
+        aiId, persona, source: "local", error: lastError,
+        text: localUtterance(ctx, seedFor(round, aiId) + wave),
+      };
     } catch (error) {
-      return { aiId, error };
+      return { aiId, persona, error, fatal: true };
     }
   }));
 
@@ -116,12 +163,13 @@ export async function runAiPhase(deps, { roomId, phase }) {
     if (draft.error) {
       errors++;
       reportError(deps, { phase, aiId: draft.aiId, step: "generate" }, draft.error);
-      continue;
     }
     if (!draft.text) continue;
+    if (draft.source === "local") fallbacks++;
     try {
       await deps.pushChat(roomId, {
-        authorId: draft.aiId, authorName: draft.persona.name, text: draft.text, round, kind: "ai", at: deps.now(),
+        authorId: draft.aiId, authorName: draft.persona.name, text: draft.text,
+        round, kind: "ai", source: draft.source, at: deps.now(),
       });
       messages++;
     } catch (error) {
@@ -129,5 +177,15 @@ export async function runAiPhase(deps, { roomId, phase }) {
       reportError(deps, { phase, aiId: draft.aiId, step: "pushChat" }, error);
     }
   }
-  return { actions, messages, errors };
+
+  // 画面に「いま何で喋っているか」を出すための一語。
+  //   llm      = APIキーがあり、実際に生成できた
+  //   degraded = キーはあるが全部落ちてローカルへ退避した
+  //   local    = キーが未設定（設定すれば直る）
+  let speechMode = "none";
+  if (messages > 0) {
+    if (!canGenerate) speechMode = "local";
+    else speechMode = fallbacks >= messages ? "degraded" : "llm";
+  }
+  return { actions, messages, errors, fallbacks, speechMode };
 }
