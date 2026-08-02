@@ -524,8 +524,25 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0, 0, 0, 0.4);
     cursor: pointer;
   }
+  /* 死亡は「少し暗い」だけでは伝わらない。札全体を落として、はっきり札に書く。 */
   .roster-cell.is-dead .roster-char {
-    filter: grayscale(0.65) brightness(0.72);
+    filter: grayscale(0.95) brightness(0.5);
+  }
+  .roster-cell.is-dead .roster-bg { opacity: 0.4; }
+  .roster-cell.is-dead { border-style: dashed; }
+  .roster-dead-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 3;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 3px 6px;
+    border-radius: 4px;
+    color: #F3D9D9;
+    background: rgba(120, 32, 32, 0.85);
+    border: 1px solid rgba(201, 123, 123, 0.7);
   }
   .roster-cell:focus-visible {
     outline: 3px solid var(--sem-accent, var(--p-moonlight));
@@ -566,7 +583,12 @@
     letter-spacing: 2px;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
     z-index: 3;
+    /* 名前が長いと札の下端(名前プレート)まで届いて切れる。必ず枠内に収める。 */
+    max-height: calc(100% - 42px);
+    overflow: hidden;
   }
+  .roster-mark--sm { font-size: 10.5px; letter-spacing: 1px; }
+  .roster-mark--xs { font-size: 9px; letter-spacing: 0.5px; }
   .roster-faction-dot {
     position: absolute;
     top: 6px;
@@ -697,9 +719,45 @@
   .comp-presets {
     display: flex;
     gap: 8px;
-    margin-bottom: var(--sp-3, 12px);
+    margin-bottom: 8px;
   }
-  .comp-presets .btn { flex: 1 1 0; min-height: 44px; padding: 8px 6px; font-size: 13px; }
+  /* 44pt はタップ対象の下限(tests/viewport_fit_test.sh が守っている)。
+     縦を返したいときも、ここを削ってはいけない。 */
+  .comp-presets .btn { flex: 1 1 0; min-height: 44px; padding: 6px; font-size: 12.5px; }
+
+  /* 役職構成のヘッダ。見出しと合計を1行に載せて縦を返す。 */
+  .screen--dense { gap: 6px; }
+  .comp-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .comp-head .screen-title { margin: 0; font-size: 22px; }
+  .comp-head .composition-total { margin: 0; flex: none; font-size: 13px; }
+  .comp-sub { margin: 0 0 2px; font-size: 12.5px; }
+  /* 札を主役にする。見出し・説明・プリセットを詰めて浮いた分をここへ回す。
+     max-height は必ず要る — .safe-frame は min-height なので、上限を外すと
+     一覧が content 高さまで伸びて「配役を確定する」が画面の遥か下へ落ちる。 */
+  #s07 .role-picker {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 62dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  #s07 .role-pick-grid { gap: 8px; }
+  #s07 .role-pick-stepper { margin-top: 4px; gap: 3px; }
+  #s07 .role-picker-head { margin-bottom: 4px; }
+  /* 「札を大きく」の本体。狭い端末では3列→2列にする。
+     393pt で1枚 113px → 176px（約1.5倍）になり、絵柄と縦書きの役職名が読める。
+     ±ボタンの幅も 38px → 70px 級になり、押し間違いが減る。 */
+  @media (max-width: 460px) {
+    #s07 .role-pick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    #s07 .role-pick-stepper button { min-width: 52px; }
+  }
+  #s07 > .btn--primary { flex: none; margin-top: 6px; }
 
   /* AI同席コントロール(s05 待合の間) */
   .ai-seat {
@@ -811,6 +869,34 @@
     border-color: rgba(201, 168, 76, 0.45);
     color: var(--p-gold-hi, #E0C87E);
     font-weight: 700;
+  }
+  /* 音トグル。以前は不透明度 0.55 の「♪」だけで、オンなのかオフなのか、
+     そもそも何のボタンなのかが読み取れなかった。状態を文字で出す。 */
+  .top-bar-link--sound {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 44px;
+    padding: 8px 9px;
+  }
+  .top-bar-link--sound .sound-glyph { font-size: 14px; line-height: 1; }
+  .top-bar-link--sound .sound-state { font-size: 11px; letter-spacing: 0.02em; opacity: 0.85; }
+  .top-bar-link--sound[aria-pressed="true"] {
+    background: rgba(201, 168, 76, 0.14);
+    border-color: rgba(201, 168, 76, 0.45);
+    color: var(--p-gold-hi, #E0C87E);
+  }
+  .top-bar-link--advance {
+    background: rgba(159, 180, 206, 0.16);
+    border-color: rgba(159, 180, 206, 0.5);
+    color: #CFE0F2;
+    font-weight: 700;
+  }
+  /* トップバーの詰め。狭い端末では文字を落として最小限にする。 */
+  @media (max-width: 380px) {
+    .top-bar-title { font-size: 15px; letter-spacing: 0.06em; }
+    .top-bar-link { padding: 8px 8px; font-size: 12.5px; }
+    .top-bar-link--sound .sound-state { display: none; }
   }
 
   .dev-hotspot {
@@ -1325,15 +1411,46 @@
     text-align: center;
     padding-top: var(--sp-2);
   }
+  /* 議論画面は、時計・前夜の記録・チャット・投票ボタンを1画面に載せる必要がある。
+     66px の時計と 26px の余白でその予算をほとんど使い切り、「投票へ進む」が
+     画面外へ落ちていた。時計は読めれば充分。 */
   .council-timer {
     font-family: 'Cormorant Garamond', serif;
     font-weight: 600;
-    font-size: 66px;
+    font-size: 46px;
     color: var(--sem-accent, var(--p-gold));
     letter-spacing: 0.02em;
     line-height: 1;
-    margin-top: 26px;
+    margin-top: 10px;
   }
+  /* 「怪しい」を押したときに出る、名指しの相手を選ぶ列。 */
+  .chat-suspect-picker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    margin-bottom: 6px;
+    border: 1px solid rgba(201, 168, 76, 0.35);
+    border-radius: 10px;
+    background: rgba(201, 168, 76, 0.06);
+  }
+  .chat-suspect-label {
+    font-size: 12px;
+    color: var(--p-gold-hi, #E0C87E);
+    margin-right: 2px;
+  }
+  .chat-chip--quiet { opacity: 0.7; }
+  .chat-empty {
+    margin: auto 0;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--sem-text-dim, #8f8878);
+  }
+  /* 議論のかたまり自体を画面内に収める。中で溢れた分はここがスクロールする。 */
+  #s14 .council { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  #s14 > .btn--primary { flex: none; }
   .council-track {
     width: 100%;
     height: 2px;
@@ -1777,6 +1894,13 @@
       max-width: var(--shell-w, 402px);
       border-radius: 0 44px 44px 0;
     }
+    /* デスクトップでは端末フレームの外に「閉じたドロワー」の実体が残り、
+       右サイドバーを覆ったまま常時見えていた。閉じている間は出さない。
+       (モバイルは画面外へ出るだけなので従来どおりで問題ない) */
+    .rules-drawer:not(.is-open) {
+      visibility: hidden;
+      pointer-events: none;
+    }
     .bottom-sheet {
       left: var(--shell-left, 0px);
       right: auto;
@@ -1795,6 +1919,8 @@
   @media (max-height: 800px) {
     .screen { gap: var(--sp-3); }
     .role-picker { max-height: 44dvh; }
+    /* ヘッダを1行にまとめた分、旧 44dvh より広く取れる(札が1.7行→3行) */
+    #s07 .role-picker { max-height: 54dvh; }
     .card-slot--hero { max-width: 196px; }
     .opt-cards { gap: 10px; margin: 2px 0 4px; }
     .opt-card { padding: 16px 20px; gap: 9px; }
@@ -1804,25 +1930,382 @@
      .safe-frame は min-height なので画面全体は伸びうる。max-height で明示的に
      頭打ちにしないと、確定ボタンが一覧の下へ押し出される。 */
   @media (max-height: 800px) {
-    #voteTargetList { max-height: 42dvh; overflow-y: auto; overscroll-behavior: contain; }
-    #rosterGrid { max-height: 46dvh; overflow-y: auto; overscroll-behavior: contain; }
+    /* 下端で切れているのが「続きがある」ことだと分かるように、
+       スクロールする一覧の下だけ薄くする。切れ目が事故に見えていた。 */
+    #rosterGrid, #voteTargetList, .night-grid, #s07 .role-picker {
+      -webkit-mask-image: linear-gradient(180deg, #000 0, #000 calc(100% - 22px), transparent 100%);
+      mask-image: linear-gradient(180deg, #000 0, #000 calc(100% - 22px), transparent 100%);
+    }
+    #voteTargetList { max-height: 40dvh; overflow-y: auto; overscroll-behavior: contain; }
+    #rosterGrid { max-height: 44dvh; overflow-y: auto; overscroll-behavior: contain; }
     #lobbyPlayerList { max-height: 34dvh; overflow-y: auto; overscroll-behavior: contain; }
     #liveNightTargetList { max-height: 38dvh; overflow-y: auto; overscroll-behavior: contain; }
-    .chat-log { max-height: 26dvh; }
+    /* デモの夜の一覧にだけ上限が無く、「占う」が画面外へ落ちていた。
+       ライブ側(#liveNightTargetList)と同じ扱いに揃える。 */
+    .night-grid { max-height: 38dvh; overflow-y: auto; overscroll-behavior: contain; }
+    /* min-height は max-height に勝つため、両方下げないと効かない。 */
+    .chat-log { max-height: 22dvh; min-height: 84px; }
+    /* 議論画面は「前夜の記録」も伸びる。ここも頭打ちにして投票ボタンを画面内に残す。 */
+    .council-prev { max-height: 14dvh; overflow-y: auto; overscroll-behavior: contain; }
   }
   @media (max-height: 760px) {
     .card-slot--hero { max-width: 172px; }
   }
+  /* =================================================================
+     「ゆらゆら」— 灯りのゆらぎと霧の流れ
+     AI動画を使わない。CSS だけなので配信物は増えない(0バイト)。
+     動かすのは transform と opacity だけに限る(合成のみで再描画が起きない)。
+     フェーズごとに速さと色を変え、夜は重く、昼は静か、投票は落ち着かない。
+     ================================================================= */
+  .sway-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    /* 端で切れて見えないよう、内側だけに効かせる */
+    -webkit-mask-image: radial-gradient(ellipse at 50% 35%, #000 55%, transparent 100%);
+    mask-image: radial-gradient(ellipse at 50% 35%, #000 55%, transparent 100%);
+  }
+  .sway-mist {
+    position: absolute;
+    width: 150%;
+    height: 60%;
+    left: -25%;
+    border-radius: 50%;
+    filter: blur(28px);
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  .sway-mist--a {
+    top: 6%;
+    background: radial-gradient(ellipse at 50% 50%, var(--sway-tint, rgba(159,180,206,0.16)) 0%, transparent 70%);
+    animation: swayDriftA 41s ease-in-out infinite;
+  }
+  .sway-mist--b {
+    bottom: 2%;
+    background: radial-gradient(ellipse at 50% 50%, var(--sway-tint, rgba(159,180,206,0.12)) 0%, transparent 70%);
+    animation: swayDriftB 67s ease-in-out infinite;
+  }
+  /* 灯りのゆらぎ。息をするような不等間隔にして、点滅に見えないようにする。 */
+  .sway-lamp {
+    position: absolute;
+    top: -18%;
+    left: 50%;
+    width: 78%;
+    height: 62%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 50%, var(--sway-lamp-tint, rgba(201,168,76,0.10)) 0%, transparent 68%);
+    filter: blur(16px);
+    opacity: 0.75;
+    will-change: opacity, transform;
+    animation: swayLamp 13s ease-in-out infinite;
+  }
+  @keyframes swayDriftA {
+    0%   { transform: translate3d(-6%, 0, 0) scale(1);    opacity: 0.35; }
+    28%  { transform: translate3d(3%, -2%, 0) scale(1.08); opacity: 0.7; }
+    61%  { transform: translate3d(7%, 1%, 0) scale(1.02);  opacity: 0.45; }
+    100% { transform: translate3d(-6%, 0, 0) scale(1);    opacity: 0.35; }
+  }
+  @keyframes swayDriftB {
+    0%   { transform: translate3d(5%, 1%, 0) scale(1.05); opacity: 0.28; }
+    37%  { transform: translate3d(-4%, -1%, 0) scale(1);  opacity: 0.55; }
+    72%  { transform: translate3d(-8%, 2%, 0) scale(1.1); opacity: 0.34; }
+    100% { transform: translate3d(5%, 1%, 0) scale(1.05); opacity: 0.28; }
+  }
+  @keyframes swayLamp {
+    0%   { opacity: 0.62; transform: translateX(-50%) scale(1); }
+    17%  { opacity: 0.9;  transform: translateX(-50%) scale(1.04); }
+    31%  { opacity: 0.7;  transform: translateX(-50%) scale(1.01); }
+    52%  { opacity: 1;    transform: translateX(-50%) scale(1.06); }
+    69%  { opacity: 0.74; transform: translateX(-50%) scale(1.02); }
+    100% { opacity: 0.62; transform: translateX(-50%) scale(1); }
+  }
+  /* フェーズごとの性格。夜は青く遅く、昼は静か、投票は速く落ち着かない。 */
+  body[data-phase="night"] .sway-layer { --sway-tint: rgba(120,150,190,0.20); --sway-lamp-tint: rgba(159,180,206,0.13); }
+  body[data-phase="night"] .sway-lamp { animation-duration: 19s; }
+  body[data-phase="day"] .sway-layer,
+  body[data-phase="dawn"] .sway-layer { --sway-tint: rgba(201,168,76,0.10); --sway-lamp-tint: rgba(201,168,76,0.10); }
+  body[data-phase="vote"] .sway-layer,
+  body[data-phase="verdict"] .sway-layer { --sway-tint: rgba(194,91,91,0.12); --sway-lamp-tint: rgba(201,168,76,0.12); }
+  body[data-phase="vote"] .sway-lamp,
+  body[data-phase="verdict"] .sway-lamp { animation-duration: 7s; }
+  body[data-phase="finished"] .sway-lamp { animation-duration: 24s; }
+
+  /* 札のゆらぎ。役職確認とカード全画面で、札そのものが呼吸する。
+     動かすのは「枠」であって中の .card-wrapper ではない —
+     wrapper の transform は fitCardToSlot が拡大率を入れる場所なので、
+     ここでアニメーションを当てると札の大きさが壊れる。 */
+  #roleCardSlot,
+  #cardFullscreenSlot {
+    animation: swayCard 9s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes swayCard {
+    0%   { transform: translateY(0) rotate(0deg); }
+    33%  { transform: translateY(-4px) rotate(-0.45deg); }
+    66%  { transform: translateY(2px) rotate(0.35deg); }
+    100% { transform: translateY(0) rotate(0deg); }
+  }
+
+  /* 動きを減らす設定では、すべて止めて静かな1枚絵にする。 */
+  @media (prefers-reduced-motion: reduce) {
+    .sway-mist, .sway-lamp,
+    #roleCardSlot,
+    #cardFullscreenSlot {
+      animation: none;
+    }
+    .sway-mist { opacity: 0.4; }
+  }
+
+  /* =================================================================
+     生存者ストリップ — 卓の進行中ずっと出る「誰が生きているか」
+     ================================================================= */
+  .alive-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin: 6px 0 2px;
+    padding: 7px 10px;
+    border: 1px solid rgba(237, 233, 220, 0.16);
+    border-radius: 10px;
+    background: rgba(12, 10, 9, 0.55);
+    color: rgba(237, 233, 220, 0.9);
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 44px;
+  }
+  .alive-strip:hover { border-color: rgba(201, 168, 76, 0.45); }
+  .alive-strip:focus-visible {
+    outline: 3px solid var(--sem-accent, #9FB4CE);
+    outline-offset: 2px;
+  }
+  .alive-strip-count {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--p-gold-hi, #E0C87E);
+    white-space: nowrap;
+  }
+  .alive-strip-list {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .alive-strip-list::-webkit-scrollbar { display: none; }
+  .alive-chip {
+    flex: none;
+    font-size: 12px;
+    line-height: 1;
+    padding: 5px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(237, 233, 220, 0.2);
+    background: rgba(237, 233, 220, 0.06);
+    white-space: nowrap;
+    max-width: 8em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .alive-chip.is-me {
+    border-color: rgba(201, 168, 76, 0.6);
+    color: var(--p-gold-hi, #E0C87E);
+  }
+  /* 死亡は「薄くする」だけでは伝わらない。取り消し線と✕で明示する。 */
+  .alive-chip.is-dead {
+    opacity: 0.5;
+    text-decoration: line-through;
+    text-decoration-thickness: 1.5px;
+    border-style: dashed;
+  }
+  .alive-strip-more {
+    flex: none;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: rgba(237, 233, 220, 0.55);
+    border-left: 1px solid rgba(237, 233, 220, 0.15);
+    padding-left: 8px;
+  }
+
+  /* =================================================================
+     この卓の記録タブ
+     ================================================================= */
+  .table-empty { margin: 0; font-size: 13px; color: var(--sem-text-dim); }
+  .table-comp-row,
+  .table-roster-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px dashed rgba(237, 233, 220, 0.12);
+    font-size: 14px;
+  }
+  .table-comp-row:last-child,
+  .table-roster-row:last-child { border-bottom: none; }
+  .table-comp-name { flex: 1; min-width: 0; }
+  .table-comp-count {
+    flex: none;
+    font-family: var(--font-mono);
+    color: var(--p-gold-hi, #E0C87E);
+  }
+  .table-roster-state { flex: none; font-size: 12px; }
+  .table-roster-row.is-dead .table-comp-name {
+    opacity: 0.55;
+    text-decoration: line-through;
+  }
+  .table-roster-row.is-dead .table-roster-state { color: #C97B7B; }
+  .table-history-round {
+    font-family: var(--font-eyebrow);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--sem-accent);
+    margin: 10px 0 4px;
+  }
+  .table-history-round:first-child { margin-top: 0; }
+  .table-history-line {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--sem-text);
+    padding-left: 12px;
+    border-left: 2px solid rgba(237, 233, 220, 0.15);
+  }
+
+  /* =================================================================
+     はじめての人へ
+     ================================================================= */
+  .howto {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+    background: rgba(6, 5, 8, 0.92);
+    backdrop-filter: blur(3px);
+  }
+  .howto[hidden] { display: none; }
+  .howto-inner {
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 460px);
+    max-height: 100%;
+    padding: 14px 18px 16px;
+    border: 1px solid rgba(201, 168, 76, 0.35);
+    border-radius: 18px;
+    background: var(--sem-bg-elevated, #151113);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.6);
+  }
+  .howto-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: none;
+  }
+  .howto-step-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--sem-text-dim);
+  }
+  .howto-stage { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .howto-panel { display: none; }
+  .howto-panel.is-active { display: block; }
+  .howto-icon { font-size: 34px; line-height: 1; margin: 4px 0 8px; }
+  .howto-title {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    line-height: 1.45;
+    font-weight: 800;
+    color: var(--sem-text);
+    margin: 0 0 12px;
+  }
+  .howto-body {
+    font-size: 15px;
+    line-height: 1.75;
+    color: rgba(237, 233, 220, 0.86);
+    margin: 0 0 12px;
+  }
+  .howto-body strong, .howto-body b { color: var(--p-gold-hi, #E0C87E); font-weight: 700; }
+  .howto-note {
+    font-size: 13.5px;
+    color: var(--sem-text-dim);
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .howto-flow { margin: 0 0 12px; padding-left: 20px; }
+  .howto-flow li {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: rgba(237, 233, 220, 0.86);
+    margin-bottom: 9px;
+  }
+  .howto-flow b { color: var(--p-gold-hi, #E0C87E); }
+  .howto-win { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .howto-win-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(237, 233, 220, 0.88);
+  }
+  .howto-win-row b { color: var(--p-gold-hi, #E0C87E); }
+  .howto-dots { display: flex; justify-content: center; gap: 7px; padding: 12px 0 10px; flex: none; }
+  .howto-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: rgba(237, 233, 220, 0.25);
+    transition: background var(--t-micro), transform var(--t-micro);
+  }
+  .howto-dot.is-active { background: var(--p-gold-hi, #E0C87E); transform: scale(1.35); }
+  .howto-actions { display: flex; gap: 10px; flex: none; }
+  .howto-actions .btn { flex: 1; }
+  .howto-actions .btn[hidden] { display: none; }
+
+  /* 卓が先に進んだことを、間の画面(夜/朝/評決)の上で知らせる */
+  .catchup-hint {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    font-size: 12.5px;
+    text-align: center;
+    color: var(--p-gold-hi, #E0C87E);
+  }
+
   @media (max-height: 700px) {
     .screen { gap: var(--sp-2); }
+    .howto-title { font-size: 19px; margin-bottom: 8px; }
+    .howto-body, .howto-flow li { font-size: 14px; line-height: 1.6; }
+    .howto-icon { font-size: 26px; }
     .card-slot--hero { max-width: 164px; }
     .role-picker { max-height: 44dvh; }
     .opt-card { padding: 12px 18px; gap: 7px; }
     .opt-cards { gap: 8px; }
     .opt-card-title { font-size: 20px; }
     .opt-card-desc { font-size: 13px; line-height: 1.5; }
-    .chat-log { max-height: 18dvh; min-height: 96px; }
-    .council-timer { font-size: 34px; }
+    .chat-log { max-height: 16dvh; min-height: 72px; }
+    .council-timer { font-size: 34px; margin-top: 4px; }
+    /* 640pt 級では主要ボタンが数十px はみ出していた。一覧をさらに詰める。 */
+    #s07 .role-picker { max-height: 48dvh; }
+    #voteTargetList { max-height: 34dvh; }
+    #rosterGrid { max-height: 38dvh; }
+    .night-grid { max-height: 32dvh; }
+    .council-prev { max-height: 11dvh; }
+    .role-secret-info { margin-top: 4px; }
+    #s09PrivacyNote { display: none; }
+    /* 640pt では議論画面が 16px ほど溢れる。時計まわりの余白から返す。 */
+    #s14 .council { padding-top: 0; }
+    #s14 .chat { margin-top: 6px; }
+    #s14 .council-prev { margin-top: 6px; }
+    #s14 .center-note { display: none; }
   }
 </style>
 </head>
@@ -1871,19 +2354,31 @@
   <!-- 中央 モバイルアプリシェル -->
   <div class="app-shell">
     <div class="phase-backdrop"></div>
+    <!-- 「ゆらゆら」— 灯りのゆらぎと霧の流れ。動画ではなく CSS のみで作るので
+         配信物は 1バイトも増えない。transform/opacity だけを動かす。 -->
+    <div class="sway-layer" aria-hidden="true">
+      <span class="sway-mist sway-mist--a"></span>
+      <span class="sway-mist sway-mist--b"></span>
+      <span class="sway-lamp"></span>
+    </div>
     <div class="texture-overlay"></div>
 
     <div class="dev-hotspot" id="devHotspot" aria-label="開発者メニュー"></div>
 
     <div class="safe-frame">
 
+    <!-- トップバー: 常時は「音・ルール(・進める)」の3つまで。
+         映像/制作はタイトルと設定画面でしか意味がないので、そこだけに出す
+         (updateTopBarForScreen)。5つ並べていた頃は 393pt 幅で文字が潰れていた。 -->
     <div class="top-bar">
       <span class="top-bar-title">月下ノ影</span>
       <div class="top-bar-actions">
-        <button type="button" class="top-bar-link" id="opReplayBtn" onclick="playOpeningAnimation()">映像</button>
-        <button type="button" class="top-bar-link" onclick="openMakingModal()">制作</button>
-        <button type="button" class="top-bar-link" id="soundToggleBtn" onclick="toggleSound()" aria-pressed="false" aria-label="環境音の切り替え(現在オフ)" style="opacity:0.55;white-space:nowrap;min-width:44px;min-height:44px;">♪</button>
-        <button type="button" class="top-bar-link u-hidden" id="hostAdvanceBtn" onclick="handleHostManualAdvance()">進める</button>
+        <button type="button" class="top-bar-link top-bar-link--intro" id="opReplayBtn" onclick="playOpeningAnimation()">映像</button>
+        <button type="button" class="top-bar-link top-bar-link--intro" id="makingBtn" onclick="openMakingModal()">制作</button>
+        <button type="button" class="top-bar-link top-bar-link--sound" id="soundToggleBtn" onclick="toggleSound()" aria-pressed="false" aria-label="音を鳴らす（現在オフ）">
+          <span class="sound-glyph" aria-hidden="true">♪</span><span class="sound-state" aria-hidden="true">オフ</span>
+        </button>
+        <button type="button" class="top-bar-link top-bar-link--advance u-hidden" id="hostAdvanceBtn" onclick="handleHostManualAdvance()">進める</button>
         <button type="button" class="top-bar-link top-bar-link--rules" id="rulesBtn">ルール</button>
       </div>
     </div>
@@ -1901,6 +2396,16 @@
       </div>
     </div>
 
+    <!-- 生存者ストリップ — 卓が始まっている間ずっと出す。
+         「いま誰が生きているのか」が画面のどこにも無く、進行を追えなかった。
+         押すと「この卓」の記録（構成・生死・出来事）が開く。 -->
+    <button type="button" class="alive-strip u-hidden" id="aliveStrip"
+            aria-label="生存者の一覧。押すとこの卓の記録を開きます">
+      <span class="alive-strip-count" id="aliveStripCount">—</span>
+      <span class="alive-strip-list" id="aliveStripList"></span>
+      <span class="alive-strip-more" aria-hidden="true">記録</span>
+    </button>
+
     <div class="screens" id="screens">
 
       <!-- s01: 起動 -->
@@ -1914,7 +2419,8 @@
         </div>
         <div class="stack" style="width:100%;">
           <button type="button" class="btn btn--primary" onclick="showScreen('s02')">はじめる</button>
-          <button type="button" class="btn btn--secondary" onclick="openMakingModal()" style="margin-top: 8px;">🎨 メイキング / カードギャラリー</button>
+          <button type="button" class="btn btn--secondary" data-open-howto style="margin-top: 8px;">はじめての人へ（遊び方）</button>
+          <button type="button" class="btn btn--quiet" onclick="openMakingModal()" style="margin-top: 6px;">🎨 メイキング / カードギャラリー</button>
           <div class="app-version">REC. 0.4.1</div>
         </div>
       </section>
@@ -1963,6 +2469,8 @@
         <div class="stack" id="s03Footer">
           <div id="s03CountLine"></div>
           <button type="button" class="btn btn--primary" onclick="handleS03Next()">次へ</button>
+          <!-- QRから来た初見の人の入口。ここが「人狼を知らない人」の最初の接点。 -->
+          <button type="button" class="btn btn--quiet" data-open-howto style="margin-top:6px;">人狼がはじめての方へ</button>
         </div>
       </section>
 
@@ -2033,18 +2541,23 @@
         <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="showScreen('s07')">この記録者で開く</button>
       </section>
 
-      <!-- s07: 役職構成 -->
-      <section class="screen" id="s07">
-        <h2 class="screen-title">役職構成</h2>
-        <p class="screen-sub">配る役職を選びます。絵札を押すと大きく見られます。</p>
-        <div class="composition-total" id="compositionTotal"></div>
+      <!-- s07: 役職構成
+           札を見せる画面なのに、見出し・説明・合計・プリセットで縦の3分の1以上を
+           使ってしまい、札が1行半しか見えていなかった。見出しと合計を1行にまとめ、
+           プリセットを小さくして、残りを全部 role-picker に渡す。 -->
+      <section class="screen screen--dense" id="s07">
+        <div class="comp-head">
+          <h2 class="screen-title">役職構成</h2>
+          <div class="composition-total" id="compositionTotal"></div>
+        </div>
+        <p class="screen-sub comp-sub">押して増やす。絵札そのものを押すと大きく見られます。</p>
         <p class="screen-sub" id="compositionWarning" style="display:none;color:#C97B7B;" role="alert" aria-live="polite"></p>
         <div class="comp-presets">
-          <button type="button" class="btn btn--secondary" id="compPresetRecommended">おすすめの構成</button>
+          <button type="button" class="btn btn--secondary" id="compPresetRecommended">おすすめ</button>
           <button type="button" class="btn btn--secondary" id="compPresetClear">すべて外す</button>
         </div>
         <div class="role-picker" id="rolePicker"></div>
-        <button type="button" class="btn btn--primary" style="margin-top:var(--sp-3);" onclick="handleS07Next()">配役を確定する</button>
+        <button type="button" class="btn btn--primary" onclick="handleS07Next()">配役を確定する</button>
       </section>
 
       <!-- s08: 配役通知 -->
@@ -2090,8 +2603,8 @@
           <p class="reveal-line">記録網が、卓の灯を落とします。
 まもなく夜の行動が始まります。</p>
         </div>
-        <p class="center-note">記録者の合図で、自動で進みます。</p>
-        <button type="button" class="btn btn--secondary" onclick="handleInterstitialSkip('s11')">夜の行動へ</button>
+        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="handleInterstitialSkip('s11')">夜の行動へ</button>
+        <span class="catchup-hint u-hidden">卓はもう先へ進んでいます。押すと追いつきます。</span>
       </section>
 
       <!-- s11: 夜の行動 -->
@@ -2123,7 +2636,9 @@
           <div class="reveal-result" id="eliminatedName">—</div>
           <p class="reveal-line">村は静まり返っている。誰の仕業か、まだ分からない。</p>
         </div>
-        <button type="button" class="btn btn--primary" onclick="handleInterstitialSkip('s14')">議論へ</button>
+        <p class="center-note">読み終えたら、自分で進めてください。</p>
+        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="handleInterstitialSkip('s14')">読んだ ／ 議論へ</button>
+        <span class="catchup-hint u-hidden">卓はもう先へ進んでいます。押すと追いつきます。</span>
       </section>
 
       <!-- s14: 昼の議論 -->
@@ -2140,9 +2655,11 @@
           </div>
           <div class="chat" id="chatPanel">
             <div class="chat-log" id="chatLog" aria-live="polite" aria-label="議論ログ"></div>
+            <div class="chat-suspect-picker u-hidden" id="chatSuspectPicker"></div>
             <div class="chat-quick">
-              <button type="button" class="chat-chip" onclick="handleChatQuick('suspect')">怪しい</button>
+              <button type="button" class="chat-chip" onclick="handleChatQuick('suspect')">◯◯が怪しい…</button>
               <button type="button" class="chat-chip" onclick="handleChatQuick('agree')">賛成</button>
+              <button type="button" class="chat-chip" onclick="handleChatQuick('hold')">保留</button>
             </div>
             <form class="chat-input-bar" id="chatForm" onsubmit="return handleChatSend(event)">
               <input type="text" class="chat-input" id="chatInput" maxlength="120"
@@ -2188,7 +2705,8 @@
           </div>
           <p class="reveal-line">この 2 人のみで、決選投票を行います。</p>
         </div>
-        <button type="button" class="btn btn--primary" onclick="handleInterstitialSkip('s15')">決選投票へ</button>
+        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="handleInterstitialSkip('s15')">読んだ ／ 次へ</button>
+        <span class="catchup-hint u-hidden">卓はもう先へ進んでいます。押すと追いつきます。</span>
       </section>
 
       <!-- s17: 評決・処刑 -->
@@ -2203,7 +2721,9 @@
           </div>
           <p class="reveal-line">卓は静かに頷いた。真偽は、まだ誰にも分からない。</p>
         </div>
-        <button type="button" class="btn btn--primary" onclick="showScreen('s18')">結果を見る</button>
+        <p class="center-note">読み終えたら、自分で進めてください。</p>
+        <button type="button" class="btn btn--primary" style="margin-top:auto;" onclick="handleInterstitialSkip('s18')">読んだ ／ 次へ</button>
+        <span class="catchup-hint u-hidden">卓はもう先へ進んでいます。押すと追いつきます。</span>
       </section>
 
       <!-- s18: ゲーム終了・全役職開示 -->
@@ -2282,16 +2802,98 @@
   <p class="card-fullscreen-hint">タップで閉じる</p>
 </div>
 
+<!-- はじめての人へ — QRを読んで入ってきた人が最初に当たる説明。
+     ここが無かったので「アプリは開けたが何をする遊びなのか分からない」まま
+     夜が始まっていた。合言葉を入れる前に一度だけ自動で開き、以後は
+     ルール画面と参加画面からいつでも開き直せる。 -->
+<div class="howto" id="howtoOverlay" role="dialog" aria-modal="true" aria-labelledby="howtoTitle" hidden>
+  <div class="howto-inner">
+    <div class="howto-head">
+      <span class="howto-step-label" id="howtoStepLabel">1 / 4</span>
+      <button type="button" class="btn btn--quiet overlay-close" id="howtoCloseBtn" aria-label="閉じる" title="閉じる">✕</button>
+    </div>
+
+    <div class="howto-stage">
+      <section class="howto-panel is-active" data-step="1">
+        <div class="howto-icon" aria-hidden="true">🌙</div>
+        <h2 class="howto-title" id="howtoTitle">これは、うそを見抜く会話ゲーム</h2>
+        <p class="howto-body">
+          参加者の中に、こっそり<strong>人狼</strong>が混ざっています。<br>
+          誰が人狼かは、本人たちにしか分かりません。
+        </p>
+        <p class="howto-body">
+          <strong>市民チーム</strong>は話し合って人狼を見つけ出し、<br>
+          <strong>人狼チーム</strong>は正体を隠したまま生き延びます。
+        </p>
+      </section>
+
+      <section class="howto-panel" data-step="2">
+        <div class="howto-icon" aria-hidden="true">🎴</div>
+        <h2 class="howto-title">あなたにも、役職が1枚配られます</h2>
+        <p class="howto-body">
+          始まると、あなたの端末にだけ役職が表示されます。<br>
+          <strong>この画面を、ほかの人に見せないでください。</strong>
+        </p>
+        <p class="howto-body howto-note">
+          役職カードは伏せてあります。<b>長押ししている間だけ</b>開くので、
+          手を離せばすぐ隠れます。
+        </p>
+      </section>
+
+      <section class="howto-panel" data-step="3">
+        <div class="howto-icon" aria-hidden="true">🔁</div>
+        <h2 class="howto-title">夜 → 朝 → 話し合い → 投票</h2>
+        <ol class="howto-flow">
+          <li><b>夜</b>　特別な力を持つ人だけが、静かに相手を選びます。<br>力の無い人も画面を操作します（誰が能力者か分からなくするため）。</li>
+          <li><b>朝</b>　夜のあいだに何が起きたかが知らされます。</li>
+          <li><b>話し合い</b>　誰が怪しいかを、みんなで話します。</li>
+          <li><b>投票</b>　いちばん怪しい人を1人選びます。最多票の人が追放されます。</li>
+        </ol>
+        <p class="howto-body howto-note">これを、決着がつくまでくり返します。</p>
+      </section>
+
+      <section class="howto-panel" data-step="4">
+        <div class="howto-icon" aria-hidden="true">🏁</div>
+        <h2 class="howto-title">どうなったら勝ち？</h2>
+        <div class="howto-win">
+          <div class="howto-win-row">
+            <span class="role-card-badge faction-citizen">市民チーム</span>
+            <span>人狼を<b>全員</b>追放できたら勝ち</span>
+          </div>
+          <div class="howto-win-row">
+            <span class="role-card-badge faction-werewolf">人狼チーム</span>
+            <span>人狼の数が<b>市民と同じ数</b>になったら勝ち</span>
+          </div>
+          <div class="howto-win-row">
+            <span class="role-card-badge faction-third">第三陣営</span>
+            <span>決着したとき<b>自分が生き残っていれば</b>勝ち</span>
+          </div>
+        </div>
+        <p class="howto-body howto-note">
+          迷ったら、画面の上の<b>「ルール」</b>をいつでも開けます。
+        </p>
+      </section>
+    </div>
+
+    <div class="howto-dots" id="howtoDots" aria-hidden="true"></div>
+    <div class="howto-actions">
+      <button type="button" class="btn btn--secondary" id="howtoPrevBtn">戻る</button>
+      <button type="button" class="btn btn--primary" id="howtoNextBtn">次へ</button>
+    </div>
+  </div>
+</div>
+
 <div class="rules-drawer" id="rulesDrawer">
   <div class="rules-drawer-header">
     <h2 class="screen-title" style="color:var(--sem-accent);margin:0;font-size:18px;">📜 ルール & 役職ガイド</h2>
     <button type="button" class="btn btn--quiet overlay-close" id="rulesCloseBtn" aria-label="閉じる" title="閉じる">✕</button>
   </div>
 
-  <div class="rules-tab-nav">
-    <button type="button" class="rules-tab-btn is-active" data-tab="rules">進行・ルール</button>
-    <button type="button" class="rules-tab-btn" data-tab="myrole">自分の役職</button>
-    <button type="button" class="rules-tab-btn" data-tab="roles">役職図鑑</button>
+  <div class="rules-tab-nav" role="tablist" aria-label="ルールと卓の情報">
+    <button type="button" role="tab" aria-selected="true" aria-controls="rulesTabPanelRules" class="rules-tab-btn is-active" data-tab="rules">進行</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="rulesTabPanelTable" class="rules-tab-btn" data-tab="table">この卓</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="rulesTabPanelMyrole" class="rules-tab-btn" data-tab="myrole">自分</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="rulesTabPanelRoles" class="rules-tab-btn" data-tab="roles">図鑑</button>
   </div>
 
   <!-- Tab 1: 進行・ルール -->
@@ -2302,6 +2904,10 @@
         ゲームの進行状況に合わせてガイドが表示されます。
       </div>
     </div>
+
+    <button type="button" class="btn btn--secondary" data-open-howto style="width:100%;margin-bottom:var(--sp-3);">
+      はじめての人へ（4枚で分かる遊び方）
+    </button>
 
     <div class="rules-section-title">🌙 1. 夜の行動 (能力行使)</div>
     <div class="rules-card-box">
@@ -2357,7 +2963,27 @@
     <button type="button" class="btn btn--secondary" style="width:100%;" onclick="handleBackToTitle(true)">タイトルに戻る（ゲームを離れる）</button>
   </div>
 
-  <!-- Tab 2: 自分の役職 -->
+  <!-- Tab 2: この卓 — 役職構成 / 生死 / 出来事の記録。
+       物理の人狼で卓の真ん中に置かれる情報にあたる。ここが無かったので
+       「何の役職が入っているのか」「誰が死んだのか」を誰も追えなかった。 -->
+  <div class="rules-tab-panel" id="rulesTabPanelTable">
+    <div class="rules-section-title">🎴 この卓に入っている役職</div>
+    <div class="rules-card-box" id="tableCompositionBox">
+      <p class="table-empty">卓が始まると、配られた役職の内訳がここに出ます。</p>
+    </div>
+
+    <div class="rules-section-title">👥 参加者と生死</div>
+    <div class="rules-card-box" id="tableRosterBox">
+      <p class="table-empty">まだ誰も着席していません。</p>
+    </div>
+
+    <div class="rules-section-title">📖 出来事の記録</div>
+    <div class="rules-card-box" id="tableHistoryBox">
+      <p class="table-empty">最初の夜が明けると、ここに記録が残ります。</p>
+    </div>
+  </div>
+
+  <!-- Tab 3: 自分の役職 -->
   <div class="rules-tab-panel" id="rulesTabPanelMyrole">
     <div class="myrole-card-container" id="myroleContainer">
       <div class="myrole-cover hold-to-reveal" id="myroleCoverArea">
@@ -2856,6 +3482,10 @@
         latestPublic = pub;
         updateHostAdvanceButton();
         syncLiveScreen();
+        // 生死・構成・出来事は公開状態が変わるたびに描き直す。
+        // 間の画面(夜/朝/評決)で止まっている人にも、卓が先へ進んだことが伝わる。
+        renderTableLedger();
+        updateCatchupHints();
         hostDriverTick();
       });
     });
@@ -3056,20 +3686,34 @@
   let liveMorningShownForRound = -1;
   let liveInterstitialActive = false;
   let liveInterstitialTimer = null;
+  let liveInterstitialPhase = null;
 
-  function scheduleInterstitial(ms) {
+  /* 夜の訪れ・朝の記録・評決の3画面は、かつて 1.6〜2.4秒で勝手に次へ流れていた。
+     読み終える前に消えるので「誰が死んだのか分からないまま議論が始まる」状態だった。
+     いまは自動では進めず、本人が押すまで待つ。卓の進行はサーバー側で進み続けるので、
+     待っている間に卓が先へ行ったら、その場でそれを知らせる(updateCatchupHints)。 */
+  function scheduleInterstitial() {
     liveInterstitialActive = true;
+    liveInterstitialPhase = latestPublic ? latestPublic.phase : null;
     clearTimeout(liveInterstitialTimer);
-    liveInterstitialTimer = setTimeout(function () {
-      liveInterstitialActive = false;
-      syncLiveScreen();
-    }, ms);
+    liveInterstitialTimer = null;
+    updateCatchupHints();
+  }
+
+  /** 「間の画面」で待っている人に、卓が先へ進んだことを知らせる。 */
+  function updateCatchupHints() {
+    const moved = MODE === 'live' && liveInterstitialActive && !!latestPublic &&
+      latestPublic.phase !== liveInterstitialPhase;
+    document.querySelectorAll('.catchup-hint').forEach(function (el) {
+      el.classList.toggle('u-hidden', !moved);
+    });
   }
 
   window.handleInterstitialSkip = function (demoTarget) {
     if (MODE !== 'live') { showScreen(demoTarget); return; }
     clearTimeout(liveInterstitialTimer);
     liveInterstitialActive = false;
+    updateCatchupHints();
     syncLiveScreen();
   };
 
@@ -3110,7 +3754,7 @@
       if (enteringNight) {
         liveMorningShownForRound = -1;
         showScreen('s10');
-        scheduleInterstitial(1600);
+        scheduleInterstitial();
         return;
       }
       enterNightActionScreen();
@@ -3123,13 +3767,13 @@
           return p.death && p.death.round === pub.round && p.death.cause === 'execution';
         });
         showScreen(executed ? 's17' : 's16');
-        scheduleInterstitial(1600);
+        scheduleInterstitial();
         return;
       }
       if (liveMorningShownForRound !== pub.round) {
         liveMorningShownForRound = pub.round;
         showScreen('s13');
-        scheduleInterstitial(2400);
+        scheduleInterstitial();
         return;
       }
       if (appState.screen !== 's14') showScreen('s14');
@@ -3405,11 +4049,29 @@
     const btn = document.getElementById('soundToggleBtn');
     if (!btn) return;
     const on = !!(window.gekkaSound && !window.gekkaSound.isMuted());
-    // アイコンのみ表示(トップバーの幅節約)。状態は不透明度と aria で伝える
-    btn.textContent = '♪';
-    btn.style.opacity = on ? '1' : '0.55';
+    const glyph = btn.querySelector('.sound-glyph');
+    const state = btn.querySelector('.sound-state');
+    if (glyph) glyph.textContent = on ? '♪' : '♪̸';
+    if (state) state.textContent = on ? 'オン' : 'オフ';
+    btn.style.opacity = '';
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    btn.setAttribute('aria-label', on ? '環境音の切り替え(現在オン)' : '環境音の切り替え(現在オフ)');
+    btn.setAttribute('aria-label', on ? '音を止める（現在オン）' : '音を鳴らす（現在オフ）');
+  }
+
+  /* トップバーは画面ごとに出すものを変える。
+     映像/制作はタイトルと部屋選びでだけ意味を持ち、卓が始まったあとは
+     ルール・音・進行だけに絞る(狭い端末で文字が潰れる原因でもあった)。 */
+  const INTRO_SCREENS = ['s01', 's02', 's02b'];
+  /* 生存者ストリップと「この卓」の記録を出す画面 = 卓が動いている間。 */
+  const LEDGER_SCREENS = ['s10', 's11', 's12', 's13', 's14', 's15', 's16', 's17', 's18'];
+  function updateTopBarForScreen(id) {
+    const showIntro = INTRO_SCREENS.indexOf(id) !== -1;
+    document.querySelectorAll('.top-bar-link--intro').forEach(function (el) {
+      el.classList.toggle('u-hidden', !showIntro);
+    });
+    // タイトルではルールより「はじめる」を読んでほしいので、金枠を外して静かにする。
+    const rules = document.getElementById('rulesBtn');
+    if (rules) rules.classList.toggle('top-bar-link--rules', id !== 's01');
   }
 
   /* ===================================================================
@@ -3669,7 +4331,9 @@
       sections[i].classList.toggle('is-active', sections[i].id === id);
     }
     updatePhaseHeader(id);
+    updateTopBarForScreen(id);
     onScreenEnter(id);
+    renderAliveStrip();
     // 画面が変わったらフォーカスを新しい画面へ移す。display:none で祖先ごと
     // 消えるためフォーカスが <body> に落ち、毎回 Tab のやり直しになっていた。
     // オーバーレイが開いている間は奪わない。
@@ -3900,7 +4564,12 @@
       if (overlay) overlay.classList.add('hidden');
       appState.view = 'player';
       pendingJoinCode = prefillJoinCode;
-      setTimeout(function () { showScreen('s03'); }, 60);
+      setTimeout(function () {
+        showScreen('s03');
+        // QRを読んで来た人は、たいてい人狼そのものを知らない。
+        // 合言葉を入れる前に一度だけ遊び方を出す(2回目以降は出さない)。
+        maybeAutoOpenHowto();
+      }, 60);
       return;
     }
     if (!sessionStorage.getItem('hasPlayedOpening')) {
@@ -4855,6 +5524,14 @@
     const log = document.getElementById('chatLog');
     if (!log) return;
     log.innerHTML = '';
+    // 発言が無いと、ここが大きな空白になり「壊れている」ように見えていた。
+    if (!chatMessages.length) {
+      const empty = document.createElement('p');
+      empty.className = 'chat-empty';
+      empty.textContent = 'まだ発言はありません。下の「怪しい」「賛成」か、自由入力でどうぞ。';
+      log.appendChild(empty);
+      return;
+    }
     for (const m of chatMessages) {
       const b = document.createElement('div');
       b.className = 'chat-bubble ' + (m.kind === 'human' ? 'chat-bubble--human' : 'chat-bubble--ai');
@@ -4901,14 +5578,59 @@
     getLiveClient().then(function (client) { return client.postChat(text); }).catch(function (e) { console.error(e); });
     return false;
   }
+  function postChatText(text) {
+    getLiveClient().then(function (client) { return client.postChat(text); })
+      .catch(function (e) { console.error(e); });
+  }
+
+  /* 「怪しい」は、生きている中から勝手に1人目を選んで
+     「◯◯が怪しいと思う」と送っていた。押した本人の意図と無関係な人を名指しするので、
+     何が起きたのか誰にも分からなかった。誰を指すのかは必ず本人に選ばせる。 */
+  function closeSuspectPicker() {
+    const picker = document.getElementById('chatSuspectPicker');
+    if (picker) picker.classList.add('u-hidden');
+  }
+
+  function openSuspectPicker() {
+    const picker = document.getElementById('chatSuspectPicker');
+    if (!picker) return;
+    const myUid = (window.liveClient && window.liveClient.uid) || null;
+    const targets = ledgerPlayers().filter(function (p) { return p.alive && p.id !== myUid; });
+    picker.innerHTML = '';
+    if (!targets.length) {
+      closeSuspectPicker();
+      showToast('いま名指しできる相手がいません。');
+      return;
+    }
+    const label = document.createElement('span');
+    label.className = 'chat-suspect-label';
+    label.textContent = '誰が怪しい？';
+    picker.appendChild(label);
+    targets.forEach(function (p) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chat-chip';
+      b.textContent = p.displayName || '?';
+      b.addEventListener('click', function () {
+        postChatText((p.displayName || 'あの人') + 'が怪しいと思う');
+        closeSuspectPicker();
+      });
+      picker.appendChild(b);
+    });
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'chat-chip chat-chip--quiet';
+    cancel.textContent = 'やめる';
+    cancel.addEventListener('click', closeSuspectPicker);
+    picker.appendChild(cancel);
+    picker.classList.remove('u-hidden');
+  }
+
   function handleChatQuick(kind) {
-    const suspectName = (latestPublic && latestPublic.players)
-      ? (Object.values(latestPublic.players).find(function (p) { return p.alive && p.id !== (window.liveClient && window.liveClient.uid); }) || {}).displayName
-      : null;
-    const text = kind === 'suspect'
-      ? (suspectName || 'あの人') + 'が怪しいと思う'
-      : 'それに賛成';
-    getLiveClient().then(function (client) { return client.postChat(text); }).catch(function (e) { console.error(e); });
+    if (kind === 'suspect') { openSuspectPicker(); return; }
+    closeSuspectPicker();
+    if (kind === 'agree') { postChatText('いまの意見に賛成'); return; }
+    if (kind === 'hold') { postChatText('まだ判断がつかない。もう少し聞きたい'); return; }
   }
   window.handleChatSend = handleChatSend;
   window.handleChatQuick = handleChatQuick;
@@ -5109,6 +5831,261 @@
   };
 
   /* ===================================================================
+     この卓の記録 — 構成 / 生死 / 出来事
+     物理の人狼で卓の中央に置かれる情報。これが画面のどこにも無かったので
+     「何の役職が入っているのか」「誰が死んだのか」を誰も追えなかった。
+     =================================================================== */
+
+  /** 表示に使う参加者一覧。ライブなら実データ、デモなら固定配列。 */
+  function ledgerPlayers() {
+    if (MODE === 'live' && latestPublic && latestPublic.players) {
+      return Object.values(latestPublic.players).sort(function (a, b) {
+        return (a.displayName || '').localeCompare(b.displayName || '', 'ja');
+      });
+    }
+    return PLAYERS.map(function (p, i) {
+      return { id: 'demo' + i, displayName: p.name || p, alive: p.alive !== false, death: null };
+    });
+  }
+
+  function ledgerSelfId() {
+    return (latestSelf && latestSelf.id) || null;
+  }
+
+  function renderAliveStrip() {
+    const strip = document.getElementById('aliveStrip');
+    if (!strip) return;
+    // 卓が動いている画面でだけ出す。タイトルや部屋づくりでは邪魔にしかならない。
+    const inGame = LEDGER_SCREENS.indexOf(appState.screen) !== -1;
+    strip.classList.toggle('u-hidden', !inGame);
+    if (!inGame) return;
+
+    const players = ledgerPlayers();
+    const meId = ledgerSelfId();
+    const alive = players.filter(function (p) { return p.alive; }).length;
+    const countEl = document.getElementById('aliveStripCount');
+    if (countEl) countEl.textContent = '生存 ' + alive + '/' + players.length;
+
+    const list = document.getElementById('aliveStripList');
+    if (!list) return;
+    list.innerHTML = '';
+    players.forEach(function (p) {
+      const chip = document.createElement('span');
+      chip.className = 'alive-chip' + (p.alive ? '' : ' is-dead') + (p.id === meId ? ' is-me' : '');
+      chip.textContent = (p.displayName || '?') + (p.id === meId ? '（あなた）' : '');
+      list.appendChild(chip);
+    });
+    strip.setAttribute('aria-label',
+      '生存 ' + alive + '人 / 全' + players.length + '人。押すとこの卓の記録を開きます');
+  }
+
+  function renderTableComposition() {
+    const box = document.getElementById('tableCompositionBox');
+    if (!box) return;
+    const comp = (latestPublic && latestPublic.roleComposition) || null;
+    if (!comp || !comp.length) {
+      box.innerHTML = '<p class="table-empty">卓が始まると、配られた役職の内訳がここに出ます。</p>';
+      return;
+    }
+    box.innerHTML = '';
+    const byTeam = { citizen: [], werewolf: [], third: [] };
+    comp.forEach(function (entry) {
+      const card = getRole(entry.roleId);
+      const camp = normalizeCamp((card && card.camp) || entry.team);
+      byTeam[camp].push({ entry: entry, card: card, camp: camp });
+    });
+    PICKER_CAMPS.forEach(function (group) {
+      const rows = byTeam[normalizeCamp(group.camp)] || [];
+      if (!rows.length) return;
+      const total = rows.reduce(function (s, r) { return s + r.entry.count; }, 0);
+      const head = document.createElement('div');
+      head.className = 'table-history-round';
+      head.textContent = group.label + '　計 ' + total + ' 人';
+      box.appendChild(head);
+      rows.forEach(function (r) {
+        const row = document.createElement('div');
+        row.className = 'table-comp-row';
+        const dot = document.createElement('span');
+        dot.className = 'camp-dot';
+        dot.style.background = rosterFactionColor(r.camp);
+        const name = document.createElement('span');
+        name.className = 'table-comp-name';
+        name.textContent = (r.card && r.card.jp) || r.entry.roleId;
+        const count = document.createElement('span');
+        count.className = 'table-comp-count';
+        count.textContent = '× ' + r.entry.count;
+        row.appendChild(dot); row.appendChild(name); row.appendChild(count);
+        // 押せば絵札を大きく見られる。図鑑まで戻らせない。
+        if (r.card) {
+          row.style.cursor = 'pointer';
+          row.tabIndex = 0;
+          row.setAttribute('role', 'button');
+          row.setAttribute('aria-label', ((r.card && r.card.jp) || '') + 'の絵札を大きく見る');
+          const open = function () { openCardFullscreen(r.entry.roleId); };
+          row.addEventListener('click', open);
+          row.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+          });
+        }
+        box.appendChild(row);
+      });
+    });
+  }
+
+  function renderTableRoster() {
+    const box = document.getElementById('tableRosterBox');
+    if (!box) return;
+    const players = ledgerPlayers();
+    if (!players.length) {
+      box.innerHTML = '<p class="table-empty">まだ誰も着席していません。</p>';
+      return;
+    }
+    const meId = ledgerSelfId();
+    box.innerHTML = '';
+    players.forEach(function (p) {
+      const row = document.createElement('div');
+      row.className = 'table-roster-row' + (p.alive ? '' : ' is-dead');
+      const name = document.createElement('span');
+      name.className = 'table-comp-name';
+      name.textContent = (p.displayName || '?') + (p.id === meId ? '（あなた）' : '');
+      const state = document.createElement('span');
+      state.className = 'table-roster-state';
+      state.textContent = p.alive ? '生存' : ('死亡・' + DEATH_CAUSE_LABEL[(p.death && p.death.cause) || 'other']);
+      row.appendChild(name); row.appendChild(state);
+      box.appendChild(row);
+    });
+  }
+
+  const DEATH_CAUSE_LABEL = {
+    execution: '追放', night_attack: '襲撃', other: '不明'
+  };
+
+  /** 死亡記録から、ラウンドごとの出来事を組み立てる。 */
+  function renderTableHistory() {
+    const box = document.getElementById('tableHistoryBox');
+    if (!box) return;
+    const pub = latestPublic;
+    if (!pub || !pub.players) {
+      box.innerHTML = '<p class="table-empty">最初の夜が明けると、ここに記録が残ります。</p>';
+      return;
+    }
+    const byRound = {};
+    Object.values(pub.players).forEach(function (p) {
+      if (!p.death) return;
+      const r = p.death.round || 1;
+      (byRound[r] = byRound[r] || []).push(p);
+    });
+    const rounds = Object.keys(byRound).map(Number).sort(function (a, b) { return a - b; });
+    if (!rounds.length) {
+      box.innerHTML = '<p class="table-empty">まだ誰も欠けていません。</p>';
+      return;
+    }
+    box.innerHTML = '';
+    rounds.forEach(function (r) {
+      const head = document.createElement('div');
+      head.className = 'table-history-round';
+      head.textContent = r + ' 日目';
+      box.appendChild(head);
+      byRound[r].forEach(function (p) {
+        const line = document.createElement('div');
+        line.className = 'table-history-line';
+        const cause = (p.death && p.death.cause) || 'other';
+        line.textContent = cause === 'execution'
+          ? (p.displayName || '?') + ' が投票で追放された'
+          : cause === 'night_attack'
+            ? (p.displayName || '?') + ' が夜のあいだに命を落とした'
+            : (p.displayName || '?') + ' が卓を去った';
+        box.appendChild(line);
+      });
+    });
+  }
+
+  /** 卓に関する表示をまとめて更新する。公開状態が変わるたびに呼ぶ。 */
+  function renderTableLedger() {
+    renderAliveStrip();
+    renderTableComposition();
+    renderTableRoster();
+    renderTableHistory();
+  }
+
+  /** ドロワーを「この卓」タブで開く。生存者ストリップからの入口。 */
+  function openTableLedger() {
+    const drawer = document.getElementById('rulesDrawer');
+    if (!drawer) return;
+    renderTableLedger();
+    document.querySelectorAll('.rules-tab-btn').forEach(function (b) {
+      const on = b.getAttribute('data-tab') === 'table';
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    ['Rules', 'Table', 'Myrole', 'Roles'].forEach(function (key) {
+      const panel = document.getElementById('rulesTabPanel' + key);
+      if (panel) panel.classList.toggle('is-active', key === 'Table');
+    });
+    drawer.classList.add('is-open');
+    updateRulesDrawerState();
+    pushOverlay(drawer, { close: closeRulesDrawer, trigger: document.getElementById('aliveStrip') });
+  }
+
+  /* ===================================================================
+     はじめての人へ（4枚の説明）
+     =================================================================== */
+  const HOWTO_SEEN_KEY = 'gekka-howto-seen';
+  let howtoStep = 1;
+  const HOWTO_TOTAL = 4;
+
+  function renderHowtoStep() {
+    document.querySelectorAll('.howto-panel').forEach(function (el) {
+      el.classList.toggle('is-active', Number(el.dataset.step) === howtoStep);
+    });
+    const dots = document.getElementById('howtoDots');
+    if (dots) {
+      dots.innerHTML = '';
+      for (let i = 1; i <= HOWTO_TOTAL; i++) {
+        const d = document.createElement('span');
+        d.className = 'howto-dot' + (i === howtoStep ? ' is-active' : '');
+        dots.appendChild(d);
+      }
+    }
+    const label = document.getElementById('howtoStepLabel');
+    if (label) label.textContent = howtoStep + ' / ' + HOWTO_TOTAL;
+    const prev = document.getElementById('howtoPrevBtn');
+    const next = document.getElementById('howtoNextBtn');
+    if (prev) prev.hidden = howtoStep === 1;
+    if (next) next.textContent = howtoStep === HOWTO_TOTAL ? 'はじめる' : '次へ';
+    // 前後に動いたら中身の先頭から読ませる
+    const stage = document.querySelector('.howto-stage');
+    if (stage) stage.scrollTop = 0;
+  }
+
+  function openHowto(startStep) {
+    const el = document.getElementById('howtoOverlay');
+    if (!el) return;
+    howtoStep = startStep || 1;
+    renderHowtoStep();
+    el.hidden = false;
+    pushOverlay(el, { close: closeHowto });
+  }
+
+  function closeHowto() {
+    const el = document.getElementById('howtoOverlay');
+    if (!el) return;
+    el.hidden = true;
+    popOverlay(el);
+    try { localStorage.setItem(HOWTO_SEEN_KEY, '1'); } catch (e) { /* 保存できなくても進める */ }
+  }
+
+  function howtoAlreadySeen() {
+    try { return localStorage.getItem(HOWTO_SEEN_KEY) === '1'; } catch (e) { return false; }
+  }
+
+  /** QR/リンクから来た初見の人にだけ、一度だけ自動で開く。 */
+  function maybeAutoOpenHowto() {
+    if (howtoAlreadySeen()) return;
+    openHowto(1);
+  }
+
+  /* ===================================================================
      s18: 全役職公開
      =================================================================== */
   const WINNER_BANNER_BY_TEAM = {
@@ -5140,8 +6117,17 @@
     for (var i = 0; i < rolesData.length; i += 1) { if (rolesData[i].id === id) return rolesData[i]; }
     return { id: id, jp: id || '?', en: '', camp: 'citizen' };
   }
+  /* 第三陣営の呼び名がデータ間で割れている。絵札(rolesData)は 'fox'、
+     図鑑(ALL_ROLES_MASTER)と役職選びは 'third' を使う。片方しか見ていなかったため、
+     妖狐とアンドロイドが一覧で市民と同じ緑の枠で出ていた。 */
+  function normalizeCamp(camp) {
+    if (camp === 'werewolf') return 'werewolf';
+    if (camp === 'fox' || camp === 'third') return 'third';
+    return 'citizen';
+  }
   function rosterFactionColor(camp) {
-    return camp === 'werewolf' ? '#C25B5B' : (camp === 'third' ? '#6F8E86' : '#6E8B6A');
+    const c = normalizeCamp(camp);
+    return c === 'werewolf' ? '#C25B5B' : (c === 'third' ? '#B08A3D' : '#6E8B6A');
   }
   /* 一覧のセルは長辺400pxのサムネイルを使う。原画は1568×2744/3〜5MBあり、
      役職構成では24枚が同時に出るため、原画のままだと画面を開くだけで86MB落ちてくる。
@@ -5173,10 +6159,15 @@
     cell.tabIndex = 0;
     cell.setAttribute('role', 'button');
     cell.setAttribute('aria-label', (playerName || '') + 'の役職カードを全画面表示');
+    // 縦書きの役職名は長さで頭打ちになる。「カウンセラー」「人狼の子ども」は
+    // 札の高さを超えて上から切れていた(頭切れ)。文字数で段階的に詰める。
+    const markLen = (info.jp || '').length;
+    const markClass = markLen >= 7 ? ' roster-mark--xs' : (markLen >= 5 ? ' roster-mark--sm' : '');
     cell.innerHTML =
       (roleId ? '<div class="roster-bg" style="background-image:url(\'' + rosterBgSrc(roleId) + '\');"></div>' : '') +
       (roleId ? '<img class="roster-char" src="' + rosterImgSrc(roleId) + '" alt="' + (info.jp || '') + '" loading="lazy">' : '') +
-      '<div class="roster-mark">' + (info.jp || '') + '</div>' +
+      '<div class="roster-mark' + markClass + '">' + (info.jp || '') + '</div>' +
+      (dead ? '<div class="roster-dead-badge">死亡</div>' : '') +
       '<div class="roster-faction-dot" style="background:' + fc + ';"></div>' +
       '<div class="roster-plate">' +
         '<div class="roster-name"></div>' +
@@ -5360,6 +6351,7 @@
     const tabBtns = document.querySelectorAll('.rules-tab-btn');
     const tabPanels = {
       rules: document.getElementById('rulesTabPanelRules'),
+      table: document.getElementById('rulesTabPanelTable'),
       myrole: document.getElementById('rulesTabPanelMyrole'),
       roles: document.getElementById('rulesTabPanelRoles')
     };
@@ -5367,14 +6359,20 @@
     tabBtns.forEach(btn => {
       btn.addEventListener('click', function () {
         const targetTab = this.getAttribute('data-tab');
-        tabBtns.forEach(b => b.classList.remove('is-active'));
+        tabBtns.forEach(b => {
+          b.classList.remove('is-active');
+          b.setAttribute('aria-selected', 'false');
+        });
         this.classList.add('is-active');
+        this.setAttribute('aria-selected', 'true');
 
         Object.keys(tabPanels).forEach(key => {
           if (tabPanels[key]) {
             tabPanels[key].classList.toggle('is-active', key === targetTab);
           }
         });
+        // 「この卓」は開くたびに最新の生死・構成へ描き直す。
+        if (targetTab === 'table') renderTableLedger();
       });
     });
 
@@ -5755,6 +6753,28 @@
       hostDriver.lastSentType = null;
     }
   };
+  /* ------------------------------------------------------------------
+     生存者ストリップ / はじめての人へ の配線
+     ------------------------------------------------------------------ */
+  const aliveStripEl = document.getElementById('aliveStrip');
+  if (aliveStripEl) aliveStripEl.addEventListener('click', openTableLedger);
+
+  const howtoNext = document.getElementById('howtoNextBtn');
+  const howtoPrev = document.getElementById('howtoPrevBtn');
+  const howtoClose = document.getElementById('howtoCloseBtn');
+  if (howtoNext) howtoNext.addEventListener('click', function () {
+    if (howtoStep >= HOWTO_TOTAL) { closeHowto(); return; }
+    howtoStep += 1; renderHowtoStep();
+  });
+  if (howtoPrev) howtoPrev.addEventListener('click', function () {
+    if (howtoStep <= 1) return;
+    howtoStep -= 1; renderHowtoStep();
+  });
+  if (howtoClose) howtoClose.addEventListener('click', closeHowto);
+  document.querySelectorAll('[data-open-howto]').forEach(function (el) {
+    el.addEventListener('click', function () { openHowto(1); });
+  });
+
   setupCompositionPresets();
   setupLobbyAiSeat();
   updateNarrationToggleLabel();
@@ -5762,6 +6782,7 @@
   if (MODE === 'live') startLivePhaseTicker();
   // 音トグルの初期表示を localStorage の実状態に同期
   updateSoundToggleLabel();
+  updateTopBarForScreen(appState.screen);
 })();
 </script>
 

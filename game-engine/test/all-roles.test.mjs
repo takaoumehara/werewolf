@@ -247,6 +247,27 @@ test("公開ビューは夜行動を出し終えた人数を持つ", () => {
   assert.equal(toPublicView(state).pendingActionCount, 0, "夜が明けたら数え直す");
 });
 
+test("公開ビューはこの卓の役職構成を持つ(誰が何かは含まない)", () => {
+  const state = gameWithExactRoles(["prophet", "werewolf", "werewolf", "citizen"]);
+  const comp = toPublicView(state).roleComposition;
+  assert.deepEqual(comp, [
+    { roleId: "citizen", count: 1, team: "citizen" },
+    { roleId: "prophet", count: 1, team: "citizen" },
+    { roleId: "werewolf", count: 2, team: "werewolf" },
+  ], "roleId の昇順で、内訳と人数だけを公開する");
+  // 席順から配役を逆算できないこと。構成にプレイヤーIDが混ざっていない。
+  const serialized = JSON.stringify(comp);
+  for (const id of Object.keys(state.players)) {
+    assert.ok(!serialized.includes(id), `構成に ${id} が漏れている`);
+  }
+});
+
+test("役職構成は席順を入れ替えても同じになる", () => {
+  const a = toPublicView(gameWithExactRoles(["werewolf", "prophet", "citizen", "citizen"])).roleComposition;
+  const b = toPublicView(gameWithExactRoles(["citizen", "citizen", "prophet", "werewolf"])).roleComposition;
+  assert.deepEqual(a, b);
+});
+
 test("公開ビューは直前の投票結果(得票数・処刑者)を持つ", () => {
   let state = toNight(gameWithExactRoles(["citizen", "citizen", "werewolf", "citizen"]));
   state = send(state, "p1", "RESOLVE_NIGHT");
