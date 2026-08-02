@@ -1,6 +1,6 @@
 # デプロイ手順（月下ノ影 / jinro-bb5a5）
 
-最終確認: 2026-07-29 / 対象コミット `aaff02f`（main）
+最終確認: 2026-08-02 / 対象コミット `661491a`（`claude/werewolf-solo-ai-fix-zc4emn`）
 
 ## 前提の確認結果
 
@@ -11,7 +11,7 @@
 |---|---|
 | `firebase-tools` | ✅ 15.24.0 で動作確認 |
 | `functions` の依存と esbuild ビルド | ✅ `npm --prefix functions run build` が通る（`lib/index.mjs` 60.4KB） |
-| Hosting の配信物 `public/` | ✅ 127MB（画像庫を含む）。`public/index.html` は `mobile_app.html` と一致 |
+| Hosting の配信物 `public/` | ✅ 43MB（原画は除外し `thumbs/`+`cards/` を配る）。`public/index.html` は `mobile_app.html` と一致 |
 | Google API への到達 | ✅ hosting / cloudfunctions / cloudbuild / artifactregistry / oauth2 すべて到達可 |
 | **認証情報** | ❌ **無い**。`firebase login` は対話ブラウザが必要 |
 | **`*.firebaseio.com` への到達** | ❌ **組織の外向き通信ポリシーが 403 で遮断**（下記） |
@@ -145,7 +145,7 @@ firebase use              # 使用中プロジェクトを表示
 | `projects:list` に `jinro-bb5a5` が出ない | そのアカウントに権限が無い。`firebase login:add` で別アカウントを足し、`--account` で指定する |
 | `firebase logout --token <token>` を実行した | **そのアカウントの Firebase CLI の認証がすべて無効になる**（端末のログインも切れる）。`firebase login --reauth` で復帰 |
 
-初回は `public/` の 127MB がまるごと上がる。会場の回線では時間がかかる。
+初回は `public/` の 43MB がまるごと上がる（原画を除外する前は 127MB あった）。
 
 ## 既知の制約
 
