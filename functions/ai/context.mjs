@@ -24,6 +24,53 @@ function knownAllyIds(players, roleState, self) {
   return [];
 }
 
+/**
+ * 卓の発言ログから「直前の発言」を組み立てる。純関数。
+ *
+ * AIの入力に発言ログが渡っていなかったため、人間が何を書いてもAIは反応せず、
+ * 毎ラウンド同じ独り言を並べるだけだった（監査の積み残し3件目）。
+ *
+ * chat は RTDB の push オブジェクト（キー順 = 時系列）か配列。
+ * 直近 limit 件だけを渡す — 全部渡すとプロンプトが膨らみ、古い話に引きずられる。
+ */
+export function deriveChatDigest(chat, { limit = 6, aliveNames = null } = {}) {
+  const rows = (Array.isArray(chat) ? chat : Object.values(chat ?? {}))
+    .filter((m) => m && typeof m.text === "string" && m.text.trim())
+    .sort((a, b) => (a.at ?? 0) - (b.at ?? 0));
+  // 死亡者・退室者の発言はプロンプトに載せない。名前を出すと「名簿にない人物への
+  // 言及」を誘発し、validateUtterance に落ちる発話が増える。
+  const visible = aliveNames
+    ? rows.filter((m) => aliveNames.includes(m.authorName))
+    : rows;
+  const recent = visible.slice(-limit);
+  const lastHuman = [...visible].reverse().find((m) => m.kind === "human") ?? null;
+  return {
+    recentUtterances: recent.map((m) => `${m.authorName}: ${m.text}`),
+    lastHuman: lastHuman ? { name: lastHuman.authorName, text: lastHuman.text } : null,
+    lastHumanAt: lastHuman?.at ?? 0,
+  };
+}
+
+/**
+ * 全員が見ている公式記録（帳面）。誰が死んだかは公開情報なので、
+ * AIにだけ隠す理由がない。逆にこれが無いと「昨夜の犠牲者」に触れられない。
+ */
+export function deriveTableLog(authoritative, nameOf) {
+  const players = authoritative.players ?? {};
+  const alive = Object.values(players).filter((p) => p.alive).map((p) => nameOf(p.id));
+  const lines = [`生存: ${alive.join("、")}`];
+  const attack = authoritative.lastAttack;
+  if (attack?.targetId) {
+    lines.push(attack.protected
+      ? `昨夜は誰も欠けなかった`
+      : `昨夜の犠牲: ${nameOf(attack.targetId)}`);
+  }
+  const vote = authoritative.lastVote;
+  if (vote?.executedPlayerId) lines.push(`前回の処刑: ${nameOf(vote.executedPlayerId)}`);
+  else if (vote?.tied) lines.push(`前回の投票は同数で処刑なし`);
+  return lines.join(" / ");
+}
+
 export function deriveBrainInput(authoritative, aiId, seed, personality = { logic: 50, aggression: 50 }) {
   const players = authoritative.players ?? {};
   const self = players[aiId];

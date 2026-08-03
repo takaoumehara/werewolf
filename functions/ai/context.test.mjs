@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { deriveBrainInput } from "./context.mjs";
+import { deriveBrainInput, deriveChatDigest, deriveTableLog } from "./context.mjs";
 
 const authoritative = {
   players: {
@@ -81,4 +81,68 @@ test("死んだ仲間は allyIds に残らない", () => {
     players: { ...mixedTable.players, w2: { ...mixedTable.players.w2, alive: false } },
   };
   assert.deepEqual(deriveBrainInput(withDeadWolf, "w1", 1).allyIds, []);
+});
+
+/* --------------------------------------------------------------------------
+   発言ログ（ブロッカー③）。AIの入力に渡っていなかった部分。
+   -------------------------------------------------------------------------- */
+
+test("deriveChatDigest は時系列に並べ、直近だけを返す", () => {
+  const chat = {
+    b: { authorName: "凛", text: "二番目", kind: "ai", at: 20 },
+    a: { authorName: "あなた", text: "最初", kind: "human", at: 10 },
+    c: { authorName: "虎鉄", text: "三番目", kind: "ai", at: 30 },
+  };
+  const d = deriveChatDigest(chat, { limit: 2 });
+  assert.deepEqual(d.recentUtterances, ["凛: 二番目", "虎鉄: 三番目"]);
+});
+
+test("deriveChatDigest は最後の人間の発言を取り出す", () => {
+  const chat = {
+    a: { authorName: "あなた", text: "古い方", kind: "human", at: 10 },
+    b: { authorName: "あなた", text: "新しい方", kind: "human", at: 30 },
+    c: { authorName: "凛", text: "AIの発言", kind: "ai", at: 40 },
+  };
+  assert.deepEqual(deriveChatDigest(chat).lastHuman, { name: "あなた", text: "新しい方" });
+});
+
+test("deriveChatDigest は空・未定義でも落ちない", () => {
+  for (const input of [null, undefined, {}, []]) {
+    const d = deriveChatDigest(input);
+    assert.deepEqual(d.recentUtterances, []);
+    assert.equal(d.lastHuman, null);
+  }
+});
+
+test("deriveChatDigest は生存者以外の発言を落とす", () => {
+  const chat = {
+    a: { authorName: "凛", text: "死人の言葉", kind: "ai", at: 10 },
+    b: { authorName: "あなた", text: "生者の言葉", kind: "human", at: 20 },
+  };
+  const d = deriveChatDigest(chat, { aliveNames: ["あなた", "虎鉄"] });
+  assert.deepEqual(d.recentUtterances, ["あなた: 生者の言葉"]);
+});
+
+test("deriveTableLog は生存者・昨夜の犠牲・前回の処刑を1行にする", () => {
+  const auth = {
+    players: {
+      p1: { id: "p1", alive: true }, ai1: { id: "ai1", alive: true }, ai2: { id: "ai2", alive: false },
+    },
+    lastAttack: { targetId: "ai2", protected: false },
+    lastVote: { executedPlayerId: "ai3" },
+  };
+  const line = deriveTableLog(auth, (id) => ({ p1: "あなた", ai1: "虎鉄", ai2: "凛", ai3: "舞" }[id] ?? id));
+  assert.ok(line.includes("生存: あなた、虎鉄"));
+  assert.ok(line.includes("昨夜の犠牲: 凛"));
+  assert.ok(line.includes("前回の処刑: 舞"));
+});
+
+test("守られた夜は犠牲者の名前を出さない", () => {
+  const auth = {
+    players: { p1: { id: "p1", alive: true } },
+    lastAttack: { targetId: "p1", protected: true },
+  };
+  const line = deriveTableLog(auth, (id) => "あなた");
+  assert.ok(line.includes("誰も欠けなかった"));
+  assert.ok(!line.includes("犠牲:"));
 });

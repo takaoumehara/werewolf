@@ -1201,7 +1201,10 @@ body {
   border-left: 1px solid var(--sem-line, var(--p-line));
   background: var(--sem-bg-elevated, var(--p-surface));
   box-shadow: -12px 0 32px rgba(0, 0, 0, 0.5);
-  overflow-y: auto;
+  /* ドロワー自身も、中のタブ面も両方 overflow-y:auto だったため、スクロールが
+     二重になり「途中で止まる／片方だけ動く」入れ子スクロールになっていた。
+     スクロールするのはタブ面だけにする。 */
+  overflow: hidden;
   transform: translateX(100%);
   transition: transform var(--t-phase) var(--ease-standard);
   display: flex;
@@ -1260,7 +1263,10 @@ body {
 .rules-tab-panel {
   display: none;
   flex: 1;
+  /* min-height:0 が無いと flex 子は内容の高さで押し広がり、overflow-y が効かない。 */
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding-right: var(--sp-1);
 }
 
@@ -1362,14 +1368,17 @@ body {
   border-color: var(--sem-accent, var(--p-moonlight));
 }
 
+/* 4つのチップは 393pt では1行に収まらず、横スクロールなのが分からないまま
+   「第三陣営」が切れて見えていた。折り返して全部見せる。 */
 .role-filter-chips {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--sp-1);
-  overflow-x: auto;
   padding-bottom: var(--sp-2);
   margin-bottom: var(--sp-3);
   scrollbar-width: none;
 }
+.role-filter-chips .role-chip { flex: 0 1 auto; }
 
 .role-filter-chips::-webkit-scrollbar {
   display: none;
@@ -1421,8 +1430,8 @@ body {
 .role-card-thumb {
   position: relative;
   flex: none;
-  width: 72px;
-  height: 84px;
+  width: 76px;
+  height: 100px;
   border-radius: 10px;
   overflow: hidden;
   background: linear-gradient(180deg, #20191a, #0c0a09);
@@ -1444,13 +1453,16 @@ body {
 .role-card-thumb img { z-index: 2; }
 .role-card-thumb.faction-werewolf { border-bottom-color: var(--p-werewolf); }
 .role-card-thumb.faction-third { border-bottom-color: var(--p-third); }
+/* 図鑑のサムネ。以前は height:128% を下端に揃えていたため、縦に28%はみ出した分が
+   上から切り落とされ、ほぼ全ての役職で顔が写っていなかった。
+   枠内に必ず収める。 */
 .role-card-thumb img {
   position: absolute;
-  bottom: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  height: 128%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  object-position: center 18%;
 }
 .role-card-main {
   flex: 1;

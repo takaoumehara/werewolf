@@ -18,6 +18,31 @@ export function phaseDurationsFor(aiCount) {
 export const AI_TURN_CLAIM_TTL_MS = 120_000;
 
 /**
+ * 昼に流せる発話の波の数。1波目は全員の第一声、2波目以降は人間の発言への返し。
+ *
+ * 1波だけだと、AIは昼の開始と同時に喋り切って終わる — 人間がそのあとに何を書いても
+ * 誰も反応しない（監査の積み残し3件目の正体はこれ）。上限を設けるのは、
+ * 人間が書くたびに LLM 呼び出しが無制限に増えないようにするため。
+ */
+export const MAX_DAY_WAVES = 3;
+
+/** 発話の波は昼だけに存在する。夜と投票は常に1回。 */
+export function normalizeWave(phase, wave) {
+  if (phase !== "day") return 1;
+  const n = Number(wave);
+  if (!Number.isFinite(n) || n < 1) return 1;
+  return Math.min(Math.floor(n), MAX_DAY_WAVES);
+}
+
+/**
+ * 二重実行を止めるための claim のキー。
+ * 1波目は従来と同じ `{round}_{phase}` のまま（既存の卓の状態と互換）。
+ */
+export function claimKey(round, phase, wave = 1) {
+  return wave > 1 ? `${round}_${phase}_w${wave}` : `${round}_${phase}`;
+}
+
+/**
  * 同じ (round, phase) に対する advanceAiTurn を1回だけ通すための判定。
  *
  * claim は rooms/{roomId}/game/aiTurns/{round}_{phase} の現在値

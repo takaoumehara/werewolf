@@ -1,6 +1,6 @@
 # デプロイ手順（月下ノ影 / jinro-bb5a5）
 
-最終確認: 2026-07-29 / 対象コミット `aaff02f`（main）
+最終確認: 2026-08-02 / 対象コミット `661491a`（`claude/werewolf-solo-ai-fix-zc4emn`）
 
 ## 前提の確認結果
 
@@ -11,7 +11,7 @@
 |---|---|
 | `firebase-tools` | ✅ 15.24.0 で動作確認 |
 | `functions` の依存と esbuild ビルド | ✅ `npm --prefix functions run build` が通る（`lib/index.mjs` 60.4KB） |
-| Hosting の配信物 `public/` | ✅ 127MB（画像庫を含む）。`public/index.html` は `mobile_app.html` と一致 |
+| Hosting の配信物 `public/` | ✅ 43MB（原画は除外し `thumbs/`+`cards/` を配る）。`public/index.html` は `mobile_app.html` と一致 |
 | Google API への到達 | ✅ hosting / cloudfunctions / cloudbuild / artifactregistry / oauth2 すべて到達可 |
 | **認証情報** | ❌ **無い**。`firebase login` は対話ブラウザが必要 |
 | **`*.firebaseio.com` への到達** | ❌ **組織の外向き通信ポリシーが 403 で遮断**（下記） |
@@ -36,11 +36,55 @@
 `advanceAiTurn` は `ANTHROPIC_API_KEY` シークレットに束縛されている。未登録なら一度だけ:
 
 ```bash
-firebase functions:secrets:set ANTHROPIC_API_KEY
+firebase functions:secrets:set ANTHROPIC_API_KEY --project jinro-bb5a5
 ```
 
 **リポジトリにキーを置かないこと。** `functions/.secret.local` はエミュレータ専用の
 ダミー置き場で、gitignore 済み。
+
+#### 鍵が無くてもゲームは止まらない（2026-08-02 以降）
+
+夜行動と投票はローカルの `ai-brain` で動き、**昼の発話だけ**が鍵を要る。
+以前はここが落ちると卓が丸ごと無言になっていたが、いまは鍵が無い／APIが落ちている
+ときは**ローカル発話（簡易モード）へ落ちて卓は最後まで回る**。
+
+その代わり、どちらで喋っているかは必ず分かるようにしてある:
+
+| `advanceAiTurn` の戻り値 `speechMode` | 意味 | 画面 |
+|---|---|---|
+| `llm` | 鍵があり、Anthropic で生成できた | 何も出ない |
+| `degraded` | 鍵はあるが生成が全部落ちた | 「AIの発話サーバーに繋がりません」 |
+| `local` | 鍵が未設定 | 「AIの発話は簡易モードです（APIキー未設定）」 |
+
+簡易モードの発話は chat に `source:"local"` が付く。あとから RTDB を見れば、
+どの発言が本物の生成だったか判別できる。
+
+#### 「AIが喋らない」ときの切り分け手順
+
+**デプロイせずに鍵だけ試せる。** 自分の端末で:
+
+```bash
+# 鍵は引数ではなく環境変数で渡す（履歴とプロセス一覧に残さないため）
+ANTHROPIC_API_KEY='sk-ant-...' node functions/scripts/check-anthropic-key.mjs
+```
+
+| 出力 | 次にやること |
+|---|---|
+| `OK: Anthropic API に到達しました` + 生成された発話 | 鍵は正しい。`functions:secrets:set` して `deploy --only functions` |
+| `NG: 鍵が拒否されました（401）` | 無効・失効・別組織の鍵。コンソールで作り直す |
+| `NG: レート制限（429）` | 鍵は有効。待って再実行 |
+| `NG: 残高（クレジット）` | 課金の残高を確認 |
+| `NG: 環境変数が空` | そもそも渡せていない |
+
+鍵が正しいのにアプリで簡易モードのままなら、**シークレットが functions に
+反映されていない**（登録後に `deploy --only functions` をしていない）。
+シークレットは登録しただけでは反映されず、関数を出し直す必要がある。
+
+登録済みかどうかは:
+
+```bash
+firebase functions:secrets:access ANTHROPIC_API_KEY --project jinro-bb5a5
+```
 
 ### 3. 料金プラン
 
@@ -56,8 +100,10 @@ bash tests/mobile_app_test.sh        # public/index.html の同期もここで�
 bash tests/live_selection_test.sh
 bash tests/viewport_fit_test.sh
 bash tests/design_system_test.sh
+bash tests/ui_regressions_test.sh
 (cd game-engine && npm test)
 node --test functions/ai/*.test.mjs
+node --test tests/solo_loop_test.mjs   # ソロ卓が決着まで回るかの通し確認
 
 # 出す先を固定する（一度やれば以後このディレクトリでは覚える）
 firebase use jinro-bb5a5
@@ -99,7 +145,7 @@ firebase use              # 使用中プロジェクトを表示
 | `projects:list` に `jinro-bb5a5` が出ない | そのアカウントに権限が無い。`firebase login:add` で別アカウントを足し、`--account` で指定する |
 | `firebase logout --token <token>` を実行した | **そのアカウントの Firebase CLI の認証がすべて無効になる**（端末のログインも切れる）。`firebase login --reauth` で復帰 |
 
-初回は `public/` の 127MB がまるごと上がる。会場の回線では時間がかかる。
+初回は `public/` の 43MB がまるごと上がる（原画を除外する前は 127MB あった）。
 
 ## 既知の制約
 

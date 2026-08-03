@@ -82,10 +82,19 @@
     night: { air: 'inward', ambientLevelMul: 1.0, shimmer: false, shimmerMin: 0, shimmerMax: 0, heartbeat: false },
     day: { air: 'open', ambientLevelMul: 1.0, shimmer: true, shimmerMin: 5, shimmerMax: 13, heartbeat: false },
     vote: { air: 'open', ambientLevelMul: 1.05, shimmer: true, shimmerMin: 2.5, shimmerMax: 6.5, heartbeat: true },
-    finished: { air: null, ambientLevelMul: 0, shimmer: false, shimmerMin: 0, shimmerMax: 0, heartbeat: false }
+    finished: { air: null, ambientLevelMul: 0, shimmer: false, shimmerMin: 0, shimmerMax: 0, heartbeat: false },
+    // 終局後にミュートを解除したときの復帰先。'finished' を再送すると
+    // stopDrone するだけで無音のままになるため、別名で落ち着いた空気に戻す。
+    calm_resume: { air: 'calm', ambientLevelMul: 0.8, shimmer: true, shimmerMin: 7, shimmerMax: 15, heartbeat: false }
   };
 
   var STORAGE_KEY = 'gekka-sound-muted';
+
+  // 出力レベル。BGMは「気づける」ことが最低条件で、旧値では実効ピークが
+  // 約 -40dBFS しかなく、静かな部屋でも聞こえなかった。
+  // 新しい構成の実効ピークは概ね -20dBFS 前後(環境音として妥当な範囲)。
+  var MASTER_LEVEL = 0.85;
+  var AMBIENT_BASE = 0.55;
 
   function loadMutedPref() {
     try {
@@ -134,10 +143,10 @@
   // ---------------------------------------------------------------------
   function setupGraph() {
     ambientGain = ctx.createGain();
-    ambientGain.gain.value = 0.26;
+    ambientGain.gain.value = AMBIENT_BASE;
 
     effectGain = ctx.createGain();
-    effectGain.gain.value = 0.27;
+    effectGain.gain.value = 0.42;
 
     reverbBus = ctx.createGain();
     reverbBus.gain.value = 0.3;
@@ -150,7 +159,7 @@
     compressor.ratio.value = 3;
 
     masterGain = ctx.createGain();
-    masterGain.gain.value = muted ? 0.0001 : 0.62;
+    masterGain.gain.value = muted ? 0.0001 : MASTER_LEVEL;
 
     ambientGain.connect(compressor);
     effectGain.connect(compressor);
@@ -237,9 +246,12 @@
   // パターンが永久に一致しないようにする。4秒毎に更新。
   // ---------------------------------------------------------------------
   var DRONE_LAYERS = [
-    { freq: NOTE.D3, type: 'triangle', baseGain: 0.03, detunePeriod: 71, gainPeriod: 109, seed: 0.37 },
-    { freq: NOTE.A3, type: 'sine', baseGain: 0.035, detunePeriod: 83, gainPeriod: 113, seed: 0.61 },
-    { freq: NOTE.E4, type: 'sine', baseGain: 0.018, detunePeriod: 97, gainPeriod: 137, seed: 0.84 }
+    // baseGain は「聞こえない」の実測修正。旧値(0.03/0.035/0.018)では
+    // ambient 0.26 × master 0.62 を通ったあとの実効ピークが約 -40dBFS になり、
+    // スマートフォンのスピーカーでは無音と区別がつかなかった。
+    { freq: NOTE.D3, type: 'triangle', baseGain: 0.075, detunePeriod: 71, gainPeriod: 109, seed: 0.37 },
+    { freq: NOTE.A3, type: 'sine', baseGain: 0.085, detunePeriod: 83, gainPeriod: 113, seed: 0.61 },
+    { freq: NOTE.E4, type: 'sine', baseGain: 0.045, detunePeriod: 97, gainPeriod: 137, seed: 0.84 }
   ];
   var FILTER_LFO_PERIOD = 53;
 
@@ -259,7 +271,9 @@
 
       var g = ctx.createGain();
       g.gain.value = 0.0001;
-      g.gain.exponentialRampToValueAtTime(Math.max(layer.baseGain, 0.0001), ctx.currentTime + 3);
+      // 立ち上がりは 3秒 → 1.4秒。トグルを押してから音が分かるまで3秒待たされると、
+      // ほぼ全員が「鳴らない」と判断して二度と押さない。
+      g.gain.exponentialRampToValueAtTime(Math.max(layer.baseGain, 0.0001), ctx.currentTime + 1.4);
 
       osc.connect(g);
       g.connect(droneFilter);
@@ -492,7 +506,7 @@
       applyAirStage(config.air, 2.5);
     }
 
-    var ambientTarget = 0.26 * config.ambientLevelMul;
+    var ambientTarget = AMBIENT_BASE * config.ambientLevelMul;
     var t = ctx.currentTime;
     ambientGain.gain.cancelScheduledValues(t);
     ambientGain.gain.setValueAtTime(Math.max(ambientGain.gain.value, 0.0001), t);
@@ -568,9 +582,14 @@
       stopHeartbeat();
       stopDrone(0.6);
     } else {
-      // ミュート解除時はmasterを0→0.62へ2.8秒ランプし、現在フェーズの空気を復帰
-      masterGain.gain.exponentialRampToValueAtTime(0.62, t + 2.8);
-      if (currentPhase && currentPhase !== 'finished') setPhase(currentPhase);
+      // ミュート解除は 0.9秒で立ち上げる(旧2.8秒)。押してすぐ変化が分からないと
+      // 「効かないボタン」と判断される。
+      masterGain.gain.exponentialRampToValueAtTime(MASTER_LEVEL, t + 0.9);
+      // 'finished' で止めたあとに解除された場合、currentPhase を復帰させても
+      // setPhase が即 stopDrone するだけで無音のままになる。落ち着いた空気で鳴らし直す。
+      setPhase(currentPhase && currentPhase !== 'finished' ? currentPhase : 'calm_resume');
+      // 解除した瞬間に必ず一音鳴らす。ドローンだけだと「押しても何も起きない」に見える。
+      stinger('reveal');
     }
   }
 

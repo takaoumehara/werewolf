@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import {
   AI_TABLE_PHASE_DURATIONS,
   AI_TURN_CLAIM_TTL_MS,
+  MAX_DAY_WAVES,
+  claimKey,
+  normalizeWave,
   claimDecision,
   phaseDurationsFor,
 } from "./turn-policy.mjs";
@@ -53,4 +56,23 @@ test("TTL を過ぎた未完了の claim は再試行を通す", () => {
 
 test("startedAt が欠けた壊れた claim も TTL 判定で詰まらない", () => {
   assert.equal(claimDecision({ done: false }, AI_TURN_CLAIM_TTL_MS).grant, true);
+});
+
+test("発話の波は昼だけ。夜と投票は常に1回", () => {
+  assert.equal(normalizeWave("night", 3), 1);
+  assert.equal(normalizeWave("vote", 2), 1);
+  assert.equal(normalizeWave("day", 2), 2);
+});
+
+test("波の数には上限がある（人間が書くたびに無制限に生成させない）", () => {
+  assert.equal(normalizeWave("day", 99), MAX_DAY_WAVES);
+  assert.equal(normalizeWave("day", 0), 1);
+  assert.equal(normalizeWave("day", "あ"), 1);
+  assert.equal(normalizeWave("day", undefined), 1);
+});
+
+test("1波目の claim キーは従来と同じ（進行中の卓を壊さない）", () => {
+  assert.equal(claimKey(2, "day", 1), "2_day");
+  assert.equal(claimKey(2, "day"), "2_day");
+  assert.notEqual(claimKey(2, "day", 2), claimKey(2, "day", 1));
 });

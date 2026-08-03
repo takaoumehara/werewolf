@@ -460,10 +460,26 @@ function publicDeath(death) {
   return { cause, round: death.round };
 }
 
+/**
+ * この卓に入っている役職の内訳。物理の人狼で「使う札を全員に見せてから配る」のと
+ * 同じ情報で、誰がどれを持つかは一切含まない。並びは roleId の昇順に固定し、
+ * 席順から配役を推測できないようにする。
+ */
+function publicRoleComposition(state) {
+  const counts = {};
+  for (const player of Object.values(state.players)) {
+    counts[player.roleId] = (counts[player.roleId] ?? 0) + 1;
+  }
+  return Object.keys(counts).sort().map((roleId) => ({
+    roleId, count: counts[roleId], team: getRoleDefinition(roleId).team,
+  }));
+}
+
 export function toPublicView(state) {
   return {
     gameId: state.gameId, revision: state.revision, gmMode: state.gmMode,
     phase: state.phase, round: state.round, deadlineAt: state.deadlineAt,
+    roleComposition: publicRoleComposition(state),
     players: Object.fromEntries(Object.entries(state.players).map(([id, player]) => [id, {
       id, displayName: player.displayName, alive: player.alive, death: publicDeath(player.death),
       revealedRoleId: state.phase === "finished" ? player.roleId : (state.revealedRoles?.[id] ?? null),

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><title>ui regressions</title></head>
+<body style="margin:0">
+<!--
+  2026-08-02 に入れた「遊べるようにする」ための作りが、あとから静かに壊れて
+  いないかを見る。どれも一度は実際に壊れていた箇所なので、目視ではなく機械で守る。
+
+    1. 生存者ストリップが、卓の画面でだけ出る
+    2. ルールのドロワーが二重スクロールになっていない
+    3. 図鑑のサムネが枠からはみ出さない(顔が切れない)
+    4. 「はじめての人へ」が4枚あり、最後まで進むと閉じる
+    5. 間の画面(夜/朝/評決)が自動で進まない
+    6. トップバーが画面ごとに切り替わる
+
+  結果は #out に、開始/終了マーカーで囲んだ JSON として出す。
+-->
+<iframe id="f" style="border:0"></iframe>
+<pre id="out">UI_START{"pending":true}UI_END</pre>
+<script>
+(function () {
+  'use strict';
+  var q = new URLSearchParams(location.search);
+  var W = parseInt(q.get('w') || '393', 10);
+  var H = parseInt(q.get('h') || '712', 10);
+  var f = document.getElementById('f');
+  f.style.width = W + 'px';
+  f.style.height = H + 'px';
+  f.src = '/mobile_app.html?demo=1';
+
+  var LEDGER = ['s10', 's11', 's12', 's13', 's14', 's15', 's16', 's17', 's18'];
+  var INTRO = ['s01', 's02', 's02b'];
+
+  function finish(payload) {
+    document.getElementById('out').textContent =
+      'UI_START' + JSON.stringify(payload) + 'UI_END';
+  }
+
+  f.addEventListener('load', function () {
+    var w = f.contentWindow;
+    var d = w.document;
+    (function run() {
+      if (typeof w.showScreen !== 'function') return setTimeout(run, 200);
+      var overlay = d.getElementById('opening-overlay');
+      if (overlay) overlay.style.display = 'none';
+
+      var problems = [];
+
+      /* 1. 生存者ストリップの出入り ------------------------------------ */
+      var strip = d.getElementById('aliveStrip');
+      if (!strip) problems.push('生存者ストリップ(#aliveStrip)が無い');
+      else {
+        d.querySelectorAll('.screen').forEach(function (sec) {
+          w.showScreen(sec.id);
+          var shown = !strip.classList.contains('u-hidden');
+          var want = LEDGER.indexOf(sec.id) !== -1;
+          if (shown !== want) {
+            problems.push(sec.id + ': 生存者ストリップが' + (want ? '出ていない' : '出ている'));
+          }
+        });
+        w.showScreen('s14');
+        if (!/生存\s*\d+\/\d+/.test(d.getElementById('aliveStripCount').textContent)) {
+          problems.push('生存者ストリップに人数が入っていない');
+        }
+        if (d.querySelectorAll('#aliveStripList .alive-chip').length === 0) {
+          problems.push('生存者ストリップに誰も並んでいない');
+        }
+      }
+
+      /* 6. トップバーの出し分け ---------------------------------------- */
+      var intro = d.getElementById('opReplayBtn');
+      if (!intro) problems.push('トップバーの「映像」が無い');
+      else {
+        ['s01', 's07', 's14'].forEach(function (id) {
+          w.showScreen(id);
+          var shown = !intro.classList.contains('u-hidden');
+          var want = INTRO.indexOf(id) !== -1;
+          if (shown !== want) {
+            problems.push(id + ': 映像/制作が' + (want ? '出ていない' : '卓の最中に出ている'));
+          }
+        });
+      }
+
+      /* 4. はじめての人へ ---------------------------------------------- */
+      var howto = d.getElementById('howtoOverlay');
+      var panels = d.querySelectorAll('.howto-panel');
+      if (!howto) problems.push('「はじめての人へ」が無い');
+      else if (panels.length !== 4) problems.push('「はじめての人へ」が4枚ではなく ' + panels.length + ' 枚');
+      else {
+        w.showScreen('s01');
+        d.querySelector('[data-open-howto]').click();
+        if (howto.hidden) problems.push('「はじめての人へ」が開かない');
+        var next = d.getElementById('howtoNextBtn');
+        next.click(); next.click(); next.click();
+        if ((next.textContent || '').indexOf('はじめる') === -1) {
+          problems.push('最後の1枚でボタンが「はじめる」にならない');
+        }
+        next.click();
+        if (!howto.hidden) problems.push('最後まで進んでも閉じない');
+      }
+
+      /* 2. ルールのドロワーが二重スクロールでない ------------------------ */
+      var drawer = d.getElementById('rulesDrawer');
+      var tabRoles = d.querySelector('.rules-tab-btn[data-tab="roles"]');
+      var tabTable = d.querySelector('.rules-tab-btn[data-tab="table"]');
+      if (!drawer || !tabRoles || !tabTable) problems.push('ルールのドロワーかタブが無い');
+      else {
+        w.showScreen('s14');
+        d.getElementById('rulesBtn').click();
+        tabRoles.click();
+        if (drawer.scrollHeight - drawer.clientHeight > 2) {
+          problems.push('ドロワー自身がスクロールしている(入れ子スクロール)');
+        }
+        var panel = d.getElementById('rulesTabPanelRoles');
+        if (panel.scrollHeight <= panel.clientHeight) {
+          problems.push('図鑑のタブ面がスクロールしない(中身が出ていない可能性)');
+        }
+
+        /* 3. 図鑑のサムネがはみ出さない ------------------------------- */
+        var thumbs = d.querySelectorAll('.role-card-thumb');
+        var cropped = 0;
+        thumbs.forEach(function (t) {
+          var img = t.querySelector('img');
+          if (!img) return;
+          var tr = t.getBoundingClientRect();
+          var ir = img.getBoundingClientRect();
+          if (ir.top < tr.top - 1 || ir.bottom > tr.bottom + 1) cropped += 1;
+        });
+        if (thumbs.length === 0) problems.push('図鑑にサムネが1件も無い');
+        if (cropped > 0) problems.push('図鑑のサムネ ' + cropped + ' 件が枠からはみ出している(頭切れ)');
+
+        /* この卓のタブが描画される */
+        tabTable.click();
+        if (d.getElementById('tableRosterBox').textContent.trim() === '') {
+          problems.push('「この卓」の参加者一覧が空');
+        }
+        d.getElementById('rulesCloseBtn').click();
+      }
+
+      /* 5. 間の画面が自動で進まない ------------------------------------- */
+      var timerArmed = false;
+      var realSetTimeout = w.setTimeout;
+      w.setTimeout = function (fn, ms) {
+        if (ms >= 1000 && ms <= 5000) timerArmed = true;
+        return realSetTimeout.apply(w, arguments);
+      };
+      ['s10', 's13', 's16', 's17'].forEach(function (id) { w.showScreen(id); });
+      w.setTimeout = realSetTimeout;
+      if (timerArmed) {
+        problems.push('間の画面がまだ1〜5秒で自動送りしている');
+      }
+      // 進むボタンと「追いつく」案内が全部の間の画面にある
+      ['s10', 's13', 's16', 's17'].forEach(function (id) {
+        if (!d.querySelector('#' + id + ' .catchup-hint')) {
+          problems.push(id + ': 卓が先へ進んだことを知らせる案内が無い');
+        }
+      });
+
+      /* 7. 途中復帰の導線とAIの返し ------------------------------------- */
+      // 「前の卓に戻る」は控えがあるときだけ出す。demo では常に隠れているのが正。
+      var resume = d.getElementById('resumeCard');
+      if (!resume) problems.push('「前の卓に戻る」(#resumeCard)が無い');
+      else {
+        w.showScreen('s02');
+        if (!resume.classList.contains('u-hidden')) {
+          problems.push('復帰の控えが無いのに「前の卓に戻る」が出ている');
+        }
+        if (typeof w.handleResumeRoom !== 'function') problems.push('handleResumeRoom が公開されていない');
+      }
+      // 人間の発言がAIの返し(第二波)を呼ぶ配線が残っているか。
+      if (!/requestAiReplyWave/.test(String(w.handleChatSend))) {
+        problems.push('発言してもAIの返し(第二波)が呼ばれない');
+      }
+
+      finish({ problems: problems, thumbCount: d.querySelectorAll('.role-card-thumb').length });
+    })();
+  });
+})();
+</script>
+</body>
+</html>
